@@ -13,6 +13,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   changePasswordSchema,
+  googleAuthSchema,
 } from '../validators/auth.validators.js';
 
 const router = Router();
@@ -30,6 +31,13 @@ router.post(
   authRateLimiter,
   validateRequest(loginSchema),
   authController.login,
+);
+
+router.post(
+  '/google',
+  authRateLimiter,
+  validateRequest(googleAuthSchema),
+  authController.googleLogin,
 );
 
 // Session Lifecycle

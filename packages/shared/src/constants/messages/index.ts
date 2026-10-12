@@ -68,6 +68,9 @@ export const AUTH_MESSAGES = {
   resetLinkSentTitle: 'Check your email',
   resetLinkSentMessage: 'If an account exists with this email, password recovery instructions have been dispatched.',
   backToLoginLink: 'Back to sign in',
+  googleSignInButton: 'Sign in with Google',
+  googleSignInFailed: 'Google sign-in was unsuccessful. Please try again or use your email.',
+  orDividerText: 'or continue with email',
 } as const;
 
 export const LEADERBOARD_MESSAGES = {

@@ -62,7 +62,7 @@ export const configSchema = z
     PASSWORD_RESET_TOKEN_TTL: z.string().min(1).default('1h'),
     CORS_ORIGINS: z
       .string()
-      .default('http://localhost:3000')
+      .default('http://localhost:3000,http://localhost:5173')
       .transform((val) =>
         val
           .split(',')
@@ -91,6 +91,7 @@ export const configSchema = z
     EMAIL_FROM: z.string().min(1).default('PlayMatch Team <noreply@playmatch.app>'),
     EMAIL_TRANSPORT: z.enum(['smtp', 'console']).default('console'),
     CLIENT_HEADER_NAME: z.string().min(1).default('x-client-type'),
+    GOOGLE_CLIENT_ID: z.string().optional().default(''),
 
     // Module 2 Profile & Sport Catalog Configs
     DEFAULT_SEED_RATING: numberStringSchema
