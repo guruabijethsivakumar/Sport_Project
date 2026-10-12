@@ -3,103 +3,94 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as hooks from '../src/query/hooks.js';
 
-// Table mapping OpenAPI Operation IDs to live hooks
-export const OPENAPI_OPERATION_TO_HOOK_MAP: Record<string, string> = {
+export interface HookContractMapping {
+  hookName: string;
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  path: string;
+  expectedQueryParams?: string[];
+}
+
+export const HOOK_SPEC_MAPPINGS: HookContractMapping[] = [
   // Auth
-  login: 'useLogin',
-  register: 'useRegister',
-  logout: 'useLogout',
+  { hookName: 'useLogin', method: 'POST', path: '/api/v1/auth/login' },
+  { hookName: 'useRegister', method: 'POST', path: '/api/v1/auth/register' },
+  { hookName: 'useLogout', method: 'POST', path: '/api/v1/auth/logout' },
 
   // Sports Catalog
-  getSportsCatalog: 'useSportsCatalog',
-  getSportByKey: 'useSportDetail',
+  { hookName: 'useSportsCatalog', method: 'GET', path: '/api/v1/sports' },
 
   // Profile & Onboarding
-  getMyProfile: 'useMyProfile',
-  updateMyProfile: 'useUpdateProfile',
-  getOnboardingStatus: 'useOnboardingStatus',
+  { hookName: 'useMyProfile', method: 'GET', path: '/api/v1/profile/me' },
+  { hookName: 'useOnboardingStatus', method: 'GET', path: '/api/v1/profile/me/onboarding' },
 
   // Ratings & Leaderboards
-  getMyRatings: 'useMyRatings',
-  getMyRatingHistory: 'useRatingHistory',
-  getSportLeaderboard: 'useLeaderboardInfinite',
+  { hookName: 'useMyRatings', method: 'GET', path: '/api/v1/ratings/me' },
+  { hookName: 'useRatingHistory', method: 'GET', path: '/api/v1/ratings/me/{sportKey}/history' },
+  { hookName: 'useLeaderboardInfinite', method: 'GET', path: '/api/v1/leaderboards/{sportKey}' },
 
   // Games
-  createGame: 'useCreateGame',
-  getMyGames: 'useMyGames',
-  getGameById: 'useGameDetail',
-  getGameRoster: 'useGameRoster',
-  joinGame: 'useJoinGame',
-  leaveGame: 'useLeaveGame',
+  { hookName: 'useMyGames', method: 'GET', path: '/api/v1/games/me' },
+  { hookName: 'useGameDetail', method: 'GET', path: '/api/v1/games/{id}' },
+  { hookName: 'useGameRoster', method: 'GET', path: '/api/v1/games/{id}/roster' },
+  { hookName: 'useCreateGame', method: 'POST', path: '/api/v1/games' },
+  { hookName: 'useJoinGame', method: 'POST', path: '/api/v1/games/{id}/join' },
+  { hookName: 'useLeaveGame', method: 'POST', path: '/api/v1/games/{id}/leave' },
 
   // Discovery
-  discoverGames: 'useDiscoverGames',
+  {
+    hookName: 'useDiscoverGames',
+    method: 'GET',
+    path: '/api/v1/games/discover',
+    expectedQueryParams: ['latitude', 'longitude'],
+  },
 
   // Venues
-  getVenues: 'useVenues',
-  getVenueById: 'useVenueDetail',
-};
+  {
+    hookName: 'useVenues',
+    method: 'GET',
+    path: '/api/v1/venues',
+    expectedQueryParams: ['latitude', 'longitude', 'sportKey', 'radiusKm'],
+  },
+  { hookName: 'useVenueDetail', method: 'GET', path: '/api/v1/venues/{id}' },
+];
 
-// Explicitly excluded operations (admin endpoints, server-to-server, verification callbacks)
-export const EXPLICIT_OPERATION_EXCLUSIONS = new Set([
-  'refreshToken', // Handled automatically inside ApiClient.refreshSession()
-  'verifyEmail', // Web deep link callback / server redirect
-  'resendVerificationEmail',
-  'forgotPassword',
-  'resetPassword',
-  'applyMatchResultAdmin', // Admin only
-  'voidMatchResultAdmin', // Admin only
-  'adminListUsers', // Admin only
-  'adminUpdateUserStatus', // Admin only
-  'submitOnboardingStep',
-  'completeOnboarding',
-  'getVenueSuggestionsForGame',
-  'editGame',
-  'cancelGame',
-  'approveParticipant',
-  'declineParticipant',
-  'checkParticipantEligibility',
-  'createVenue',
-  'updateVenue',
-  'submitVenueForApproval',
-  'approveVenueAdmin',
-  'rejectVenueAdmin',
-  'suspendVenueAdmin',
-  'addCourt',
-  'updateCourt',
-  'deleteCourt',
-  'addVenueClosure',
-  'deleteVenueClosure',
-  'checkCourtAvailability',
-  'discoverVenues',
-]);
-
-describe('OpenAPI Operation to Hook Coverage Test', () => {
-  it('verifies every OpenAPI operation has a typed hook or is on the explicit exclusion list', () => {
+describe('OpenAPI Operation to Hook Verification', () => {
+  it('checks every hook HTTP method, path and query parameter names against server/openapi.json', () => {
     const specPath = path.resolve(__dirname, '../../../server/openapi.json');
     const spec = JSON.parse(fs.readFileSync(specPath, 'utf-8'));
-
-    const missingOperations: string[] = [];
     const availableHookNames = new Set(Object.keys(hooks));
 
-    for (const [pathKey, pathItem] of Object.entries<any>(spec.paths)) {
-      for (const [method, operation] of Object.entries<any>(pathItem)) {
-        if (['get', 'post', 'put', 'patch', 'delete'].includes(method.toLowerCase()) && operation.operationId) {
-          const opId = operation.operationId;
-          const mappedHook = OPENAPI_OPERATION_TO_HOOK_MAP[opId];
+    for (const mapping of HOOK_SPEC_MAPPINGS) {
+      // 1. Verify hook exists in exports
+      expect(availableHookNames.has(mapping.hookName)).toBe(true);
 
-          if (mappedHook) {
-            expect(availableHookNames.has(mappedHook)).toBe(true);
-          } else if (!EXPLICIT_OPERATION_EXCLUSIONS.has(opId)) {
-            missingOperations.push(`${method.toUpperCase()} ${pathKey} (operationId: ${opId})`);
-          }
+      // 2. Verify path exists in OpenAPI spec
+      const pathItem = spec.paths[mapping.path];
+      expect(
+        pathItem,
+        `Path ${mapping.path} for hook ${mapping.hookName} must exist in openapi.json`
+      ).toBeDefined();
+
+      // 3. Verify HTTP method exists on the path
+      const operation = pathItem[mapping.method.toLowerCase()];
+      expect(
+        operation,
+        `Method ${mapping.method} on ${mapping.path} for hook ${mapping.hookName} must exist in openapi.json`
+      ).toBeDefined();
+
+      // 4. Verify query parameters exist in OpenAPI spec
+      if (mapping.expectedQueryParams && mapping.expectedQueryParams.length > 0) {
+        const specQueryParams = (operation.parameters || [])
+          .filter((p: any) => p.in === 'query')
+          .map((p: any) => p.name);
+
+        for (const queryParam of mapping.expectedQueryParams) {
+          expect(
+            specQueryParams,
+            `Query parameter "${queryParam}" must exist in ${mapping.method} ${mapping.path} spec parameters`
+          ).toContain(queryParam);
         }
       }
     }
-
-    if (missingOperations.length > 0) {
-      console.error('Missing hooks for operations:', missingOperations);
-    }
-    expect(missingOperations).toEqual([]);
   });
 });

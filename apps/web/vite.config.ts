@@ -8,4 +8,8 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
   },
+  // @ts-ignore
+  test: {
+    environment: 'jsdom',
+  },
 });

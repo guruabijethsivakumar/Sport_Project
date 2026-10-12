@@ -1,3 +1,16 @@
+# PlayMatch CI
+#
+# Scope: WEB-ONLY plan.
+#   - packages/shared : lint → typecheck → check:api drift → test
+#   - apps/web        : lint → typecheck → test → build
+#   - server          : npm ci → lint → build → openapi:check → test (Vitest with coverage)
+#
+# apps/mobile is intentionally EXCLUDED from CI.
+# In the shared and web jobs, we install only needed workspaces:
+#   `npm ci --workspace packages/shared --workspace apps/web --include-workspace-root`
+# so Expo and react-native-reanimated are never downloaded or installed in CI.
+# Server caches MongoDB binary at /tmp/mongoms-cache across workflow runs.
+
 name: PlayMatch CI
 
 on:
@@ -6,53 +19,133 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  MONGOMS_DOWNLOAD_DIR: /tmp/mongoms-cache
+  MONGODB_URI: "mongodb://localhost:27017/test_db"
+  CLIENT_WEB_URL: "http://localhost:3000"
+  JWT_ACCESS_SECRET: "ci_dummy_access_secret_32chars_min"
+  JWT_REFRESH_SECRET: "ci_dummy_refresh_secret_32chars_min"
+
 jobs:
-  build-and-test:
-    name: Lint, Build, Drift Check & Test
+  # ── Job 1: packages/shared ─────────────────────────────────────────────────
+  shared:
+    name: "shared — lint · typecheck · drift · test"
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: server
-
     strategy:
       matrix:
         node-version: [20.x]
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Install scoped workspace dependencies
+        run: npm ci --workspace packages/shared --workspace apps/web --include-workspace-root
+
+      - name: "shared · Lint"
+        run: npm --prefix packages/shared run lint
+
+      - name: "shared · Typecheck"
+        run: npm --prefix packages/shared run typecheck
+
+      - name: "shared · API drift check (openapi → generated.ts)"
+        run: npm --prefix packages/shared run check:api
+
+      - name: "shared · Test"
+        run: npm --prefix packages/shared test
+
+  # ── Job 2: apps/web ─────────────────────────────────────────────────────────
+  web:
+    name: "web — lint · typecheck · test · build"
+    runs-on: ubuntu-latest
+    needs: shared
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Install scoped workspace dependencies
+        run: npm ci --workspace packages/shared --workspace apps/web --include-workspace-root
+
+      - name: "web · Lint"
+        run: npm --prefix apps/web run lint
+
+      - name: "web · Typecheck"
+        run: npm --prefix apps/web run typecheck
+
+      - name: "web · Test"
+        run: npm --prefix apps/web test
+
+      - name: "web · Build (vite)"
+        run: npm --prefix apps/web run build
+
+  # ── Job 3: server ───────────────────────────────────────────────────────────
+  server:
+    name: "server — lint · build · openapi:check · test"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
           cache-dependency-path: server/package-lock.json
 
-      - name: Install Dependencies
+      - name: Cache MongoDB Binary
+        uses: actions/cache@v4
+        with:
+          path: /tmp/mongoms-cache
+          key: ${{ runner.os }}-mongoms-${{ hashFiles('server/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-mongoms-
+
+      - name: "server · Install dependencies"
+        working-directory: server
         run: npm ci
 
-      - name: Run ESLint
+      - name: "server · Lint"
+        working-directory: server
         run: npm run lint
 
-      - name: TypeScript Typecheck & Build
+      - name: "server · TypeScript build"
+        working-directory: server
         run: npm run build
 
-      - name: OpenAPI Drift Check
+      - name: "server · OpenAPI drift check"
+        working-directory: server
         run: npm run openapi:check
 
-      - name: Run Vitest Suite (with coverage)
+      - name: "server · Test (Vitest with coverage)"
+        working-directory: server
         run: npm test
 
+  # ── Job 4: Secret / credential audit ────────────────────────────────────────
   gitleaks-audit:
-    name: Secret & Credential Audit
+    name: "security · gitleaks secret scan"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -60,9 +153,3 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-env:
-      MONGODB_URI: "mongodb://localhost:27017/test_db"
-      CLIENT_WEB_URL: "http://localhost:3000"
-      JWT_ACCESS_SECRET: "dummy_access_secret_for_ci_testing"
-      JWT_REFRESH_SECRET: "dummy_refresh_secret_for_ci_testing"

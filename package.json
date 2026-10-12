@@ -7,21 +7,30 @@
     "apps/*"
   ],
   "scripts": {
-    "server:test": "npm --prefix server test",
-    "server:build": "npm --prefix server run build",
-    "server:lint": "npm --prefix server run lint",
+    "_comment_scope": "Web-only plan. apps/mobile is intentionally excluded from CI and the composite test/build scripts. It remains in workspaces so npm ci links @playmatch/shared for local mobile dev. Run 'npm --prefix apps/mobile test' manually to test mobile.",
+    "setup": "npm ci && npm --prefix server ci",
     "server:dev": "npm --prefix server run dev",
     "server:seed": "npm --prefix server run seed:demo",
     "gen:api": "npm --prefix packages/shared run gen:api",
     "check:api": "npm --prefix packages/shared run check:api",
+    "typecheck:shared": "npm --prefix packages/shared run typecheck",
+    "typecheck:web": "npm --prefix apps/web run typecheck",
+    "lint:shared": "npm --prefix packages/shared run lint",
+    "lint:web": "npm --prefix apps/web run lint",
+    "lint:server": "npm --prefix server run lint",
+    "lint": "npm run lint:shared && npm run lint:web && npm run lint:server",
     "test:shared": "npm --prefix packages/shared test",
     "test:web": "npm --prefix apps/web test",
+    "test:server": "npm --prefix server test",
     "test:mobile": "npm --prefix apps/mobile test",
-    "test": "npm --prefix packages/shared test && npm --prefix apps/web test && npm --prefix server test",
-    "lint": "npm run lint --workspaces --if-present && npm --prefix server run lint",
-    "build": "npm run build --workspaces --if-present && npm --prefix server run build"
+    "test": "npm run test:shared && npm run test:web && npm run test:server",
+    "build:shared": "npm --prefix packages/shared run build 2>nul || echo packages/shared has no build step",
+    "build:web": "npm --prefix apps/web run build",
+    "build:server": "npm --prefix server run build",
+    "build": "npm run build:web && npm run build:server"
   },
   "devDependencies": {
     "prettier": "^3.4.2"
   }
 }
+
