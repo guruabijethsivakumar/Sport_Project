@@ -30,7 +30,7 @@ export function useUpdateProfile(client: ApiClient, options?: UseMutationOptions
 export function useOnboardingStatus(client: ApiClient, options?: Partial<UseQueryOptions<any, Error>>) {
   return useQuery({
     queryKey: queryKeys.profile.onboardingStatus(),
-    queryFn: () => client.get('/onboarding/status'),
+    queryFn: () => client.get('/profile/me/onboarding'),
     ...options,
   });
 }
