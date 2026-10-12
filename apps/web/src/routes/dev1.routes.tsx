@@ -1,6 +1,7 @@
 import React from 'react';
 import type { DomainRouteModule } from './types';
 import { LoginPage } from '../pages/auth/LoginPage';
+import { RegisterPage } from '../pages/auth/RegisterPage';
 import { ComingSoonPage } from '../pages/auth/ComingSoonPage';
 import { LeaderboardPage } from '../pages/leaderboard/LeaderboardPage';
 
@@ -13,14 +14,7 @@ export const dev1Routes: DomainRouteModule = [
   },
   {
     path: '/register',
-    element: (
-      <ComingSoonPage
-        title="Registration Coming Soon"
-        description="Player registration will open soon. Please check back later or log in with an existing account."
-        backTo="/login"
-        backLabel="Go to Login"
-      />
-    ),
+    element: <RegisterPage />,
     owner: 'Dev 1',
   },
   {
