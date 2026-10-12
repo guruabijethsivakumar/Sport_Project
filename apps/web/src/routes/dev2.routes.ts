@@ -1,4 +1,3 @@
-import React from 'react';
 import type { DomainRouteModule } from './types';
 
 // Dev 2 owns Games, Venues, and Admin routes
