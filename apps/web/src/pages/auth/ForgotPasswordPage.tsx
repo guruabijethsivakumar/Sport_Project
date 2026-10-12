@@ -58,22 +58,21 @@ export function ForgotPasswordPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6">
-        <Card className="shadow-lg border-border-subtle">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
-              <Icon name={isSubmitted ? 'mail' : 'key'} size={24} />
-            </div>
-            <CardTitle className="text-2xl font-bold tracking-tight">
-              {isSubmitted ? AUTH_MESSAGES.resetLinkSentTitle : AUTH_MESSAGES.forgotPasswordTitle}
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              {isSubmitted
-                ? AUTH_MESSAGES.resetLinkSentMessage
-                : AUTH_MESSAGES.forgotPasswordSubtitle}
-            </CardDescription>
-          </CardHeader>
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-md shadow-lg border-border">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-2xl mb-2">
+            P
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            {isSubmitted ? AUTH_MESSAGES.resetLinkSentTitle : AUTH_MESSAGES.forgotPasswordTitle}
+          </CardTitle>
+          <CardDescription className="text-sm">
+            {isSubmitted
+              ? AUTH_MESSAGES.resetLinkSentMessage
+              : AUTH_MESSAGES.forgotPasswordSubtitle}
+          </CardDescription>
+        </CardHeader>
 
           <CardContent className="pt-4">
             {isSubmitted ? (
@@ -151,7 +150,6 @@ export function ForgotPasswordPage(): React.ReactElement {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
