@@ -141,4 +141,20 @@ describe('LoginPage Reference Screen', () => {
       expect(screen.getByText('Home Destination')).toBeDefined();
     });
   });
+
+  it('redirects an already authenticated user away from /login immediately', async () => {
+    vi.spyOn(sharedApiClient, 'refreshSession').mockResolvedValueOnce('valid-token');
+    vi.spyOn(sharedApiClient, 'get').mockResolvedValueOnce({
+      id: 'usr-1',
+      email: 'user@example.com',
+      name: 'Existing User',
+      role: 'player',
+    });
+
+    renderLoginPage(['/login?redirect=/dashboard']);
+
+    await waitFor(() => {
+      expect(screen.getByText('Dashboard Destination')).toBeDefined();
+    });
+  });
 });
