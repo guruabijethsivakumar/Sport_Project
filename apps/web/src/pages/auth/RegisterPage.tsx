@@ -32,10 +32,10 @@ export function RegisterPage(): React.ReactElement {
     }
   }, [authError]);
 
-  // If already authenticated, redirect away immediately
+  // If already authenticated, redirect away immediately to / per spec
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/onboarding', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 

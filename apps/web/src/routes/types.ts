@@ -14,7 +14,7 @@ export interface AppRouteDefinition {
   path: string;
   element: React.ReactElement;
   children?: AppRouteDefinition[];
-  isProtected?: boolean;
+  isProtected: boolean;
   allowedRoles?: string[];
   owner?: 'Dev 1' | 'Dev 2' | 'Dev 3' | 'Core';
   nav?: NavItemConfig;

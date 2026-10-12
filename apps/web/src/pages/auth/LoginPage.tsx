@@ -33,13 +33,13 @@ export function LoginPage(): React.ReactElement {
     }
   }, [authError]);
 
-  // Safe redirect path calculation
+  // Safe redirect path calculation (support next, redirect, or from)
   const safeRedirect = getSafeRedirectPath(
-    searchParams.get('redirect') || searchParams.get('from'),
+    searchParams.get('next') || searchParams.get('redirect') || searchParams.get('from'),
     '/'
   );
 
-  // If already authenticated, redirect immediately
+  // If already authenticated, redirect immediately (defaults to / per spec, or safe redirect param)
   useEffect(() => {
     if (isAuthenticated) {
       navigate(safeRedirect, { replace: true });

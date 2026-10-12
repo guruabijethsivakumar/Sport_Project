@@ -11,27 +11,31 @@ export const dev1Routes: DomainRouteModule = [
   {
     path: '/login',
     element: <LoginPage />,
+    isProtected: false,
     owner: 'Dev 1',
   },
   {
     path: '/register',
     element: <RegisterPage />,
+    isProtected: false,
     owner: 'Dev 1',
   },
   {
     path: '/onboarding',
     element: <OnboardingPage />,
-    owner: 'Dev 1',
     isProtected: true,
+    owner: 'Dev 1',
   },
   {
     path: '/forgot-password',
     element: <ForgotPasswordPage />,
+    isProtected: false,
     owner: 'Dev 1',
   },
   {
     path: '/leaderboard',
     element: <LeaderboardPage />,
+    isProtected: true,
     owner: 'Dev 1',
     nav: {
       label: 'Leaderboard',

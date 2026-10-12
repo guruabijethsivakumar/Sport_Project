@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   forgotPasswordFormSchema,
   type ForgotPasswordFormValues,
@@ -15,10 +15,18 @@ import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 
 export function ForgotPasswordPage(): React.ReactElement {
-  const { client } = useAuth();
+  const { client, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
+
+  // If already authenticated, redirect away immediately to / per spec
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const {
     register,

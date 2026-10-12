@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear();
     setIsAuthenticated(false);
     setUser(null);
+    setIsLoading(false);
   }, [queryClient]);
 
   const revalidateSession = useCallback(async () => {
@@ -72,9 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         performLocalCleanup();
       }
     } finally {
-      if (sessionEpochRef.current === currentEpoch) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   }, [performLocalCleanup]);
 

@@ -9,6 +9,30 @@ export interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
+export function validateNextPath(path: string | null | undefined): string | null {
+  if (!path) return null;
+  try {
+    const decoded = decodeURIComponent(path).trim();
+    // Must start with a single slash and not '//' to prevent protocol-relative open redirects
+    if (!decoded.startsWith('/') || decoded.startsWith('//')) {
+      return null;
+    }
+    // Disallow auth routes to prevent redirect loops
+    const lower = decoded.toLowerCase();
+    if (
+      lower.startsWith('/login') ||
+      lower.startsWith('/register') ||
+      lower.startsWith('/forgot-password') ||
+      lower.startsWith('/logout')
+    ) {
+      return null;
+    }
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
 export function ProtectedRoute({
   children,
   allowedRoles,
@@ -41,17 +65,19 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    // Preserve intended destination only if it's a real feature route, never for auth endpoints
-    const currentPath = location.pathname.toLowerCase();
-    const isAuthRoute =
-      currentPath.includes('/login') ||
-      currentPath.includes('/register') ||
-      currentPath.includes('/forgot-password') ||
-      currentPath.includes('/logout');
+    const fullPath = location.pathname + location.search;
+    const validatedNext = validateNextPath(fullPath);
+    const destination = validatedNext
+      ? `${redirectTo}?next=${encodeURIComponent(validatedNext)}`
+      : redirectTo;
 
-    const redirectState = isAuthRoute ? undefined : { from: location };
-
-    return <Navigate to={redirectTo} state={redirectState} replace />;
+    return (
+      <Navigate
+        to={destination}
+        state={validatedNext ? { from: location } : undefined}
+        replace
+      />
+    );
   }
 
   if (allowedRoles && allowedRoles.length > 0) {

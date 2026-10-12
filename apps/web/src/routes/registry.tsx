@@ -9,20 +9,31 @@ import { KitShowcasePage } from '../pages/KitShowcasePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 
+import { HomePage } from '../pages/home/HomePage';
+
 export const coreRoutes: AppRouteDefinition[] = [
+  {
+    path: '/',
+    element: <HomePage />,
+    isProtected: false,
+    owner: 'Core',
+  },
   {
     path: '/kit',
     element: <KitShowcasePage />,
+    isProtected: true,
     owner: 'Core',
   },
   {
     path: '/unauthorized',
     element: <ForbiddenPage />,
+    isProtected: false,
     owner: 'Core',
   },
   {
     path: '/404',
     element: <NotFoundPage />,
+    isProtected: false,
     owner: 'Core',
   },
 ];

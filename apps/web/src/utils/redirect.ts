@@ -41,7 +41,12 @@ export function getSafeRedirectPath(candidate: unknown, fallback = '/'): string 
     }
 
     // Never redirect back to auth gates
-    if (parsed.pathname === '/login' || parsed.pathname === '/register') {
+    if (
+      parsed.pathname === '/login' ||
+      parsed.pathname === '/register' ||
+      parsed.pathname === '/forgot-password' ||
+      parsed.pathname === '/logout'
+    ) {
       return fallback;
     }
 
