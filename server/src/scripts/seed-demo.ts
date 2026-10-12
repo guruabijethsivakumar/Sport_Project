@@ -34,10 +34,11 @@ export class DatabaseSafetyError extends Error {
 }
 
 /**
- * Asserts that a target MongoDB URI points only to local safe hosts and not production.
- * Must refuse BEFORE any connection attempt!
+ * Asserts that a target MongoDB URI is permitted for seeding.
+ * Remote URIs require SEED_CONFIRM_REMOTE=yes and forbid --reset.
+ * Refuses if NODE_ENV is production.
  */
-export function assertSafeLocalDatabase(uri: string, nodeEnv?: string): void {
+export function assertSafeLocalDatabase(uri: string, nodeEnv?: string, isReset = false): void {
   if (nodeEnv === 'production') {
     throw new DatabaseSafetyError('SAFETY ERROR: Refusing to seed database when NODE_ENV is "production"!');
   }
@@ -47,22 +48,15 @@ export function assertSafeLocalDatabase(uri: string, nodeEnv?: string): void {
   }
 
   const trimmed = uri.trim();
-
-  // Always refuse mongodb+srv:// (Atlas and cloud-managed schemes)
-  if (trimmed.startsWith('mongodb+srv://')) {
-    throw new DatabaseSafetyError('SAFETY ERROR: Refusing connection with "mongodb+srv://" protocol! Local development only.');
+  const match = trimmed.match(/^(mongodb(?:\+srv)?):\/\/([^/]+)(?:\/([^?]+))?/i);
+  if (!match) {
+    throw new DatabaseSafetyError('SAFETY ERROR: URI must use the standard "mongodb://" or "mongodb+srv://" protocol.');
   }
 
-  if (!trimmed.startsWith('mongodb://')) {
-    throw new DatabaseSafetyError('SAFETY ERROR: URI must use the standard "mongodb://" protocol.');
-  }
-
-  // Parse hosts
-  // Standard format: mongodb://[user:pass@]host1[:port1][,host2[:port2]].../dbname[?options]
-  const afterProto = trimmed.slice('mongodb://'.length);
-  const withoutAuth = afterProto.includes('@') ? afterProto.split('@')[1]! : afterProto;
-  const hostPart = withoutAuth.split('/')[0]!;
-  const hosts = hostPart.split(',').map((h) => h.trim().toLowerCase());
+  const protocol = match[1]!.toLowerCase();
+  const hostPart = match[2]!;
+  const withoutAuth = hostPart.includes('@') ? hostPart.split('@')[1]! : hostPart;
+  const hosts = withoutAuth.split(',').map((h) => h.trim().toLowerCase());
 
   const ALLOWED_LOCAL_HOSTS = new Set([
     'localhost',
@@ -73,18 +67,28 @@ export function assertSafeLocalDatabase(uri: string, nodeEnv?: string): void {
     'host.docker.internal',
   ]);
 
+  let isRemote = protocol === 'mongodb+srv';
   for (const hostWithPort of hosts) {
-    // Strip port or IPv6 brackets
     let hostName = hostWithPort;
     if (hostName.startsWith('[') && hostName.includes(']')) {
       hostName = hostName.slice(1, hostName.indexOf(']'));
     } else if (hostName.includes(':')) {
       hostName = hostName.split(':')[0]!;
     }
-
     if (!ALLOWED_LOCAL_HOSTS.has(hostName)) {
+      isRemote = true;
+    }
+  }
+
+  if (isRemote) {
+    if (isReset) {
       throw new DatabaseSafetyError(
-        `SAFETY ERROR: Host "${hostName}" is not on the local safe allowlist! Target must be local only.`,
+        'SAFETY ERROR: Database reset (--reset) is strictly refused on remote database targets!',
+      );
+    }
+    if (process.env.SEED_CONFIRM_REMOTE !== 'yes') {
+      throw new DatabaseSafetyError(
+        'SAFETY ERROR: Remote database seeding is refused unless SEED_CONFIRM_REMOTE=yes is explicitly set',
       );
     }
   }
@@ -110,14 +114,14 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
   const nodeEnv = process.env.NODE_ENV;
 
   // 1. SAFETY CHECK BEFORE CONNECTION
-  assertSafeLocalDatabase(uri, nodeEnv);
+  assertSafeLocalDatabase(uri, nodeEnv, options.reset);
 
   // Connect if not already connected
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(uri);
   }
 
-  // Handle --reset: drop only the named demo database
+  // Handle --reset: drop only the named demo database (allowed only on local targets)
   if (options.reset) {
     logger.warn({ dbName: mongoose.connection.db?.databaseName }, 'Resetting demo database...');
     await mongoose.connection.db?.dropDatabase();

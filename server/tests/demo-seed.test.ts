@@ -20,10 +20,22 @@ describe('Task 2: Demo Data Seed & Local Safety Enforcement', () => {
       expect(() => assertSafeLocalDatabase('mongodb://host.docker.internal:27017/playmatch', 'test')).not.toThrow();
     });
 
-    it('always refuses mongodb+srv:// cloud URI scheme', () => {
+    it('refuses remote or mongodb+srv URIs unless SEED_CONFIRM_REMOTE=yes', () => {
+      delete process.env.SEED_CONFIRM_REMOTE;
       expect(() =>
         assertSafeLocalDatabase('mongodb+srv://user:pass@cluster0.9s7axjx.mongodb.net/playmatch', 'development'),
       ).toThrow(DatabaseSafetyError);
+
+      process.env.SEED_CONFIRM_REMOTE = 'yes';
+      expect(() =>
+        assertSafeLocalDatabase('mongodb+srv://user:pass@cluster0.9s7axjx.mongodb.net/playmatch', 'development'),
+      ).not.toThrow();
+
+      // But reset is ALWAYS refused on remote targets even with SEED_CONFIRM_REMOTE=yes
+      expect(() =>
+        assertSafeLocalDatabase('mongodb+srv://user:pass@cluster0.9s7axjx.mongodb.net/playmatch', 'development', true),
+      ).toThrow(/Database reset \(--reset\) is strictly refused on remote database targets/);
+      delete process.env.SEED_CONFIRM_REMOTE;
     });
 
     it('always refuses when NODE_ENV is production', () => {
@@ -32,13 +44,15 @@ describe('Task 2: Demo Data Seed & Local Safety Enforcement', () => {
       ).toThrow(DatabaseSafetyError);
     });
 
-    it('refuses multi-host URIs if any host is remote', () => {
+    it('refuses multi-host URIs if any host is remote unless confirmed', () => {
+      delete process.env.SEED_CONFIRM_REMOTE;
       expect(() =>
         assertSafeLocalDatabase('mongodb://localhost:27017,remote.db.com:27017/playmatch', 'development'),
       ).toThrow(DatabaseSafetyError);
     });
 
-    it('refuses external IP addresses or arbitrary domain names', () => {
+    it('refuses external IP addresses or arbitrary domain names without confirmation', () => {
+      delete process.env.SEED_CONFIRM_REMOTE;
       expect(() =>
         assertSafeLocalDatabase('mongodb://192.168.1.50:27017/playmatch', 'development'),
       ).toThrow(DatabaseSafetyError);
@@ -96,7 +110,7 @@ describe('Task 2: Demo Data Seed & Local Safety Enforcement', () => {
       expect(ratingEvents.length).toBeGreaterThanOrEqual(3);
     });
 
-    it('is strictly idempotent: running seedDemoData twice produces no duplicates', async () => {
+    it('is strictly idempotent: running seedDemoData twice produces identical ratings and counts', async () => {
       const uri = mongoose.connection.getClient().options.hosts?.[0]
         ? `mongodb://${mongoose.connection.getClient().options.hosts[0]}/playmatch`
         : 'mongodb://127.0.0.1:27017/playmatch';
@@ -111,6 +125,8 @@ describe('Task 2: Demo Data Seed & Local Safety Enforcement', () => {
       const venueCount1 = await Venue.countDocuments();
       const gameCount1 = await Game.countDocuments();
       const matchCount1 = await MatchResult.countDocuments();
+      const ratings1 = await Rating.find({}).lean();
+      const ratingEventsCount1 = await RatingEvent.countDocuments();
 
       // Second run (idempotent)
       await seedDemoData({
@@ -122,11 +138,27 @@ describe('Task 2: Demo Data Seed & Local Safety Enforcement', () => {
       const venueCount2 = await Venue.countDocuments();
       const gameCount2 = await Game.countDocuments();
       const matchCount2 = await MatchResult.countDocuments();
+      const ratings2 = await Rating.find({}).lean();
+      const ratingEventsCount2 = await RatingEvent.countDocuments();
 
       expect(userCount2).toBe(userCount1);
       expect(venueCount2).toBe(venueCount1);
       expect(gameCount2).toBe(gameCount1);
       expect(matchCount2).toBe(matchCount1);
+      expect(ratingEventsCount2).toBe(ratingEventsCount1);
+
+      // Verify exact rating values remain unchanged (Elo not double-applied)
+      expect(ratings2.length).toBe(ratings1.length);
+      for (const r1 of ratings1) {
+        const r2 = ratings2.find(
+          (r) => r.user.toString() === r1.user.toString() && r.sport.toString() === r1.sport.toString(),
+        );
+        expect(r2).toBeDefined();
+        expect(r2!.rating).toBe(r1.rating);
+        expect(r2!.gamesPlayed).toBe(r1.gamesPlayed);
+        expect(r2!.wins).toBe(r1.wins);
+        expect(r2!.losses).toBe(r1.losses);
+      }
     });
   });
 });

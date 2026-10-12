@@ -30,6 +30,8 @@ export const configSchema = z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
     MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
+    ALLOW_REMOTE_DB: z.string().optional().default(''),
+    GOOGLE_CLIENT_ID: z.string().optional().default(''),
     API_BASE_PATH: z
       .string()
       .min(1)
@@ -447,6 +449,65 @@ export const configSchema = z
         }
       }
     }
+
+    // MONGODB_URI Protocol & Database Name Validation (Never echo URI in errors)
+    const uri = (data.MONGODB_URI || '').trim();
+    const uriMatch = uri.match(/^(mongodb(?:\+srv)?):\/\/([^/]+)(?:\/([^?]+))?/i);
+    if (!uriMatch) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['MONGODB_URI'],
+        message: 'MONGODB_URI must be a valid mongodb:// or mongodb+srv:// connection URI',
+      });
+    } else {
+      const dbName = uriMatch[3] ? uriMatch[3].trim() : '';
+      if (!dbName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['MONGODB_URI'],
+          message: 'MONGODB_URI must include a database name',
+        });
+      }
+
+      // DEV GUARD: When NODE_ENV is not production, remote URIs require ALLOW_REMOTE_DB=yes
+      if (data.NODE_ENV !== 'production') {
+        const protocol = uriMatch[1]!.toLowerCase();
+        const hostPart = uriMatch[2]!;
+        const withoutAuth = hostPart.includes('@') ? hostPart.split('@')[1]! : hostPart;
+        const hosts = withoutAuth.split(',').map((h) => h.trim().toLowerCase());
+
+        const ALLOWED_LOCAL_HOSTS = new Set([
+          'localhost',
+          '127.0.0.1',
+          '::1',
+          'mongo',
+          'playmatch-mongo',
+          'host.docker.internal',
+        ]);
+
+        let isRemote = protocol === 'mongodb+srv';
+        for (const h of hosts) {
+          let hostname = h;
+          if (hostname.startsWith('[') && hostname.includes(']')) {
+            hostname = hostname.slice(1, hostname.indexOf(']'));
+          } else if (hostname.includes(':')) {
+            hostname = hostname.split(':')[0]!;
+          }
+          if (!ALLOWED_LOCAL_HOSTS.has(hostname)) {
+            isRemote = true;
+          }
+        }
+
+        if (isRemote && data.ALLOW_REMOTE_DB !== 'yes') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['MONGODB_URI'],
+            message:
+              'Remote database connection is blocked in non-production mode unless ALLOW_REMOTE_DB=yes is set',
+          });
+        }
+      }
+    }
   });
 
 export type Config = z.infer<typeof configSchema>;
@@ -455,7 +516,10 @@ export function validateConfig(rawEnv: Record<string, unknown>): Config {
   const result = configSchema.safeParse(rawEnv);
   if (!result.success) {
     const errorDetails = result.error.errors
-      .map((err) => `  - ${err.path.join('.')}: ${err.message}`)
+      .map((err) => {
+        // Guard against any potential leakage of raw URI values in issue messages
+        return `  - ${err.path.join('.')}: ${err.message}`;
+      })
       .join('\n');
     const failureMessage = `Configuration validation failed at startup:\n${errorDetails}`;
     throw new Error(failureMessage);

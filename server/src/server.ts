@@ -6,13 +6,25 @@ import { logger } from './utils/logger.js';
 import { initializeWebSockets } from './engine/websockets/index.js';
 import { registerNotificationListeners } from './services/notification.service.js';
 
+import { parseAndClassifyMongoUri, ensureAllIndexes } from './utils/db-utils.js';
+
 let server: http.Server;
 
 async function startServer(): Promise<void> {
   try {
-    logger.info('Connecting to MongoDB...');
+    const dbInfo = parseAndClassifyMongoUri(config.MONGODB_URI);
+    logger.info(
+      { mode: dbInfo.mode, host: dbInfo.maskedHosts },
+      `Connecting to MongoDB in [${dbInfo.mode}] mode (${dbInfo.maskedHosts})...`,
+    );
     await mongoose.connect(config.MONGODB_URI);
-    logger.info('Successfully connected to MongoDB');
+    logger.info(
+      { mode: dbInfo.mode, host: dbInfo.maskedHosts },
+      'Successfully connected to MongoDB',
+    );
+
+    // Safely ensure indexes across all registered models
+    await ensureAllIndexes();
 
     server = http.createServer(app);
 
