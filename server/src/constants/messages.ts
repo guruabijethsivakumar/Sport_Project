@@ -196,4 +196,40 @@ export const Messages = {
     MARKED_ALL_READ: 'All notifications marked as read',
     NOT_FOUND: 'Notification not found',
   },
+
+  // Module 6 AI Matching & Recommendations
+  RECOMMENDATIONS: {
+    FETCH_SUCCESS: 'Game recommendations retrieved successfully',
+  },
+
+  // Module 9 Explainability Layer
+  EXPLAINABILITY: {
+    ELIGIBILITY_FETCH_SUCCESS: 'Game eligibility explanation retrieved successfully',
+    TEAMS_FETCH_SUCCESS: 'Team formation explanation retrieved successfully',
+    RATING_FETCH_SUCCESS: 'Rating movement explanation retrieved successfully',
+    RECOMMENDATION_FETCH_SUCCESS: 'Game recommendation explanation retrieved successfully',
+    DECISION_LOG_FETCH_SUCCESS: 'Decision log retrieved successfully',
+    DECISION_LOGS_FETCH_SUCCESS: 'Decision logs retrieved successfully',
+    NOT_FOUND: 'Explanation or decision log not found',
+  },
+
+  // Module 12 Admin & Moderation
+  ADMIN: {
+    USERS_FETCH_SUCCESS: 'Users retrieved successfully',
+    USER_SUSPENDED: 'User suspended successfully and active sessions revoked',
+    USER_REINSTATED: 'User reinstated successfully',
+    USER_ROLE_UPDATED: 'User role updated successfully',
+    GAME_CANCELLED: 'Game cancelled by admin successfully',
+    GAMES_FETCH_SUCCESS: 'Games retrieved successfully',
+    DISPUTES_FETCH_SUCCESS: 'Disputes retrieved successfully',
+    DISPUTE_RESOLVED: 'Disputed match result resolved successfully',
+    DISPUTE_VOIDED: 'Disputed match result voided successfully',
+    STATS_FETCH_SUCCESS: 'Admin platform stats retrieved successfully',
+    CANNOT_MODERATE_SELF: 'You cannot perform moderation actions on your own account',
+    USER_ALREADY_SUSPENDED: 'User is already suspended',
+    USER_NOT_SUSPENDED: 'User is not suspended',
+    CANNOT_MODIFY_OWN_ROLE: 'You cannot change your own role',
+    DISPUTE_NOT_FOUND: 'Dispute not found',
+    DISPUTE_ALREADY_RESOLVED: 'Dispute has already been resolved or voided',
+  },
 } as const;

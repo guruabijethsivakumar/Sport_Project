@@ -9,6 +9,8 @@ import { TeamSideKeys, TeamBalanceMethods } from '../constants/team-constants.js
 import { ResultStatuses, RatingStatuses } from '../constants/result-constants.js';
 import { AttendanceStatuses, ReliabilityTiers, FEEDBACK_NOTE_MAX_LENGTH } from '../constants/reliability-constants.js';
 import { NotificationTypes, NOTIFICATION_PAGE_SIZE_DEFAULT, NOTIFICATION_PAGE_SIZE_MAX } from '../constants/notification-constants.js';
+import { RecommendationConfidenceLevels } from '../constants/recommendation-constants.js';
+import { DecisionTypes, FactorImpacts } from '../constants/explainability-constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -416,6 +418,217 @@ export function generateOpenAPISpec() {
               properties: {
                 userId: { type: 'string' },
                 reliability: { $ref: '#/components/schemas/ReliabilitySummary' },
+              },
+            },
+          },
+        },
+        RecommendationFactor: {
+          type: 'object',
+          required: ['name', 'value', 'weight'],
+          properties: {
+            name: { type: 'string', example: 'Skill Match' },
+            value: { type: 'number', minimum: 0, maximum: 1, example: 0.95 },
+            weight: { type: 'number', minimum: 0, maximum: 1, example: 0.35 },
+          },
+        },
+        RecommendationItem: {
+          type: 'object',
+          required: ['gameId', 'sportKey', 'title', 'score', 'confidence', 'factors', 'reasons'],
+          properties: {
+            gameId: { type: 'string' },
+            sportKey: { type: 'string', example: 'badminton' },
+            title: { type: 'string', example: 'Intermediate Singles' },
+            score: { type: 'number', minimum: 0, maximum: 1, example: 0.92 },
+            confidence: {
+              type: 'string',
+              enum: Object.values(RecommendationConfidenceLevels),
+              example: 'high',
+            },
+            factors: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/RecommendationFactor' },
+            },
+            reasons: {
+              type: 'array',
+              items: { type: 'string' },
+              example: ['Close skill match (within 30 Elo points)'],
+            },
+          },
+        },
+        RecommendationsPayload: {
+          type: 'object',
+          required: ['items'],
+          properties: {
+            items: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/RecommendationItem' },
+            },
+          },
+        },
+        RecommendationsResponse: {
+          type: 'object',
+          required: ['success', 'data'],
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Operation completed successfully' },
+            data: { $ref: '#/components/schemas/RecommendationsPayload' },
+          },
+        },
+        UnifiedExplanationFactor: {
+          type: 'object',
+          required: ['name', 'value', 'impact'],
+          properties: {
+            name: { type: 'string', example: 'Rating Fit' },
+            value: { type: 'number', example: 1.0 },
+            weight: { type: 'number', example: 0.35 },
+            impact: {
+              type: 'string',
+              enum: Object.values(FactorImpacts),
+              example: 'positive',
+            },
+          },
+        },
+        UnifiedExplanation: {
+          type: 'object',
+          required: ['decisionType', 'subjectId', 'summary', 'codes', 'factors', 'metrics', 'reasons'],
+          properties: {
+            decisionType: {
+              type: 'string',
+              enum: Object.values(DecisionTypes),
+              example: 'eligibility_check',
+            },
+            subjectId: { type: 'string' },
+            summary: { type: 'string', example: 'You are fully eligible to join this game.' },
+            codes: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            factors: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/UnifiedExplanationFactor' },
+            },
+            metrics: {
+              type: 'object',
+              additionalProperties: true,
+            },
+            reasons: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+          },
+        },
+        UnifiedExplanationResponse: {
+          type: 'object',
+          required: ['success', 'data'],
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Operation completed successfully' },
+            data: { $ref: '#/components/schemas/UnifiedExplanation' },
+          },
+        },
+        DecisionLogItem: {
+          type: 'object',
+          required: ['id', 'decisionType', 'subjectId', 'actorId', 'summary', 'codes', 'factors', 'metrics', 'reasons', 'createdAt'],
+          properties: {
+            id: { type: 'string' },
+            decisionType: {
+              type: 'string',
+              enum: Object.values(DecisionTypes),
+            },
+            subjectId: { type: 'string' },
+            actorId: { type: 'string' },
+            summary: { type: 'string' },
+            codes: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            factors: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/UnifiedExplanationFactor' },
+            },
+            metrics: {
+              type: 'object',
+              additionalProperties: true,
+            },
+            reasons: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        DecisionLogResponse: {
+          type: 'object',
+          required: ['success', 'data'],
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Operation completed successfully' },
+            data: { $ref: '#/components/schemas/DecisionLogItem' },
+          },
+        },
+        DecisionLogListResponse: {
+          type: 'object',
+          required: ['success', 'data'],
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Operation completed successfully' },
+            data: {
+              type: 'object',
+              required: ['logs', 'total'],
+              properties: {
+                logs: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/DecisionLogItem' },
+                },
+                total: { type: 'integer' },
+              },
+            },
+          },
+        },
+        AdminDashboardStatsResponse: {
+          type: 'object',
+          required: ['success', 'data'],
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Operation completed successfully' },
+            data: {
+              type: 'object',
+              required: ['users', 'games', 'venues', 'disputes'],
+              properties: {
+                users: {
+                  type: 'object',
+                  properties: {
+                    total: { type: 'integer' },
+                    active: { type: 'integer' },
+                    suspended: { type: 'integer' },
+                  },
+                },
+                games: {
+                  type: 'object',
+                  properties: {
+                    total: { type: 'integer' },
+                    open: { type: 'integer' },
+                    confirmed: { type: 'integer' },
+                    inProgress: { type: 'integer' },
+                    completed: { type: 'integer' },
+                    cancelled: { type: 'integer' },
+                  },
+                },
+                venues: {
+                  type: 'object',
+                  properties: {
+                    total: { type: 'integer' },
+                    pendingApproval: { type: 'integer' },
+                    active: { type: 'integer' },
+                    suspended: { type: 'integer' },
+                  },
+                },
+                disputes: {
+                  type: 'object',
+                  properties: {
+                    open: { type: 'integer' },
+                  },
+                },
               },
             },
           },
@@ -1943,6 +2156,525 @@ export function generateOpenAPISpec() {
               },
             },
             '401': { $ref: '#/components/schemas/ApiErrorResponse' },
+          },
+        },
+      },
+      '/api/v1/recommendations': {
+        get: {
+          tags: ['Recommendations'],
+          summary: 'Get personalized game recommendations',
+          description:
+            'Evaluates candidate games based on skill match, geographic proximity, calendar availability, and host reliability.',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            {
+              name: 'sportKey',
+              in: 'query',
+              required: false,
+              schema: { type: 'string' },
+              description: 'Filter recommendations by sport',
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, maximum: 50, default: 10 },
+              description: 'Maximum number of recommendations to return',
+            },
+            {
+              name: 'maxDistanceKm',
+              in: 'query',
+              required: false,
+              schema: { type: 'number' },
+              description: 'Maximum distance in km from user home location',
+            },
+            {
+              name: 'minScore',
+              in: 'query',
+              required: false,
+              schema: { type: 'number', minimum: 0, maximum: 1 },
+              description: 'Minimum match score threshold',
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Recommendations retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/RecommendationsResponse' },
+                },
+              },
+            },
+            '401': {
+              description: 'Authentication required',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ApiErrorResponse' },
+                },
+              },
+            },
+            '404': {
+              description: 'Player profile not found',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ApiErrorResponse' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/explain/games/{gameId}/eligibility': {
+        get: {
+          tags: ['Explainability'],
+          summary: 'Explain game eligibility for viewer',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'gameId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Game eligibility explanation retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnifiedExplanationResponse' },
+                },
+              },
+            },
+            '401': { description: 'Authentication required' },
+            '404': { description: 'Game not found' },
+          },
+        },
+      },
+      '/api/v1/explain/games/{gameId}/teams': {
+        get: {
+          tags: ['Explainability'],
+          summary: 'Explain team formation and balancing',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'gameId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Team balancing explanation retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnifiedExplanationResponse' },
+                },
+              },
+            },
+            '401': { description: 'Authentication required' },
+            '403': { description: 'Forbidden access' },
+            '404': { description: 'Game or teams not found' },
+          },
+        },
+      },
+      '/api/v1/explain/ratings/{eventId}': {
+        get: {
+          tags: ['Explainability'],
+          summary: 'Explain rating delta and expectation',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'eventId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Rating explanation retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnifiedExplanationResponse' },
+                },
+              },
+            },
+            '401': { description: 'Authentication required' },
+            '403': { description: 'Forbidden access' },
+            '404': { description: 'Rating event not found' },
+          },
+        },
+      },
+      '/api/v1/explain/recommendations/{gameId}': {
+        get: {
+          tags: ['Explainability'],
+          summary: 'Explain recommendation factors and reasons',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'gameId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Recommendation explanation retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnifiedExplanationResponse' },
+                },
+              },
+            },
+            '401': { description: 'Authentication required' },
+            '404': { description: 'Recommendation not found' },
+          },
+        },
+      },
+      '/api/v1/explain/decisions': {
+        get: {
+          tags: ['Explainability'],
+          summary: 'List decision logs for caller',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            {
+              name: 'decisionType',
+              in: 'query',
+              required: false,
+              schema: { type: 'string', enum: Object.values(DecisionTypes) },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+            },
+            {
+              name: 'skip',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 0, default: 0 },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Decision logs retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/DecisionLogListResponse' },
+                },
+              },
+            },
+            '401': { description: 'Authentication required' },
+          },
+        },
+      },
+      '/api/v1/explain/decisions/{id}': {
+        get: {
+          tags: ['Explainability'],
+          summary: 'Get single decision log by ID',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Decision log retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/DecisionLogResponse' },
+                },
+              },
+            },
+            '401': { description: 'Authentication required' },
+            '403': { description: 'Forbidden access' },
+            '404': { description: 'Decision log not found' },
+          },
+        },
+      },
+      '/api/v1/admin/dashboard/stats': {
+        get: {
+          tags: ['Admin'],
+          summary: 'Get platform metrics and statistics',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+          ],
+          responses: {
+            '200': {
+              description: 'Dashboard stats retrieved',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/AdminDashboardStatsResponse' },
+                },
+              },
+            },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+          },
+        },
+      },
+      '/api/v1/admin/users': {
+        get: {
+          tags: ['Admin'],
+          summary: 'List users with pagination and filtering',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
+            { name: 'role', in: 'query', schema: { type: 'string', enum: Object.values(Roles) } },
+            { name: 'status', in: 'query', schema: { type: 'string', enum: ['active', 'suspended'] } },
+            { name: 'search', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': { description: 'Users list retrieved' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+          },
+        },
+      },
+      '/api/v1/admin/users/{userId}/suspend': {
+        post: {
+          tags: ['Admin'],
+          summary: 'Suspend a user and revoke active sessions',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': { description: 'User suspended' },
+            '400': { description: 'Cannot suspend self' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+            '404': { description: 'User not found' },
+            '409': { description: 'User already suspended' },
+          },
+        },
+      },
+      '/api/v1/admin/users/{userId}/reinstate': {
+        post: {
+          tags: ['Admin'],
+          summary: 'Reinstate a suspended user',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': { description: 'User reinstated' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+            '404': { description: 'User not found' },
+            '409': { description: 'User not suspended' },
+          },
+        },
+      },
+      '/api/v1/admin/users/{userId}/role': {
+        patch: {
+          tags: ['Admin'],
+          summary: 'Update role of a user',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['role'],
+                  properties: {
+                    role: { type: 'string', enum: Object.values(Roles) },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': { description: 'User role updated' },
+            '400': { description: 'Cannot modify own role' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+            '404': { description: 'User not found' },
+          },
+        },
+      },
+      '/api/v1/admin/games': {
+        get: {
+          tags: ['Admin'],
+          summary: 'List games for admin moderation',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
+            { name: 'status', in: 'query', schema: { type: 'string', enum: Object.values(GameStatuses) } },
+            { name: 'sportKey', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': { description: 'Games list retrieved' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+          },
+        },
+      },
+      '/api/v1/admin/games/{gameId}/cancel': {
+        post: {
+          tags: ['Admin'],
+          summary: 'Cancel a game as administrator',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'gameId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': { description: 'Game cancelled' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+            '404': { description: 'Game not found' },
+            '409': { description: 'Game already terminal' },
+          },
+        },
+      },
+      '/api/v1/admin/disputes': {
+        get: {
+          tags: ['Admin'],
+          summary: 'List disputed match results',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
+          ],
+          responses: {
+            '200': { description: 'Disputed results retrieved' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+          },
+        },
+      },
+      '/api/v1/admin/disputes/{gameId}/resolve': {
+        post: {
+          tags: ['Admin'],
+          summary: 'Resolve a disputed match result and apply ratings',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'gameId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    action: { type: 'string', enum: ['accept_proposal', 'custom_score'] },
+                    scores: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        required: ['sideKey', 'score', 'winner'],
+                        properties: {
+                          sideKey: { type: 'string' },
+                          score: { type: 'integer' },
+                          winner: { type: 'boolean' },
+                        },
+                      },
+                    },
+                    notes: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': { description: 'Dispute resolved and ratings applied' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+            '404': { description: 'Dispute not found' },
+            '409': { description: 'Dispute already resolved' },
+          },
+        },
+      },
+      '/api/v1/admin/disputes/{gameId}/void': {
+        post: {
+          tags: ['Admin'],
+          summary: 'Void a disputed match result',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'gameId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': { description: 'Dispute voided' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
+            '404': { description: 'Dispute not found' },
+            '409': { description: 'Dispute already resolved or voided' },
           },
         },
       },
