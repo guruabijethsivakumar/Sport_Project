@@ -120,7 +120,7 @@ export function GoogleSignInButton({
         size: 'large',
         text,
         shape: 'rectangular',
-        width: '100%',
+        width: 380,
       });
     } catch (e: any) {
       onError?.(e);
