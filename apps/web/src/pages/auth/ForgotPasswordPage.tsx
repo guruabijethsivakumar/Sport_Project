@@ -12,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { FormField } from '../../components/ui/FormField';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { Icon } from '../../components/ui/Icon';
 
 export function ForgotPasswordPage(): React.ReactElement {
   const { client, isAuthenticated } = useAuth();
