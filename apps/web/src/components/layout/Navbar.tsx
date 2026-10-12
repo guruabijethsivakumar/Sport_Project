@@ -14,6 +14,7 @@ import { NavbarRecommendedSlot } from '../slots/NavbarRecommendedSlot';
 export function Navbar(): React.ReactElement {
   const { isAuthenticated, user, logout } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
+  const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -93,7 +94,7 @@ export function Navbar(): React.ReactElement {
                   aria-label="User menu"
                 >
                   <Avatar fallbackText={displayName} size="sm" />
-                  <span className="text-sm font-medium hidden lg:inline max-w-[120px] truncate">
+                  <span className="text-sm font-medium hidden lg:inline max-w-28 truncate">
                     {displayName}
                   </span>
                   <Icon name="chevron-down" size={14} className="text-muted-foreground" />

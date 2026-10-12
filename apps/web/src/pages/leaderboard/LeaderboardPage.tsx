@@ -32,11 +32,7 @@ export function LeaderboardPage(): React.ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // 1. Fetch Sports Catalog for sport selector
-  const {
-    data: sportsData,
-    isLoading: isSportsLoading,
-    error: sportsError,
-  } = useSportsCatalog(client);
+  const { data: sportsData, isLoading: isSportsLoading } = useSportsCatalog(client);
 
   const sportsList: Array<{ key: string; name: string }> = useMemo(() => {
     if (!sportsData) return [];
