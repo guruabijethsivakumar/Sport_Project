@@ -92,8 +92,11 @@ describe('LoginPage Reference Screen', () => {
 
     await waitFor(() => {
       // Must display client generic error message
-      expect(screen.getByRole('alert')).toBeDefined();
+      const alertBanner = screen.getByRole('alert');
+      expect(alertBanner).toBeDefined();
       expect(screen.getByText(AUTH_MESSAGES.invalidCredentials)).toBeDefined();
+      // Accessibility requirement: Focus must move to the error banner upon failure
+      expect(document.activeElement).toBe(alertBanner);
       // Must NOT leak backend message or details
       expect(screen.queryByText(/Sensitive database/i)).toBeNull();
       expect(screen.queryByText(/failedLoginAttempts/i)).toBeNull();

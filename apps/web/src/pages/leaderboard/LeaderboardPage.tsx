@@ -41,12 +41,16 @@ export function LeaderboardPage(): React.ReactElement {
     return [];
   }, [sportsData]);
 
-  // Current sportKey selection from URL search params or fallback to first available sport
+  // Current sportKey selection from URL search params validated against catalog, fallback to first catalog sport
   const currentSportKey = useMemo(() => {
-    const fromUrl = searchParams.get('sport');
-    if (fromUrl) return fromUrl;
-    if (sportsList.length > 0) return sportsList[0].key;
-    return 'badminton'; // sensible default fallback
+    const fromUrl = searchParams.get('sport')?.toLowerCase().trim();
+    if (fromUrl && sportsList.some((s) => s.key.toLowerCase() === fromUrl)) {
+      return fromUrl;
+    }
+    if (sportsList.length > 0) {
+      return sportsList[0].key;
+    }
+    return '';
   }, [searchParams, sportsList]);
 
   const handleSportChange = (sportKey: string) => {
@@ -100,15 +104,11 @@ export function LeaderboardPage(): React.ReactElement {
         actions={
           <div className="w-full sm:w-56">
             <Select
-              value={currentSportKey}
+              value={currentSportKey || undefined}
               onValueChange={handleSportChange}
-              options={
-                sportOptions.length > 0
-                  ? sportOptions
-                  : [{ value: currentSportKey, label: currentSportName }]
-              }
+              options={sportOptions}
               placeholder={LEADERBOARD_MESSAGES.sportFilterLabel}
-              disabled={isSportsLoading}
+              disabled={isSportsLoading || sportOptions.length === 0}
             />
           </div>
         }
@@ -206,18 +206,20 @@ export function LeaderboardPage(): React.ReactElement {
                               fallbackText={displayName}
                               size="sm"
                             />
-                            <div className="flex items-center gap-2">
-                              <span className="text-foreground font-semibold">
-                                {displayName}
-                              </span>
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Tooltip content={displayName}>
+                                <span className="text-foreground font-semibold max-w-44 truncate block">
+                                  {displayName}
+                                </span>
+                              </Tooltip>
                               {isCurrentUser && (
-                                <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                                <Badge variant="secondary" className="text-[10px] py-0 px-1.5 shrink-0">
                                   You
                                 </Badge>
                               )}
                               {entry.provisional && (
                                 <Tooltip content={LEADERBOARD_MESSAGES.provisionalTooltip}>
-                                  <Badge variant="warning" className="cursor-help">
+                                  <Badge variant="warning" className="cursor-help shrink-0">
                                     {LEADERBOARD_MESSAGES.provisionalBadge}
                                   </Badge>
                                 </Tooltip>

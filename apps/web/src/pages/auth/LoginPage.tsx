@@ -24,6 +24,13 @@ export function LoginPage(): React.ReactElement {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const errorBannerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (authError && errorBannerRef.current) {
+      errorBannerRef.current.focus();
+    }
+  }, [authError]);
 
   // Safe redirect path calculation
   const safeRedirect = getSafeRedirectPath(
@@ -108,7 +115,11 @@ export function LoginPage(): React.ReactElement {
         </CardHeader>
 
         <CardContent>
-          <FormErrorBanner error={authError} onDismiss={() => setAuthError(null)} />
+          <FormErrorBanner
+            ref={errorBannerRef}
+            error={authError}
+            onDismiss={() => setAuthError(null)}
+          />
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             {/* Email Field */}

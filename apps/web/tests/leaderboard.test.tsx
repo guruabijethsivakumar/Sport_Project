@@ -198,4 +198,52 @@ describe('LeaderboardPage Reference Screen', () => {
       expect(screen.getByRole('button', { name: /try again/i })).toBeDefined();
     });
   });
+
+  it('handles long display names by truncating with full-name tooltip without breaking layout', async () => {
+    const longName = 'Alexander Maximilian Bartholomew von Hohenzollern the Third';
+    vi.spyOn(sharedApiClient, 'get').mockImplementation(async (url: string) => {
+      if (url === '/sports') return mockSports;
+      if (url.includes('/leaderboards/badminton')) {
+        return {
+          sportKey: 'badminton',
+          sportName: 'Badminton',
+          entries: [
+            {
+              userId: 'usr-long',
+              displayName: longName,
+              avatarUrl: null,
+              rating: 1550,
+              band: { key: 'intermediate', label: 'Intermediate' },
+              gamesPlayed: 10,
+              provisional: false,
+              wins: 6,
+              losses: 4,
+              draws: 0,
+            },
+          ],
+          hasMore: false,
+          nextCursor: null,
+        };
+      }
+      return {};
+    });
+
+    renderLeaderboardPage();
+
+    await waitFor(() => {
+      const longNameElements = screen.getAllByText(longName);
+      expect(longNameElements.length).toBeGreaterThan(0);
+      // Desktop row truncation check
+      expect(longNameElements[0].className).toContain('truncate');
+    });
+  });
+
+  it('falls back cleanly to the first sports catalog sport when an invalid sport is provided in URL', async () => {
+    renderLeaderboardPage(['/leaderboard?sport=nonsense_sport_not_in_catalog']);
+
+    await waitFor(() => {
+      // Must not crash or stay blank; falls back to Badminton (the first sport in mockSports)
+      expect(screen.getAllByText('Alice Champion').length).toBeGreaterThan(0);
+    });
+  });
 });
