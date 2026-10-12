@@ -280,7 +280,7 @@ export function OnboardingPage(): React.ReactElement {
     {
       step: {
         id: 'basic-info',
-        title: 'Basic Info',
+        title: 'You',
         description: 'Identity & timezone',
       },
       validate: handleSaveBasicInfo,
@@ -329,7 +329,7 @@ export function OnboardingPage(): React.ReactElement {
     {
       step: {
         id: 'sports',
-        title: 'Sports & Skill',
+        title: 'Sports and skill',
         description: 'Sport and calibrated tier',
       },
       validate: handleSaveSports,
@@ -421,7 +421,7 @@ export function OnboardingPage(): React.ReactElement {
     {
       step: {
         id: 'location',
-        title: 'Location',
+        title: 'Location and travel radius',
         description: 'City & travel radius',
       },
       validate: handleSaveLocation,
