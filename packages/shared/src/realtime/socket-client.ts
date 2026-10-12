@@ -35,8 +35,7 @@ export interface ServerToClientEvents {
 }
 
 /** Events the client emits TO the server (none needed yet). */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ClientToServerEvents {}
+export type ClientToServerEvents = Record<string, never>;
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 

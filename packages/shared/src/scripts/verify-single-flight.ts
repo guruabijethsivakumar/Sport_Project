@@ -41,7 +41,6 @@ async function runSingleFlightLiveVerification() {
   }
 
   const loginJson = await loginRes.json();
-  const initialAccessToken = loginJson.data.accessToken;
   const initialRefreshToken = loginJson.data.refreshToken;
 
   console.log('   Logged in successfully.');

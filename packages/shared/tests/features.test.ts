@@ -24,7 +24,6 @@ import {
   getLiveReliability,
   ProfileReliabilityResponseSchema,
 } from '../src/features/reliability/index.js';
-import { FeatureNotAvailableError } from '../src/features/common/errors.js';
 import { ApiClient } from '../src/client/api-client.js';
 import { WebAuthAdapter } from '../src/client/adapters/web.js';
 
