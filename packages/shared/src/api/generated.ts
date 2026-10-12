@@ -4,6 +4,414 @@
  */
 
 export interface paths {
+  "/api/v1/admin/dashboard/stats": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get platform metrics and statistics */
+    get: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Dashboard stats retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["AdminDashboardStatsResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/disputes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List disputed match results */
+    get: {
+      parameters: {
+        query?: {
+          page?: number;
+          limit?: number;
+        };
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Disputed results retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/disputes/{gameId}/resolve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Resolve a disputed match result and apply ratings */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            action?: "accept_proposal" | "custom_score";
+            scores?: {
+              sideKey: string;
+              score: number;
+              winner: boolean;
+            }[];
+            notes?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Dispute resolved and ratings applied */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dispute not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dispute already resolved */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/disputes/{gameId}/void": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Void a disputed match result */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            reason?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Dispute voided */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dispute not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Dispute already resolved or voided */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/games": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List games for admin moderation */
+    get: {
+      parameters: {
+        query?: {
+          page?: number;
+          limit?: number;
+          status?:
+            | "open"
+            | "full"
+            | "confirmed"
+            | "in_progress"
+            | "completed"
+            | "cancelled"
+            | "expired";
+          sportKey?: string;
+        };
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Games list retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/games/{gameId}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancel a game as administrator */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            reason?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Game cancelled */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Game not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Game already terminal */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/admin/ratings/match-results": {
     parameters: {
       query?: never;
@@ -177,6 +585,298 @@ export interface paths {
         };
       };
     };
+    trace?: never;
+  };
+  "/api/v1/admin/users": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List users with pagination and filtering */
+    get: {
+      parameters: {
+        query?: {
+          page?: number;
+          limit?: number;
+          role?: "player" | "venue_owner" | "admin";
+          status?: "active" | "suspended";
+          search?: string;
+        };
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Users list retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users/{userId}/reinstate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reinstate a suspended user */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            reason?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description User reinstated */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description User not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description User not suspended */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users/{userId}/role": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update role of a user */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            role: "player" | "venue_owner" | "admin";
+          };
+        };
+      };
+      responses: {
+        /** @description User role updated */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Cannot modify own role */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description User not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
+  "/api/v1/admin/users/{userId}/suspend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Suspend a user and revoke active sessions */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            reason?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description User suspended */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Cannot suspend self */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description User not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description User already suspended */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/v1/auth/change-password": {
@@ -643,6 +1343,369 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/explain/decisions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List decision logs for caller */
+    get: {
+      parameters: {
+        query?: {
+          decisionType?:
+            | "recommendation"
+            | "team_balancing"
+            | "rating_adjustment"
+            | "eligibility_check"
+            | "reliability_score";
+          limit?: number;
+          skip?: number;
+        };
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Decision logs retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["DecisionLogListResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/explain/decisions/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get single decision log by ID */
+    get: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Decision log retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["DecisionLogResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden access */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Decision log not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/explain/games/{gameId}/eligibility": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Explain game eligibility for viewer */
+    get: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Game eligibility explanation retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["UnifiedExplanationResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Game not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/explain/games/{gameId}/teams": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Explain team formation and balancing */
+    get: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Team balancing explanation retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["UnifiedExplanationResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden access */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Game or teams not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/explain/ratings/{eventId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Explain rating delta and expectation */
+    get: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          eventId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Rating explanation retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["UnifiedExplanationResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden access */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Rating event not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/explain/recommendations/{gameId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Explain recommendation factors and reasons */
+    get: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path: {
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Recommendation explanation retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["UnifiedExplanationResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Recommendation not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/games": {
     parameters: {
       query?: never;
@@ -798,6 +1861,102 @@ export interface paths {
     };
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/games/{gameId}/teams": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get saved balanced teams for a game
+     * @description Retrieve persisted team formation for a game. Available to participants and the game host.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Target game ObjectId (24-character hex) */
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Saved team formation retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["TeamFormationResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/games/{gameId}/teams/generate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Generate and persist balanced teams for a game (host only)
+     * @description Generate balanced teams using snake draft balancer and persist snapshot. Host only.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Target game ObjectId (24-character hex) */
+          gameId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      responses: {
+        /** @description Balanced teams generated and persisted successfully */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["TeamFormationResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
     delete?: never;
     options?: never;
     head?: never;
@@ -973,6 +2132,87 @@ export interface paths {
     };
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/games/{id}/feedback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List attendance feedback for a game
+     * @description Host sees all feedback; other joined participants see only feedback about themselves
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Game ObjectId (24-character hex) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Feedback retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["GameFeedbackListResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    put?: never;
+    /**
+     * Record attendance feedback for a player (host only)
+     * @description Host records whether a joined player attended or was a no-show. Game must be completed and within the feedback window. One entry per player per game.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Game ObjectId (24-character hex) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["SubmitFeedbackRequestBody"];
+        };
+      };
+      responses: {
+        /** @description Feedback recorded */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["GameFeedbackResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+        409: components["schemas"]["ApiErrorResponse"];
+      };
+    };
     delete?: never;
     options?: never;
     head?: never;
@@ -1162,6 +2402,188 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/games/{id}/results": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get match result state for a game
+     * @description Fetch the submitted or verified score result state for a game
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Game ObjectId (24-character hex) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Match result retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["GameResultResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    put?: never;
+    /**
+     * Submit a new score proposal for a game
+     * @description Joined participant submits match result scores. Game transitions to completed and opposing team is prompted in whoMustActNext.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Game ObjectId (24-character hex) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["SubmitResultRequestBody"];
+        };
+      };
+      responses: {
+        /** @description Match result proposal submitted */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["GameResultResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+        409: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/games/{id}/results/dispute": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Dispute proposed match score
+     * @description Opposing player in whoMustActNext disputes proposed match score.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Game ObjectId (24-character hex) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["DisputeResultRequestBody"];
+        };
+      };
+      responses: {
+        /** @description Result disputed successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["GameResultResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+        409: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/games/{id}/results/verify": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Confirm and verify proposed score, triggering Elo rating engine
+     * @description Opposing player in whoMustActNext verifies proposed match score. Updates result status to verified and applies rating updates.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Game ObjectId (24-character hex) */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      responses: {
+        /** @description Result verified and ratings applied */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["GameResultResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+        409: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/games/{id}/roster": {
     parameters: {
       query?: never;
@@ -1340,6 +2762,125 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  "/api/v1/notifications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get paginated notifications for the authenticated user */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Page number (1-indexed) */
+          page?: number;
+          /** @description Items per page */
+          limit?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated notifications with unread count */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["NotificationListResponse"];
+          };
+        };
+        401: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/notifications/read-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Mark all notifications as read for the authenticated user */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description All notifications marked as read */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiResponse"];
+          };
+        };
+        401: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    trace?: never;
+  };
+  "/api/v1/notifications/{id}/read": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Mark a specific notification as read */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Notification marked as read */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiResponse"];
+          };
+        };
+        401: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
     trace?: never;
   };
   "/api/v1/profile/me": {
@@ -1870,6 +3411,163 @@ export interface paths {
         };
       };
     };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/recommendations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get personalized game recommendations
+     * @description Evaluates candidate games based on skill match, geographic proximity, calendar availability, and host reliability.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Filter recommendations by sport */
+          sportKey?: string;
+          /** @description Maximum number of recommendations to return */
+          limit?: number;
+          /** @description Maximum distance in km from user home location */
+          maxDistanceKm?: number;
+          /** @description Minimum match score threshold */
+          minScore?: number;
+        };
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Recommendations retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["RecommendationsResponse"];
+          };
+        };
+        /** @description Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiErrorResponse"];
+          };
+        };
+        /** @description Player profile not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/reliability/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the caller reliability
+     * @description Reliability score, tier and attendance counters for the authenticated player
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Reliability retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ReliabilityResponse"];
+          };
+        };
+        401: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/reliability/{userId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get another player reliability
+     * @description Respects the target profile privacy settings (private profile or hidden ratings return 403)
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description User ObjectId (24-character hex) */
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Reliability retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ReliabilityResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        403: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -2583,11 +4281,31 @@ export interface components {
           | "VENUE_CLOSURE_BLOCKED"
           | "COURT_DEACTIVATION_BLOCKED"
           | "INSUFFICIENT_PARTICIPANTS_FOR_SUGGESTION"
+          | "TEAMS_NOT_FOUND"
           | "FREEFORM_GAMES_NOT_ALLOWED"
           | "INVALID_DISCOVERY_CURSOR"
           | "INVALID_OPERATING_HOURS"
           | "MAX_VENUES_EXCEEDED"
-          | "MAX_COURTS_EXCEEDED";
+          | "MAX_COURTS_EXCEEDED"
+          | "RESULT_NOT_FOUND"
+          | "RESULT_ALREADY_SUBMITTED"
+          | "RESULT_ALREADY_VERIFIED"
+          | "RESULT_NOT_AUTHORIZED_TO_VERIFY"
+          | "INVALID_RESULT_SCORES"
+          | "FEEDBACK_ALREADY_SUBMITTED"
+          | "FEEDBACK_WINDOW_CLOSED"
+          | "FEEDBACK_GAME_NOT_COMPLETED"
+          | "FEEDBACK_INVALID_TARGET"
+          | "NOTIFICATION_NOT_FOUND"
+          | "DECISION_LOG_NOT_FOUND"
+          | "EXPLANATION_NOT_FOUND"
+          | "CANNOT_MODERATE_SELF"
+          | "USER_ALREADY_SUSPENDED"
+          | "USER_NOT_SUSPENDED"
+          | "CANNOT_MODIFY_OWN_ROLE"
+          | "DISPUTE_NOT_FOUND"
+          | "DISPUTE_ALREADY_RESOLVED"
+          | "USER_NOT_FOUND";
         /** @example Validation failed */
         message: string;
         details?: {
@@ -2680,11 +4398,31 @@ export interface components {
       | "VENUE_CLOSURE_BLOCKED"
       | "COURT_DEACTIVATION_BLOCKED"
       | "INSUFFICIENT_PARTICIPANTS_FOR_SUGGESTION"
+      | "TEAMS_NOT_FOUND"
       | "FREEFORM_GAMES_NOT_ALLOWED"
       | "INVALID_DISCOVERY_CURSOR"
       | "INVALID_OPERATING_HOURS"
       | "MAX_VENUES_EXCEEDED"
-      | "MAX_COURTS_EXCEEDED";
+      | "MAX_COURTS_EXCEEDED"
+      | "RESULT_NOT_FOUND"
+      | "RESULT_ALREADY_SUBMITTED"
+      | "RESULT_ALREADY_VERIFIED"
+      | "RESULT_NOT_AUTHORIZED_TO_VERIFY"
+      | "INVALID_RESULT_SCORES"
+      | "FEEDBACK_ALREADY_SUBMITTED"
+      | "FEEDBACK_WINDOW_CLOSED"
+      | "FEEDBACK_GAME_NOT_COMPLETED"
+      | "FEEDBACK_INVALID_TARGET"
+      | "NOTIFICATION_NOT_FOUND"
+      | "DECISION_LOG_NOT_FOUND"
+      | "EXPLANATION_NOT_FOUND"
+      | "CANNOT_MODERATE_SELF"
+      | "USER_ALREADY_SUSPENDED"
+      | "USER_NOT_SUSPENDED"
+      | "CANNOT_MODIFY_OWN_ROLE"
+      | "DISPUTE_NOT_FOUND"
+      | "DISPUTE_ALREADY_RESOLVED"
+      | "USER_NOT_FOUND";
     /** @enum {string} */
     GameStatusesEnum:
       | "open"
@@ -2709,6 +4447,367 @@ export interface components {
     DiscoverySortOptionsEnum: "distance" | "start_time";
     /** @enum {string} */
     UserRolesEnum: "player" | "venue_owner" | "admin";
+    /** @enum {string} */
+    TeamSideKeysEnum: "team_a" | "team_b";
+    /** @enum {string} */
+    TeamBalanceMethodsEnum: "snake_draft_elo";
+    TeamFormationPlayer: {
+      /** @example 507f1f77bcf86cd799439011 */
+      userId: string;
+      /** @example Player 1 */
+      displayName: string;
+      /** @example 1200 */
+      rating: number;
+      /** @example forward */
+      position?: string;
+    };
+    TeamFormationTeam: {
+      sideKey: components["schemas"]["TeamSideKeysEnum"];
+      /** @example Team A */
+      name: string;
+      players: components["schemas"]["TeamFormationPlayer"][];
+      /** @example 2400 */
+      ratingTotal: number;
+      /** @example 1200 */
+      ratingAverage: number;
+    };
+    TeamFormationBalance: {
+      /** @example 0 */
+      difference: number;
+      method: components["schemas"]["TeamBalanceMethodsEnum"];
+    };
+    TeamFormationPayload: {
+      teams: components["schemas"]["TeamFormationTeam"][];
+      balance: components["schemas"]["TeamFormationBalance"];
+      reasons: string[];
+    };
+    TeamFormationResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: components["schemas"]["TeamFormationPayload"];
+    };
+    /** @enum {string} */
+    ResultStatusesEnum:
+      | "pending_confirmation"
+      | "verified"
+      | "disputed"
+      | "resolved"
+      | "no_result"
+      | "voided";
+    /** @enum {string} */
+    RatingStatusesEnum: "not_processed" | "applied" | "voided";
+    GameResultScore: {
+      /** @example team_a */
+      sideKey: string;
+      /** @example 21 */
+      score: number;
+      /** @example true */
+      winner: boolean;
+    };
+    GameResultProposal: {
+      /** @example 507f1f77bcf86cd799439011 */
+      proposedByUserId: string;
+      /** Format: date-time */
+      proposedAt: string;
+      scores: components["schemas"]["GameResultScore"][];
+      /** @example Good game */
+      notes?: string;
+    };
+    GameResultPayload: {
+      /** @example 507f1f77bcf86cd799439012 */
+      id: string;
+      /** @example 507f1f77bcf86cd799439013 */
+      gameId: string;
+      status: components["schemas"]["ResultStatusesEnum"];
+      ratingStatus: components["schemas"]["RatingStatusesEnum"];
+      proposal: components["schemas"]["GameResultProposal"];
+      whoMustActNext: string[];
+      /** Format: date-time */
+      verifiedAt?: string;
+      /** Format: date-time */
+      disputedAt?: string;
+      disputedByUserId?: string;
+      /** Format: date-time */
+      resolvedAt?: string;
+    };
+    GameResultResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: components["schemas"]["GameResultPayload"];
+    };
+    SubmitResultRequestBody: {
+      scores: components["schemas"]["GameResultScore"][];
+      notes?: string;
+    };
+    DisputeResultRequestBody: {
+      reason?: string;
+    };
+    SubmitFeedbackRequestBody: {
+      targetUserId: string;
+      /** @enum {string} */
+      attendance: "attended" | "no_show";
+      note?: string;
+    };
+    GameFeedbackPayload: {
+      id: string;
+      gameId: string;
+      reporterUserId: string;
+      targetUserId: string;
+      /** @enum {string} */
+      attendance: "attended" | "no_show";
+      note?: string;
+      /** Format: date-time */
+      createdAt?: string;
+      /** Format: date-time */
+      updatedAt?: string;
+    };
+    GameFeedbackResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: components["schemas"]["GameFeedbackPayload"];
+    };
+    GameFeedbackListResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: {
+        feedback: components["schemas"]["GameFeedbackPayload"][];
+      };
+    };
+    ReliabilitySummary: {
+      score: number;
+      /** @enum {string} */
+      tier: "bronze" | "silver" | "gold" | "platinum";
+      gamesCounted: number;
+      onTimeLeaves: number;
+      lateLeaves: number;
+      noShows: number;
+    };
+    /** @enum {string} */
+    NotificationTypesEnum:
+      | "system"
+      | "game_update"
+      | "team_invite"
+      | "rating_change"
+      | "rating_updated"
+      | "game_invitation"
+      | "game_joined"
+      | "game_cancelled"
+      | "game_confirmed"
+      | "result_submitted"
+      | "result_verified"
+      | "result_disputed"
+      | "feedback_received";
+    NotificationPayload: {
+      /** @example 507f1f77bcf86cd799439011 */
+      id: string;
+      /** @example 507f1f77bcf86cd799439012 */
+      userId: string;
+      type: components["schemas"]["NotificationTypesEnum"];
+      /** @example Game Cancelled */
+      title: string;
+      /** @example Your game has been cancelled. */
+      message: string;
+      /** @example false */
+      read: boolean;
+      /** Format: date-time */
+      createdAt: string;
+      data?: {
+        [key: string]: unknown;
+      };
+    };
+    NotificationListResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Notifications retrieved successfully */
+      message?: string;
+      data: {
+        notifications: components["schemas"]["NotificationPayload"][];
+        unreadCount: number;
+        page: number;
+        limit: number;
+        totalCount: number;
+      };
+    };
+    /** @description WebSocket payload emitted to clients on the "notification" event channel. */
+    RealtimeNotificationEvent: {
+      id: string;
+      userId: string;
+      type: components["schemas"]["NotificationTypesEnum"];
+      title: string;
+      message: string;
+      read: boolean;
+      /** Format: date-time */
+      createdAt: string;
+      data?: {
+        [key: string]: unknown;
+      };
+    };
+    ReliabilityResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: {
+        userId: string;
+        reliability: components["schemas"]["ReliabilitySummary"];
+      };
+    };
+    RecommendationFactor: {
+      /** @example Skill Match */
+      name: string;
+      /** @example 0.95 */
+      value: number;
+      /** @example 0.35 */
+      weight: number;
+    };
+    RecommendationItem: {
+      gameId: string;
+      /** @example badminton */
+      sportKey: string;
+      /** @example Intermediate Singles */
+      title: string;
+      /** @example 0.92 */
+      score: number;
+      /**
+       * @example high
+       * @enum {string}
+       */
+      confidence: "low" | "medium" | "high";
+      factors: components["schemas"]["RecommendationFactor"][];
+      /**
+       * @example [
+       *       "Close skill match (within 30 Elo points)"
+       *     ]
+       */
+      reasons: string[];
+    };
+    RecommendationsPayload: {
+      items: components["schemas"]["RecommendationItem"][];
+    };
+    RecommendationsResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: components["schemas"]["RecommendationsPayload"];
+    };
+    UnifiedExplanationFactor: {
+      /** @example Rating Fit */
+      name: string;
+      /** @example 1 */
+      value: number;
+      /** @example 0.35 */
+      weight?: number;
+      /**
+       * @example positive
+       * @enum {string}
+       */
+      impact: "positive" | "negative" | "neutral";
+    };
+    UnifiedExplanation: {
+      /**
+       * @example eligibility_check
+       * @enum {string}
+       */
+      decisionType:
+        | "recommendation"
+        | "team_balancing"
+        | "rating_adjustment"
+        | "eligibility_check"
+        | "reliability_score";
+      subjectId: string;
+      /** @example You are fully eligible to join this game. */
+      summary: string;
+      codes: string[];
+      factors: components["schemas"]["UnifiedExplanationFactor"][];
+      metrics: {
+        [key: string]: unknown;
+      };
+      reasons: string[];
+    };
+    UnifiedExplanationResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: components["schemas"]["UnifiedExplanation"];
+    };
+    DecisionLogItem: {
+      id: string;
+      /** @enum {string} */
+      decisionType:
+        | "recommendation"
+        | "team_balancing"
+        | "rating_adjustment"
+        | "eligibility_check"
+        | "reliability_score";
+      subjectId: string;
+      actorId: string;
+      summary: string;
+      codes: string[];
+      factors: components["schemas"]["UnifiedExplanationFactor"][];
+      metrics: {
+        [key: string]: unknown;
+      };
+      reasons: string[];
+      /** Format: date-time */
+      createdAt: string;
+    };
+    DecisionLogResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: components["schemas"]["DecisionLogItem"];
+    };
+    DecisionLogListResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: {
+        logs: components["schemas"]["DecisionLogItem"][];
+        total: number;
+      };
+    };
+    AdminDashboardStatsResponse: {
+      /** @example true */
+      success: boolean;
+      /** @example Operation completed successfully */
+      message?: string;
+      data: {
+        users: {
+          total?: number;
+          active?: number;
+          suspended?: number;
+        };
+        games: {
+          total?: number;
+          open?: number;
+          confirmed?: number;
+          inProgress?: number;
+          completed?: number;
+          cancelled?: number;
+        };
+        venues: {
+          total?: number;
+          pendingApproval?: number;
+          active?: number;
+          suspended?: number;
+        };
+        disputes: {
+          open?: number;
+        };
+      };
+    };
   };
   responses: never;
   parameters: {

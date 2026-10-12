@@ -8,6 +8,7 @@ import { Roles } from '../constants/roles.js';
 import { TeamSideKeys, TeamBalanceMethods } from '../constants/team-constants.js';
 import { ResultStatuses, RatingStatuses } from '../constants/result-constants.js';
 import { AttendanceStatuses, ReliabilityTiers, FEEDBACK_NOTE_MAX_LENGTH } from '../constants/reliability-constants.js';
+import { NotificationTypes, NOTIFICATION_PAGE_SIZE_DEFAULT, NOTIFICATION_PAGE_SIZE_MAX } from '../constants/notification-constants.js';
 import { RecommendationConfidenceLevels } from '../constants/recommendation-constants.js';
 import { DecisionTypes, FactorImpacts } from '../constants/explainability-constants.js';
 
@@ -348,6 +349,61 @@ export function generateOpenAPISpec() {
             onTimeLeaves: { type: 'integer', minimum: 0 },
             lateLeaves: { type: 'integer', minimum: 0 },
             noShows: { type: 'integer', minimum: 0 },
+          },
+        },
+        NotificationTypesEnum: {
+          type: 'string',
+          enum: Object.values(NotificationTypes),
+        },
+        NotificationPayload: {
+          type: 'object',
+          required: ['id', 'userId', 'type', 'title', 'message', 'read', 'createdAt'],
+          properties: {
+            id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+            userId: { type: 'string', example: '507f1f77bcf86cd799439012' },
+            type: { $ref: '#/components/schemas/NotificationTypesEnum' },
+            title: { type: 'string', example: 'Game Cancelled' },
+            message: { type: 'string', example: 'Your game has been cancelled.' },
+            read: { type: 'boolean', example: false },
+            createdAt: { type: 'string', format: 'date-time' },
+            data: { type: 'object', additionalProperties: true },
+          },
+        },
+        NotificationListResponse: {
+          type: 'object',
+          required: ['success', 'data'],
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Notifications retrieved successfully' },
+            data: {
+              type: 'object',
+              required: ['notifications', 'unreadCount', 'page', 'limit', 'totalCount'],
+              properties: {
+                notifications: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/NotificationPayload' },
+                },
+                unreadCount: { type: 'integer', minimum: 0 },
+                page: { type: 'integer', minimum: 1 },
+                limit: { type: 'integer', minimum: 1, maximum: NOTIFICATION_PAGE_SIZE_MAX },
+                totalCount: { type: 'integer', minimum: 0 },
+              },
+            },
+          },
+        },
+        RealtimeNotificationEvent: {
+          type: 'object',
+          description: 'WebSocket payload emitted to clients on the "notification" event channel.',
+          required: ['id', 'userId', 'type', 'title', 'message', 'read', 'createdAt'],
+          properties: {
+            id: { type: 'string' },
+            userId: { type: 'string' },
+            type: { $ref: '#/components/schemas/NotificationTypesEnum' },
+            title: { type: 'string' },
+            message: { type: 'string' },
+            read: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' },
+            data: { type: 'object', additionalProperties: true },
           },
         },
         ReliabilityResponse: {
@@ -2031,6 +2087,76 @@ export function generateOpenAPISpec() {
             { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
           ],
           responses: { '200': { description: 'Venue reinstated' } },
+        },
+      },
+      '/api/v1/notifications': {
+        get: {
+          tags: ['Notifications'],
+          summary: 'Get paginated notifications for the authenticated user',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'page',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, default: 1 },
+              description: 'Page number (1-indexed)',
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, maximum: NOTIFICATION_PAGE_SIZE_MAX, default: NOTIFICATION_PAGE_SIZE_DEFAULT },
+              description: 'Items per page',
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Paginated notifications with unread count',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/NotificationListResponse' },
+                },
+              },
+            },
+            '401': { $ref: '#/components/schemas/ApiErrorResponse' },
+          },
+        },
+      },
+      '/api/v1/notifications/{id}/read': {
+        patch: {
+          tags: ['Notifications'],
+          summary: 'Mark a specific notification as read',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' } },
+          ],
+          responses: {
+            '200': {
+              description: 'Notification marked as read',
+              content: {
+                'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } },
+              },
+            },
+            '401': { $ref: '#/components/schemas/ApiErrorResponse' },
+            '404': { $ref: '#/components/schemas/ApiErrorResponse' },
+          },
+        },
+      },
+      '/api/v1/notifications/read-all': {
+        patch: {
+          tags: ['Notifications'],
+          summary: 'Mark all notifications as read for the authenticated user',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            '200': {
+              description: 'All notifications marked as read',
+              content: {
+                'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } },
+              },
+            },
+            '401': { $ref: '#/components/schemas/ApiErrorResponse' },
+          },
         },
       },
       '/api/v1/recommendations': {

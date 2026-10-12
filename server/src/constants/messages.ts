@@ -189,6 +189,14 @@ export const Messages = {
     PRIVATE: 'This player has chosen not to share their reliability',
   },
 
+  // Module 10 Notifications
+  NOTIFICATIONS: {
+    FETCH_SUCCESS: 'Notifications retrieved successfully',
+    MARKED_READ: 'Notification marked as read',
+    MARKED_ALL_READ: 'All notifications marked as read',
+    NOT_FOUND: 'Notification not found',
+  },
+
   // Module 6 AI Matching & Recommendations
   RECOMMENDATIONS: {
     FETCH_SUCCESS: 'Game recommendations retrieved successfully',

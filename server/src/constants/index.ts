@@ -18,6 +18,7 @@ export * from './game-constants.js';
 export * from './venue-constants.js';
 export * from './demo-constants.js';
 export * from './reliability-constants.js';
+export * from './notification-constants.js';
 export * from './team-constants.js';
 export * from './result-constants.js';
 export * from './recommendation-constants.js';

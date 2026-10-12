@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { app } from './app.js';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
+import { initializeWebSockets } from './engine/websockets/index.js';
+import { registerNotificationListeners } from './services/notification.service.js';
 
 let server: http.Server;
 
@@ -13,6 +15,12 @@ async function startServer(): Promise<void> {
     logger.info('Successfully connected to MongoDB');
 
     server = http.createServer(app);
+
+    // Initialize WebSocket server on the same HTTP server
+    initializeWebSockets(server);
+
+    // Register domain event listeners for notifications
+    registerNotificationListeners();
 
     server.listen(config.PORT, () => {
       logger.info(
