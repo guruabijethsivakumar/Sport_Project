@@ -27,11 +27,26 @@ export function HomePage(): React.ReactElement {
   const missingSteps = onboardingData?.missingSteps || [];
   const stepsLeft = missingSteps.length;
 
-  // Profile Snapshot Fields
-  const sportValue = firstSport?.sportKey || firstSport?.sport || null;
-  const skillBandValue = firstSport?.skillBand || firstSport?.ratingBand || firstSport?.initialSkillBand || null;
-  const locationLabelValue = profileObj?.locationLabel || null;
-  const travelRadiusValue = profileObj?.travelRadiusKm ? `${profileObj.travelRadiusKm} km` : null;
+  // Profile Snapshot Fields (safely extract strings to guarantee no object is rendered in JSX)
+  const rawSport = firstSport?.sport;
+  const sportValue: string | null =
+    typeof rawSport === 'object' && rawSport !== null
+      ? (rawSport.name || rawSport.key || null)
+      : (typeof rawSport === 'string' && rawSport ? rawSport : (firstSport?.sportKey || null));
+
+  const rawBand = firstSport?.selectedBandKey || firstSport?.skillBand || firstSport?.ratingBand || firstSport?.initialSkillBand;
+  const skillBandValue: string | null = typeof rawBand === 'string' && rawBand ? rawBand : null;
+
+  const rawLocation = profileObj?.locationLabel;
+  const locationLabelValue: string | null = typeof rawLocation === 'string' && rawLocation ? rawLocation : null;
+
+  const rawRadius = profileObj?.travelRadiusKm;
+  const travelRadiusValue: string | null =
+    typeof rawRadius === 'number'
+      ? `${rawRadius} km`
+      : typeof rawRadius === 'string' && rawRadius
+      ? `${rawRadius} km`
+      : null;
 
   // Unauthenticated Landing View
   if (!isAuthenticated) {

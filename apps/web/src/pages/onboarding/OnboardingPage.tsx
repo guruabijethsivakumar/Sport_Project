@@ -159,11 +159,25 @@ export function OnboardingPage(): React.ReactElement {
 
     try {
       setIsSubmitting(true);
-      await client.put('/profile/me/basic', {
-        displayName: displayName.trim(),
-        bio: bio.trim() || undefined,
-        timezone,
-      });
+      try {
+        await client.put('/profile/me/basic', {
+          displayName: displayName.trim(),
+          bio: bio.trim() || undefined,
+          timezone,
+        });
+      } catch (err: any) {
+        // If concurrent initialization triggered a duplicate key conflict (409), retry once after a short delay
+        if (err?.statusCode === 409 || err?.status === 409 || err?.response?.status === 409) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          await client.put('/profile/me/basic', {
+            displayName: displayName.trim(),
+            bio: bio.trim() || undefined,
+            timezone,
+          });
+        } else {
+          throw err;
+        }
+      }
       return true;
     } catch {
       setStepError('Failed to save basic profile info. Please try again.');
