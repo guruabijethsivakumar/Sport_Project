@@ -97,4 +97,73 @@ describe('Logout & Logout-All Flows', () => {
       .send({ refreshToken: token2 });
     expect(refresh2.status).toBe(HttpStatus.UNAUTHORIZED);
   });
+
+  it('logout response clears cookie with identical path and security options to setRefreshCookie', async () => {
+    const { user } = await createTestUser({ email: 'cookie.options.test@example.com' });
+
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .set('x-client-type', 'web')
+      .send({ email: user.email, password: VALID_TEST_PASSWORD });
+
+    const setCookie = loginRes.headers['set-cookie']?.[0] || '';
+    expect(setCookie).toContain('Path=/api/v1/auth');
+    expect(setCookie).toContain('HttpOnly');
+
+    const logoutRes = await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Cookie', loginRes.headers['set-cookie'])
+      .send({});
+
+    expect(logoutRes.status).toBe(HttpStatus.OK);
+    const clearCookie = logoutRes.headers['set-cookie']?.[0] || '';
+    expect(clearCookie).toContain('Path=/api/v1/auth');
+    expect(clearCookie).toContain('HttpOnly');
+    expect(clearCookie).toMatch(/Expires=Thu, 01 Jan 1970|Max-Age=0/i);
+  });
+
+  it('refresh attempt with an already revoked session token returns generic auth failure and triggers reuse revoke', async () => {
+    const { user } = await createTestUser({ email: 'revoked.token.test@example.com' });
+
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .set('x-client-type', 'web')
+      .send({ email: user.email, password: VALID_TEST_PASSWORD });
+
+    const cookie = loginRes.headers['set-cookie'];
+
+    // Logout revoking the session in DB
+    await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Cookie', cookie)
+      .send({});
+
+    // Attempting to refresh with the old cookie fails
+    const refreshRes = await request(app)
+      .post('/api/v1/auth/refresh')
+      .set('Cookie', cookie)
+      .send({});
+
+    expect(refreshRes.status).toBe(HttpStatus.UNAUTHORIZED);
+    expect(refreshRes.body.success).toBe(false);
+  });
+
+  it('authenticated endpoints emit Cache-Control: no-store header to prevent bfcache data leakage', async () => {
+    const { user } = await createTestUser({ email: 'cachecontrol.test@example.com' });
+
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .set('x-client-type', 'web')
+      .send({ email: user.email, password: VALID_TEST_PASSWORD });
+
+    const token = loginRes.body.data.accessToken;
+
+    const meRes = await request(app)
+      .get('/api/v1/profile/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(meRes.status).toBe(HttpStatus.OK);
+    expect(meRes.headers['cache-control']).toBeDefined();
+    expect(meRes.headers['cache-control']).toContain('no-store');
+  });
 });

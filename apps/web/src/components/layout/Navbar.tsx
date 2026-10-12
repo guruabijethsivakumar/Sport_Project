@@ -20,7 +20,7 @@ export function Navbar(): React.ReactElement {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   // Extract navigable routes dynamically from route registry
