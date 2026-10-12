@@ -10,6 +10,7 @@ export interface VenuesQueryParams {
   latitude?: number;
   sportKey?: string;
   radiusKm?: number;
+  [key: string]: unknown;
 }
 
 export function useVenues(
