@@ -109,6 +109,19 @@ export function Navbar(): React.ReactElement {
                 },
                 'separator',
                 {
+                  key: 'onboarding',
+                  label: 'Onboarding / Profile',
+                  icon: 'user',
+                  onSelect: () => navigate('/onboarding'),
+                },
+                {
+                  key: 'kit',
+                  label: 'UI Kit Showcase',
+                  icon: 'sparkles',
+                  onSelect: () => navigate('/kit'),
+                },
+                'separator',
+                {
                   key: 'logout',
                   label: 'Sign out',
                   icon: 'logout',
@@ -168,6 +181,24 @@ export function Navbar(): React.ReactElement {
               {item.nav?.label}
             </Link>
           ))}
+
+          {isAuthenticated && (
+            <Link
+              to="/onboarding"
+              onClick={() => setMobileOpen(false)}
+              className="text-base font-medium text-foreground py-2 border-b border-border-subtle/30"
+            >
+              Onboarding / Profile
+            </Link>
+          )}
+
+          <Link
+            to="/kit"
+            onClick={() => setMobileOpen(false)}
+            className="text-sm font-medium text-muted-foreground py-2 border-b border-border-subtle/30"
+          >
+            UI Kit Showcase
+          </Link>
 
           <div className="pt-4 space-y-2">
             {isAuthenticated ? (

@@ -35,9 +35,13 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  User,
+  Home,
 } from 'lucide-react';
 
 export const ICON_MAP = {
+  home: Home,
+  user: User,
   'user-plus': UserPlus,
   users: Users,
   'check-circle': CheckCircle2,

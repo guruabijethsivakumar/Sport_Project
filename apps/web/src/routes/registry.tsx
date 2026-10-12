@@ -14,10 +14,6 @@ export const coreRoutes: AppRouteDefinition[] = [
     path: '/kit',
     element: <KitShowcasePage />,
     owner: 'Core',
-    nav: {
-      label: 'UI Kit',
-      order: 99,
-    },
   },
   {
     path: '/unauthorized',

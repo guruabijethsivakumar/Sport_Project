@@ -83,7 +83,7 @@ export function LeaderboardPage(): React.ReactElement {
     });
   }, [leaderboardData]);
 
-  const currentSportName = useMemo(() => {
+  const _currentSportName = useMemo(() => {
     const found = sportsList.find((s) => s.key === currentSportKey);
     return found?.name || currentSportKey.replace(/_/g, ' ');
   }, [sportsList, currentSportKey]);

@@ -5,6 +5,7 @@ import { AuthProvider } from './auth/AuthContext';
 import { ThemeProvider } from './theme/ThemeContext';
 import { ToastProvider } from './components/ui/Toast';
 import { AppLayout } from './components/layout/AppLayout';
+import { HomePage } from './pages/home/HomePage';
 import { StatusPage } from './components/StatusPage';
 import { allDomainRoutes, renderRoute } from './routes/registry';
 
@@ -26,7 +27,8 @@ export function App() {
             <BrowserRouter>
               <AppLayout>
                 <Routes>
-                  <Route path="/" element={<StatusPage />} />
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/status" element={<StatusPage />} />
                   {allDomainRoutes.map((route) => renderRoute(route))}
                   <Route path="*" element={<Navigate to="/404" replace />} />
                 </Routes>
