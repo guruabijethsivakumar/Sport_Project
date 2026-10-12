@@ -30,7 +30,7 @@
     "build": "npm run build:web && npm run build:server"
   },
   "devDependencies": {
+    "playwright": "1.49.1",
     "prettier": "^3.4.2"
   }
 }
-

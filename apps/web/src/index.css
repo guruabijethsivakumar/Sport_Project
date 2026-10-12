@@ -1,30 +1,141 @@
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --primary: #0284c7;
-  --primary-hover: #0369a1;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
+@layer base {
+  :root {
+    --color-bg: #f8fafc;
+    --color-card: #ffffff;
+    --color-muted: #f1f5f9;
+    --color-border: #64748b;
+    --color-border-subtle: #94a3b8;
+    --color-foreground: #0f172a;
+    --color-muted-foreground: #475569;
+    --color-placeholder: #64748b;
+
+    /* Brand / Primary */
+    --color-primary: #c2410c;
+    --color-primary-hover: #9a3412;
+    --color-primary-accent: #ea580c;
+    --color-primary-foreground: #ffffff;
+    --color-ring: #c2410c;
+
+    /* Semantic States */
+    --color-success: #15803d;
+    --color-success-hover: #166534;
+    --color-success-foreground: #ffffff;
+    --color-danger: #b91c1c;
+    --color-danger-hover: #991b1b;
+    --color-danger-foreground: #ffffff;
+    --color-warning: #a16207;
+    --color-warning-hover: #854d0e;
+    --color-warning-foreground: #ffffff;
+    --color-info: #1d4ed8;
+    --color-info-hover: #1e40af;
+    --color-info-foreground: #ffffff;
+
+    /* Game Status Chips (Foreground / Background) */
+    --status-open-fg: #14532d;
+    --status-open-bg: #dcfce7;
+    --status-full-fg: #713f12;
+    --status-full-bg: #fef08a;
+    --status-confirmed-fg: #1e3a8a;
+    --status-confirmed-bg: #dbeafe;
+    --status-in-progress-fg: #7c2d12;
+    --status-in-progress-bg: #ffedd5;
+    --status-completed-fg: #334155;
+    --status-completed-bg: #f1f5f9;
+    --status-cancelled-fg: #7f1d1d;
+    --status-cancelled-bg: #fee2e2;
+    --status-expired-fg: #1f2937;
+    --status-expired-bg: #f3f4f6;
+
+    /* AI Confidence Chips */
+    --confidence-high-fg: #14532d;
+    --confidence-high-bg: #dcfce7;
+    --confidence-medium-fg: #1e3a8a;
+    --confidence-medium-bg: #dbeafe;
+    --confidence-low-fg: #713f12;
+    --confidence-low-bg: #fef9c3;
+  }
+
+  .dark {
+    --color-bg: #0b0f19;
+    --color-card: #111827;
+    --color-muted: #1f2937;
+    --color-border: #6b7280;
+    --color-border-subtle: #4b5563;
+    --color-foreground: #f8fafc;
+    --color-muted-foreground: #94a3b8;
+    --color-placeholder: #94a3b8;
+
+    /* Brand / Primary */
+    --color-primary: #f97316;
+    --color-primary-hover: #ea580c;
+    --color-primary-accent: #fb923c;
+    --color-primary-foreground: #0b0f19;
+    --color-ring: #f97316;
+
+    /* Semantic States */
+    --color-success: #86efac;
+    --color-success-hover: #bbf7d0;
+    --color-success-foreground: #052e16;
+    --color-danger: #fca5a5;
+    --color-danger-hover: #fecaca;
+    --color-danger-foreground: #450a0a;
+    --color-warning: #fde047;
+    --color-warning-hover: #fef08a;
+    --color-warning-foreground: #422006;
+    --color-info: #93c5fd;
+    --color-info-hover: #bfdbfe;
+    --color-info-foreground: #172554;
+
+    /* Game Status Chips (Foreground / Background) */
+    --status-open-fg: #86efac;
+    --status-open-bg: #052e16;
+    --status-full-fg: #fde047;
+    --status-full-bg: #422006;
+    --status-confirmed-fg: #93c5fd;
+    --status-confirmed-bg: #172554;
+    --status-in-progress-fg: #fdba74;
+    --status-in-progress-bg: #431407;
+    --status-completed-fg: #cbd5e1;
+    --status-completed-bg: #1e293b;
+    --status-cancelled-fg: #fca5a5;
+    --status-cancelled-bg: #450a0a;
+    --status-expired-fg: #9ca3af;
+    --status-expired-bg: #111827;
+
+    /* AI Confidence Chips */
+    --confidence-high-fg: #86efac;
+    --confidence-high-bg: #052e16;
+    --confidence-medium-fg: #93c5fd;
+    --confidence-medium-bg: #172554;
+    --confidence-low-fg: #fde047;
+    --confidence-low-bg: #422006;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-foreground);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-.dark {
-  --bg-main: #0b0f19;
-  --bg-card: #111827;
-  --primary: #38bdf8;
-  --primary-hover: #0ea5e9;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: #1e293b;
-}
-
-body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { DomainRouteModule } from './types';
 
 // Dev 1 owns Auth, Profile, and Onboarding routes

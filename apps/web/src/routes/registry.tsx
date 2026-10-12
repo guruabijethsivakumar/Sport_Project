@@ -1,12 +1,35 @@
 import React from 'react';
-import { Route, type RouteObject } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import type { AppRouteDefinition } from './types';
 import { dev1Routes } from './dev1.routes';
 import { dev2Routes } from './dev2.routes';
 import { dev3Routes } from './dev3.routes';
+import { KitShowcasePage } from '../pages/KitShowcasePage';
+import { NotFoundPage } from '../pages/NotFoundPage';
+import { ForbiddenPage } from '../pages/ForbiddenPage';
 
-export const coreRoutes: AppRouteDefinition[] = [];
+export const coreRoutes: AppRouteDefinition[] = [
+  {
+    path: '/kit',
+    element: <KitShowcasePage />,
+    owner: 'Core',
+    nav: {
+      label: 'UI Kit',
+      order: 99,
+    },
+  },
+  {
+    path: '/unauthorized',
+    element: <ForbiddenPage />,
+    owner: 'Core',
+  },
+  {
+    path: '/404',
+    element: <NotFoundPage />,
+    owner: 'Core',
+  },
+];
 
 /**
  * All registered domain routes merged in defined order.

@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
   },
-  // @ts-ignore
+  // @ts-expect-error vitest configuration in vite config
   test: {
     environment: 'jsdom',
   },
