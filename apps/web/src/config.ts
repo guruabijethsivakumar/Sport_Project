@@ -12,3 +12,6 @@ export const webClientConfig: ClientConfig = {
     reliabilityMode: (import.meta.env.VITE_FEATURE_RELIABILITY_MODE as any) || 'mock',
   },
 };
+
+export { CITIES_CATALOG, type CityOption } from '@playmatch/shared';
+

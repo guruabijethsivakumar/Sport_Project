@@ -2,6 +2,7 @@ import React from 'react';
 import type { DomainRouteModule } from './types';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
+import { OnboardingPage } from '../pages/onboarding/OnboardingPage';
 import { ComingSoonPage } from '../pages/auth/ComingSoonPage';
 import { LeaderboardPage } from '../pages/leaderboard/LeaderboardPage';
 
@@ -16,6 +17,12 @@ export const dev1Routes: DomainRouteModule = [
     path: '/register',
     element: <RegisterPage />,
     owner: 'Dev 1',
+  },
+  {
+    path: '/onboarding',
+    element: <OnboardingPage />,
+    owner: 'Dev 1',
+    isProtected: true,
   },
   {
     path: '/forgot-password',

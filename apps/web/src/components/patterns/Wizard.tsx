@@ -13,6 +13,7 @@ export interface WizardProps {
   onComplete: () => void | Promise<void>;
   isSubmitting?: boolean;
   completeLabel?: string;
+  initialStep?: number;
 }
 
 export function Wizard({
@@ -20,8 +21,15 @@ export function Wizard({
   onComplete,
   isSubmitting = false,
   completeLabel = 'Complete',
+  initialStep = 0,
 }: WizardProps): React.ReactElement {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(initialStep);
+
+  React.useEffect(() => {
+    if (initialStep >= 0 && initialStep < steps.length) {
+      setCurrentStep(initialStep);
+    }
+  }, [initialStep, steps.length]);
 
   const handleNext = async () => {
     const active = steps[currentStep];

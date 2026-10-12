@@ -216,6 +216,14 @@ export class ApiClient {
     });
   }
 
+  public put<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<NormalizeIds<T>> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  }
+
   public patch<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<NormalizeIds<T>> {
     return this.request<T>(endpoint, {
       ...options,

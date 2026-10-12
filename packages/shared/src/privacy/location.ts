@@ -28,3 +28,15 @@ export function isCoarsenedCoordinates(lng: number, lat: number): boolean {
   const latDecimals = (lat.toString().split('.')[1] || '').length;
   return lngDecimals <= 2 && latDecimals <= 2;
 }
+
+/**
+ * Coarsens coordinates to specified decimal places (defaults to 2 decimals, ~1.1km accuracy).
+ */
+export function coarsenCoordinates(lng: number, lat: number, decimals: number = 2): [number, number] {
+  const factor = Math.pow(10, decimals);
+  return [
+    Math.round(lng * factor) / factor,
+    Math.round(lat * factor) / factor,
+  ];
+}
+
