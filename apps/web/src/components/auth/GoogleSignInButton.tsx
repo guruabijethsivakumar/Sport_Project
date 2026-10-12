@@ -51,9 +51,11 @@ export function GoogleSignInButton({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
-  const googleClientId =
-    propClientId ||
-    (import.meta.env.VITE_GOOGLE_CLIENT_ID ? String(import.meta.env.VITE_GOOGLE_CLIENT_ID).trim() : '');
+  const googleClientId = (
+    propClientId !== undefined
+      ? propClientId
+      : (import.meta.env.VITE_GOOGLE_CLIENT_ID ? String(import.meta.env.VITE_GOOGLE_CLIENT_ID).trim() : '')
+  ).trim();
 
   // If no client ID configured, hide button completely per requirements
   if (!googleClientId) {
