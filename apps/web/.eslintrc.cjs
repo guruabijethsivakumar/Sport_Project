@@ -19,7 +19,14 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['src/pages/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
+      files: [
+        'src/components/ui/**/*.{ts,tsx}',
+        'src/components/layout/**/*.{ts,tsx}',
+        'src/components/patterns/**/*.{ts,tsx}',
+        'src/pages/KitShowcasePage.tsx',
+        'src/pages/NotFoundPage.tsx',
+        'src/pages/ForbiddenPage.tsx',
+      ],
       rules: {
         'tailwindcss/no-custom-classname': 'error',
         'tailwindcss/no-arbitrary-value': 'warn',
