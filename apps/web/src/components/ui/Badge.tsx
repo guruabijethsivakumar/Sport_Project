@@ -7,37 +7,35 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: IconName;
 }
 
-export function Badge({
-  className,
-  variant = 'default',
-  icon,
-  children,
-  ...props
-}: BadgeProps): React.ReactElement {
-  const variantStyles = {
-    default: 'bg-primary text-primary-foreground',
-    secondary: 'bg-muted text-foreground',
-    outline: 'border border-border text-foreground',
-    danger: 'bg-danger/15 text-danger border border-danger/30',
-    success: 'bg-success/15 text-success border border-success/30',
-    warning: 'bg-warning/15 text-warning border border-warning/30',
-    info: 'bg-info/15 text-info border border-info/30',
-  };
+export const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
+  ({ className, variant = 'default', icon, children, ...props }, ref) => {
+    const variantStyles = {
+      default: 'bg-primary text-primary-foreground',
+      secondary: 'bg-muted text-foreground',
+      outline: 'border border-border text-foreground',
+      danger: 'bg-danger/15 text-danger border border-danger/30',
+      success: 'bg-success/15 text-success border border-success/30',
+      warning: 'bg-warning/15 text-warning border border-warning/30',
+      info: 'bg-info/15 text-info border border-info/30',
+    };
 
-  return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors select-none',
-        variantStyles[variant],
-        className
-      )}
-      {...props}
-    >
-      {icon && <Icon name={icon} size={12} />}
-      {children}
-    </div>
-  );
-}
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors select-none',
+          variantStyles[variant],
+          className
+        )}
+        {...props}
+      >
+        {icon && <Icon name={icon} size={12} />}
+        {children}
+      </div>
+    );
+  }
+);
+Badge.displayName = 'Badge';
 
 export type GameStatusType =
   | 'open'

@@ -2,8 +2,9 @@ import React from 'react';
 import type { DomainRouteModule } from './types';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { ComingSoonPage } from '../pages/auth/ComingSoonPage';
+import { LeaderboardPage } from '../pages/leaderboard/LeaderboardPage';
 
-// Dev 1 owns Auth, Profile, and Onboarding routes
+// Dev 1 owns Auth, Profile, Onboarding, and Leaderboard reference screens
 export const dev1Routes: DomainRouteModule = [
   {
     path: '/login',
@@ -33,5 +34,14 @@ export const dev1Routes: DomainRouteModule = [
       />
     ),
     owner: 'Dev 1',
+  },
+  {
+    path: '/leaderboard',
+    element: <LeaderboardPage />,
+    owner: 'Dev 1',
+    nav: {
+      label: 'Leaderboard',
+      order: 20,
+    },
   },
 ];
