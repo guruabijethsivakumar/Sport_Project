@@ -7,7 +7,7 @@ import { Messages } from '../constants/messages.js';
 
 export const generalRateLimiter = rateLimit({
   windowMs: config.RATE_LIMIT_WINDOW_MS,
-  max: config.NODE_ENV === 'test' ? 1000 : config.RATE_LIMIT_MAX,
+  max: config.NODE_ENV === 'production' ? config.RATE_LIMIT_MAX : 10000,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -22,7 +22,7 @@ export const generalRateLimiter = rateLimit({
 
 export const authRateLimiter = rateLimit({
   windowMs: config.RATE_LIMIT_WINDOW_MS,
-  max: config.NODE_ENV === 'test' ? 1000 : config.AUTH_RATE_LIMIT_MAX,
+  max: config.NODE_ENV === 'production' ? config.AUTH_RATE_LIMIT_MAX : 10000,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {

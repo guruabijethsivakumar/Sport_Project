@@ -80,8 +80,10 @@ export function RegisterPage(): React.ReactElement {
 
       if (status === 409 || code === 'USER_ALREADY_EXISTS') {
         setAuthError(AUTH_MESSAGES.userAlreadyExists);
-      } else if (status === 429) {
+      } else if (status === 429 || code === 'RATE_LIMIT_EXCEEDED') {
         setAuthError(AUTH_MESSAGES.rateLimited);
+      } else if (status === 400 && err?.message) {
+        setAuthError(err.message);
       } else if (err?.message?.includes('Network') || !status) {
         setAuthError(AUTH_MESSAGES.networkError);
       } else {
@@ -155,6 +157,7 @@ export function RegisterPage(): React.ReactElement {
               label={AUTH_MESSAGES.passwordLabel}
               id="register-password"
               error={errors.password?.message}
+              helperText="Must be at least 8 characters with uppercase, number & symbol"
               required
             >
               <div className="relative">
