@@ -49,6 +49,11 @@ Every future feature is architected with a 3-part seam in `packages/shared/src/f
   - `notifications`: Array of `{ id, userId, type, title, message, read, createdAt, data }`.
   - `unreadCount`: Total unread count.
   - `RealtimeNotificationEvent`: Real-time WebSocket event contract payload.
+- **Live endpoints (Module 10 & Engine)**:
+  - `GET /api/v1/notifications`: Paginated notifications with `unreadCount`.
+  - `PATCH /api/v1/notifications/:id/read`: Mark single notification as read (HTTP PATCH, not POST).
+  - `PATCH /api/v1/notifications/read-all`: Mark all notifications as read (HTTP PATCH, not POST).
+  - **Socket Events**: Server emits `'notification'` (payload: `RealtimeNotificationEvent`) and `'notification.received'`.
 
 ---
 

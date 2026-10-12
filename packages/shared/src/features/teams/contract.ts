@@ -17,7 +17,7 @@ export const SuggestedTeamSchema = z.object({
 
 export const TeamBalanceSchema = z.object({
   difference: z.number(),
-  method: z.string(),
+  method: z.enum(['snake_draft_elo']),
 });
 
 export const TeamSuggestionResponseSchema = z.object({

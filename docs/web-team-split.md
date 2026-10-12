@@ -81,6 +81,10 @@ To enable **3 developers to work simultaneously without merge conflicts or overl
      - Game status header (`open`, `confirmed`, `in_progress`, `completed`, `cancelled`).
      - Exact court location revealed only when joined/hosting.
      - Action buttons: "Join Game", "Leave Game", "Share".
+     - **Typed Extension Slots (placed by Dev 2, filled by Dev 3):**
+       - `<GameTeamsSlot gameId={game.id} viewerRole={viewerRole} />`: mounts balanced team formation widget.
+       - `<GameResultSlot gameId={game.id} viewerRole={viewerRole} />`: mounts score submission and verification widget.
+       - Both slots import from `@/components/slots` and render `null` by default until Dev 3 provides feature implementations.
    - `components/games/RosterView.tsx` (Active players with host crown, waitlist promotion queue).
    - `components/games/HostControls.tsx` (Approve/reject join requests, cancel game with structured reason code modal).
 4. **Module 2.4: Venue Owner Tools & Admin Moderation Dashboard**
@@ -103,10 +107,11 @@ To enable **3 developers to work simultaneously without merge conflicts or overl
      - `getLiveTeamSuggestion` -> `GET /api/v1/games/:id/teams`.
      - `getLiveGameResult` -> `GET /api/v1/games/:id/results`.
      - `getLiveNotifications` -> `GET /api/v1/notifications`.
-     - `getLiveReliability` -> `GET /api/v1/reliability/:userId`.
+     - `getLiveReliability` -> `GET /api/v1/reliability/me` (own score) or `GET /api/v1/reliability/:userId`.
    - Build `packages/shared/src/realtime/socket-client.ts`:
      - Typed Socket.IO client authenticating via access token.
-     - Event listeners: `notification`, `notification.received`.
+     - Server emits event names: `'notification'` and `'notification.received'`.
+     - Reliability tier values: `'bronze' | 'silver' | 'gold' | 'platinum'`.
    - Provide shared TanStack Query mutations (`useCreateGame`, `useJoinGame`, `useSubmitResult`, `useVerifyResult`, `useDisputeResult`, `useAdminResolveDispute`).
 2. **Module 3.2: AI Recommendations & Explainability UI**
    - `pages/games/RecommendationsTab.tsx`:

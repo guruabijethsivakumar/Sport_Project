@@ -29,7 +29,7 @@ export const mockTeamSuggestionData: TeamSuggestionResponse = {
   ],
   balance: {
     difference: 0,
-    method: 'greedy_elo_balancing',
+    method: 'snake_draft_elo',
   },
   reasons: [
     'Zero rating difference between teams',
