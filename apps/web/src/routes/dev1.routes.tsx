@@ -3,7 +3,7 @@ import type { DomainRouteModule } from './types';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
 import { OnboardingPage } from '../pages/onboarding/OnboardingPage';
-import { ComingSoonPage } from '../pages/auth/ComingSoonPage';
+import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
 import { LeaderboardPage } from '../pages/leaderboard/LeaderboardPage';
 
 // Dev 1 owns Auth, Profile, Onboarding, and Leaderboard reference screens
@@ -26,14 +26,7 @@ export const dev1Routes: DomainRouteModule = [
   },
   {
     path: '/forgot-password',
-    element: (
-      <ComingSoonPage
-        title="Password Reset Coming Soon"
-        description="Self-service password reset is coming soon. Please contact an administrator for assistance."
-        backTo="/login"
-        backLabel="Return to Sign in"
-      />
-    ),
+    element: <ForgotPasswordPage />,
     owner: 'Dev 1',
   },
   {

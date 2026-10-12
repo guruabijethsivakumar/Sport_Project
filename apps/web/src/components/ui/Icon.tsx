@@ -37,11 +37,15 @@ import {
   EyeOff,
   User,
   Home,
+  Mail,
+  Key,
 } from 'lucide-react';
 
 export const ICON_MAP = {
   home: Home,
   user: User,
+  mail: Mail,
+  key: Key,
   'user-plus': UserPlus,
   users: Users,
   'check-circle': CheckCircle2,
