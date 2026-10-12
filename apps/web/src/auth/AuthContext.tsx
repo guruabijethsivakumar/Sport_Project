@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ApiClient, WebAuthAdapter } from '@playmatch/shared';
 import { webClientConfig } from '../config';
 
@@ -8,6 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   user: any | null;
   setUser: (user: any | null) => void;
+  login: (data: { user: any; accessToken: string }) => void;
   logout: () => Promise<void>;
 }
 
@@ -17,6 +19,7 @@ export const sharedApiClient = new ApiClient(webClientConfig, authAdapter);
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<any | null>(null);
@@ -66,11 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const login = (data: { user: any; accessToken: string }) => {
+    // Clear any stale cached queries from prior user
+    queryClient.clear();
+    authAdapter.setAccessToken(data.accessToken);
+    setUser(data.user);
+    setIsAuthenticated(true);
+  };
+
   const logout = async () => {
     try {
       await sharedApiClient.post('/auth/logout', {});
     } finally {
       authAdapter.clearSession();
+      queryClient.clear();
       setIsAuthenticated(false);
       setUser(null);
     }
@@ -84,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         user,
         setUser,
+        login,
         logout,
       }}
     >

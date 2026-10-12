@@ -153,8 +153,15 @@ export class ApiClient {
 
       clearTimeout(timeoutId);
 
-      // Handle 401 Unauthorized with single-flight refresh and retry
-      if (response.status === 401 && !skipAuth && !isRetry) {
+      // Handle 401 Unauthorized with single-flight refresh and retry.
+      // Must NOT intercept login, register, refresh, or logout endpoints (prevents loop/state wipe).
+      const isAuthGatewayEndpoint =
+        endpoint.includes('/auth/login') ||
+        endpoint.includes('/auth/register') ||
+        endpoint.includes('/auth/refresh') ||
+        endpoint.includes('/auth/logout');
+
+      if (response.status === 401 && !skipAuth && !isRetry && !isAuthGatewayEndpoint) {
         try {
           await this.refreshSession();
           return await this.request<T>(endpoint, options, true);

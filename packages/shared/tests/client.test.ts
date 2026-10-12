@@ -181,6 +181,51 @@ describe('Shared Client Tests', () => {
       expect(token2).toBe('restored-token');
       expect(refreshCallCount).toBe(1); // Deduped via single-flight
     });
+
+    it('does NOT trigger refreshSession or notifyLoggedOut on 401 from /auth/login', async () => {
+      let refreshCallCount = 0;
+      global.fetch = vi.fn(async (url: any) => {
+        const urlStr = url.toString();
+        if (urlStr.includes('/auth/refresh')) {
+          refreshCallCount++;
+          return { ok: true, status: 200, json: async () => ({}) } as any;
+        }
+
+        if (urlStr.includes('/auth/login')) {
+          return {
+            ok: false,
+            status: 401,
+            json: async () => ({
+              success: false,
+              error: {
+                code: 'AUTH_INVALID_CREDENTIALS',
+                message: 'Invalid email or password',
+                failedLoginAttempts: 2,
+              },
+            }),
+          } as any;
+        }
+
+        return { ok: true, status: 200, json: async () => ({}) } as any;
+      });
+
+      const adapter = new WebAuthAdapter();
+      const client = new ApiClient({ baseUrl: 'http://localhost:5000/api/v1' }, adapter);
+      const onLoggedOut = vi.fn();
+      client.onLoggedOut(onLoggedOut);
+
+      // Calling login with incorrect credentials
+      await expect(
+        client.post('/auth/login', { email: 'test@example.com', password: 'wrong' })
+      ).rejects.toMatchObject({
+        statusCode: 401,
+        code: 'AUTH_INVALID_CREDENTIALS',
+      });
+
+      // Crucial verification: zero refresh calls, no loggedOut trigger
+      expect(refreshCallCount).toBe(0);
+      expect(onLoggedOut).not.toHaveBeenCalled();
+    });
   });
 
   describe('Mobile Platform Adapter', () => {

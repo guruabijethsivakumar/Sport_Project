@@ -33,6 +33,8 @@ import {
   Loader2,
   Bell,
   Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export const ICON_MAP = {
@@ -69,6 +71,8 @@ export const ICON_MAP = {
   spinner: Loader2,
   bell: Bell,
   sparkles: Sparkles,
+  eye: Eye,
+  'eye-off': EyeOff,
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

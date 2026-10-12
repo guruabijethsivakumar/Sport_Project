@@ -18,10 +18,9 @@ export function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" role="status">
-          <span className="sr-only">Loading...</span>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 space-y-4 max-w-md mx-auto" role="status" aria-label="Authenticating session">
+        <div className="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-sm text-muted-foreground font-medium animate-pulse">Verifying session...</p>
       </div>
     );
   }
