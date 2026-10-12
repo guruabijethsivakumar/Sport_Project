@@ -182,7 +182,7 @@ describe('Shared Client Tests', () => {
       expect(refreshCallCount).toBe(1); // Deduped via single-flight
     });
 
-    it('does NOT trigger refreshSession or notifyLoggedOut on 401 from /auth/login', async () => {
+    it('does NOT trigger refreshSession or notifyLoggedOut on 401 from /auth/login, /auth/register, or /auth/logout', async () => {
       let refreshCallCount = 0;
       global.fetch = vi.fn(async (url: any) => {
         const urlStr = url.toString();
@@ -191,16 +191,19 @@ describe('Shared Client Tests', () => {
           return { ok: true, status: 200, json: async () => ({}) } as any;
         }
 
-        if (urlStr.includes('/auth/login')) {
+        if (
+          urlStr.includes('/auth/login') ||
+          urlStr.includes('/auth/register') ||
+          urlStr.includes('/auth/logout')
+        ) {
           return {
             ok: false,
             status: 401,
             json: async () => ({
               success: false,
               error: {
-                code: 'AUTH_INVALID_CREDENTIALS',
-                message: 'Invalid email or password',
-                failedLoginAttempts: 2,
+                code: 'AUTH_UNAUTHORIZED',
+                message: 'Unauthorized',
               },
             }),
           } as any;
@@ -214,12 +217,23 @@ describe('Shared Client Tests', () => {
       const onLoggedOut = vi.fn();
       client.onLoggedOut(onLoggedOut);
 
-      // Calling login with incorrect credentials
+      // 1. Calling login with bad credentials
       await expect(
         client.post('/auth/login', { email: 'test@example.com', password: 'wrong' })
       ).rejects.toMatchObject({
         statusCode: 401,
-        code: 'AUTH_INVALID_CREDENTIALS',
+      });
+
+      // 2. Calling register with invalid/unauthorized payload
+      await expect(
+        client.post('/auth/register', { email: 'test@example.com', password: 'pass' })
+      ).rejects.toMatchObject({
+        statusCode: 401,
+      });
+
+      // 3. Calling logout with expired/unauthorized credentials
+      await expect(client.post('/auth/logout', {})).rejects.toMatchObject({
+        statusCode: 401,
       });
 
       // Crucial verification: zero refresh calls, no loggedOut trigger

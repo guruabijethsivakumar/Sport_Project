@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { DropdownMenu } from '../ui/DropdownMenu';
+import { Avatar } from '../ui/Avatar';
 import { useTheme } from '../../theme/ThemeContext';
 import { allDomainRoutes } from '../../routes/registry';
 import { Button } from '../ui/Button';
@@ -12,8 +14,13 @@ import { NavbarRecommendedSlot } from '../slots/NavbarRecommendedSlot';
 export function Navbar(): React.ReactElement {
   const { isAuthenticated, user, logout } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
-  const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   // Extract navigable routes dynamically from route registry
   const navItems = allDomainRoutes
@@ -26,6 +33,8 @@ export function Navbar(): React.ReactElement {
       return true;
     })
     .sort((a, b) => (a.nav?.order || 0) - (b.nav?.order || 0));
+
+  const displayName = user?.name || user?.email || 'Player';
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border-subtle/50 bg-card/95 backdrop-blur">
@@ -75,19 +84,43 @@ export function Navbar(): React.ReactElement {
           </button>
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-muted-foreground">
-                {user?.name || user?.email || 'Player'}
-              </span>
-              <Button variant="outline" size="sm" onClick={() => logout()}>
-                Sign out
-              </Button>
-            </div>
+            <DropdownMenu
+              align="end"
+              trigger={
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-lg p-1.5 text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                  aria-label="User menu"
+                >
+                  <Avatar fallbackText={displayName} size="sm" />
+                  <span className="text-sm font-medium hidden lg:inline max-w-[120px] truncate">
+                    {displayName}
+                  </span>
+                  <Icon name="chevron-down" size={14} className="text-muted-foreground" />
+                </button>
+              }
+              items={[
+                {
+                  key: 'profile-name',
+                  label: displayName,
+                  disabled: true,
+                  onSelect: () => {},
+                },
+                'separator',
+                {
+                  key: 'logout',
+                  label: 'Sign out',
+                  icon: 'logout',
+                  destructive: true,
+                  onSelect: handleLogout,
+                },
+              ]}
+            />
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login">
                 <Button variant="ghost" size="sm">
-                  Sign in
+                  Log in
                 </Button>
               </Link>
               <Link to="/register">
@@ -137,21 +170,30 @@ export function Navbar(): React.ReactElement {
 
           <div className="pt-4 space-y-2">
             {isAuthenticated ? (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  logout();
-                  setMobileOpen(false);
-                }}
-              >
-                Sign out
-              </Button>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 px-1 py-2">
+                  <Avatar fallbackText={displayName} size="sm" />
+                  <span className="text-sm font-medium text-foreground truncate">
+                    {displayName}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  <Icon name="logout" size={16} className="mr-2" />
+                  Sign out
+                </Button>
+              </div>
             ) : (
               <>
                 <Link to="/login" onClick={() => setMobileOpen(false)}>
                   <Button variant="outline" className="w-full mb-2">
-                    Sign in
+                    Log in
                   </Button>
                 </Link>
                 <Link to="/register" onClick={() => setMobileOpen(false)}>
