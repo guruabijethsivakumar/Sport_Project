@@ -130,16 +130,16 @@ export function RegisterPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border-border-subtle">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-md shadow-lg border-border">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
-            <Icon name="user-plus" size={24} />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-2xl mb-2">
+            P
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">
             {AUTH_MESSAGES.registerTitle}
           </CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">
+          <CardDescription className="text-sm">
             {AUTH_MESSAGES.registerSubtitle}
           </CardDescription>
         </CardHeader>
