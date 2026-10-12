@@ -4682,11 +4682,9 @@ export interface components {
        */
       confidence: "low" | "medium" | "high";
       factors: components["schemas"]["RecommendationFactor"][];
-      /**
-       * @example [
+      /** @example [
        *       "Close skill match (within 30 Elo points)"
-       *     ]
-       */
+       *     ] */
       reasons: string[];
     };
     RecommendationsPayload: {
