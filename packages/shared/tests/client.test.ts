@@ -3,7 +3,6 @@ import { normalizePayload } from '../src/client/normalize.js';
 import { ApiClient } from '../src/client/api-client.js';
 import { WebAuthAdapter } from '../src/client/adapters/web.js';
 import { MobileAuthAdapter, type SecureStorageInterface } from '../src/client/adapters/mobile.js';
-import { ApiError } from '../src/client/types.js';
 
 describe('Shared Client Tests', () => {
   describe('ID Normalization & Leaked Fields Stripping', () => {

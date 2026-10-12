@@ -6,3 +6,4 @@ export * from './query/index.js';
 export * from './features/index.js';
 export * from './utils/formatters.js';
 export * from './constants/messages/index.js';
+export * from './realtime/index.js';

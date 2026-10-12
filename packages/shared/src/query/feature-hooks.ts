@@ -1,4 +1,4 @@
-import { useQuery, useMutation, type UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { queryKeys } from './query-keys.js';
 import type { ApiClient } from '../client/api-client.js';
 import {
@@ -94,6 +94,10 @@ export function useFeatureNotifications(
 
   return { ...query, isMock };
 }
+
+/** Convenience alias for useFeatureNotifications */
+export const useNotifications = useFeatureNotifications;
+
 
 export function useFeatureReliability(
   client: ApiClient,
