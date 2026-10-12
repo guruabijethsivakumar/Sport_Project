@@ -8,3 +8,5 @@ export * from './team.validators.js';
 export * from './game-result.validators.js';
 export * from './reliability.validators.js';
 export * from './recommendation.validators.js';
+export * from './explainability.validators.js';
+export * from './admin.validators.js';

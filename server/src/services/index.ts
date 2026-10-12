@@ -24,3 +24,5 @@ export * from './team.service.js';
 export * from './game-result.service.js';
 export * from './reliability.service.js';
 export * from './recommendation.service.js';
+export * from './explainability.service.js';
+export * from './admin.service.js';
