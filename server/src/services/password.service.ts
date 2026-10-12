@@ -27,7 +27,7 @@ export class PasswordService {
   /**
    * Compares candidate password against existing bcrypt hash in constant time.
    */
-  public async compare(password: string, hash: string): Promise<boolean> {
+  public async compare(password: string, hash?: string | null): Promise<boolean> {
     return comparePassword(password, hash);
   }
 }

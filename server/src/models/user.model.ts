@@ -9,7 +9,8 @@ import { Collections } from '../constants/collections.js';
 
 export interface IUser {
   email: string;
-  passwordHash: string;
+  passwordHash?: string | null;
+  googleId?: string | null;
   name: string;
   role: Role;
   isEmailVerified: boolean;
@@ -36,10 +37,15 @@ const userSchema = new Schema<IUserDocument>(
       trim: true,
       index: true,
     },
+    googleId: {
+      type: String,
+      default: null,
+    },
     passwordHash: {
       type: String,
-      required: true,
+      required: false,
       select: false, // Never returned in default queries
+      default: null,
     },
     name: {
       type: String,
@@ -98,6 +104,11 @@ const userSchema = new Schema<IUserDocument>(
       },
     },
   },
+);
+
+userSchema.index(
+  { googleId: 1 },
+  { unique: true, partialFilterExpression: { googleId: { $type: 'string' } } },
 );
 
 userSchema.methods.isLocked = function (this: IUserDocument): boolean {

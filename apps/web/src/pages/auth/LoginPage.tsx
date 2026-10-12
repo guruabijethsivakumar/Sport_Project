@@ -15,6 +15,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { FormErrorBanner } from '../../components/patterns/FormPattern';
+import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 
 export function LoginPage(): React.ReactElement {
   const { client, login, isAuthenticated } = useAuth();
@@ -57,6 +58,40 @@ export function LoginPage(): React.ReactElement {
     },
     mode: 'onBlur',
   });
+
+  const handleGoogleSuccess = async (credential: string) => {
+    setAuthError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await client.post<{
+        user: { id: string; email: string; name?: string; role?: string };
+        accessToken: string;
+      }>('/auth/google', { credential });
+
+      login({
+        user: response.user,
+        accessToken: response.accessToken,
+      });
+
+      // Check onboarding status
+      try {
+        const onboarding = await client.get<{ isComplete: boolean }>('/profile/me/onboarding');
+        if (!onboarding?.isComplete) {
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+      } catch {
+        // Proceed to safeRedirect
+      }
+
+      navigate(safeRedirect, { replace: true });
+    } catch {
+      setAuthError(AUTH_MESSAGES.googleSignInFailed);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const onSubmit = async (data: LoginFormValues) => {
     setAuthError(null);
@@ -120,6 +155,14 @@ export function LoginPage(): React.ReactElement {
             error={authError}
             onDismiss={() => setAuthError(null)}
           />
+
+          <div className="mb-4">
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={() => setAuthError(AUTH_MESSAGES.googleSignInFailed)}
+              disabled={isSubmitting}
+            />
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             {/* Email Field */}

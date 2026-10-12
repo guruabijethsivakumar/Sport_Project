@@ -14,6 +14,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { FormErrorBanner } from '../../components/patterns/FormPattern';
+import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 
 export function RegisterPage(): React.ReactElement {
   const { client, login, isAuthenticated } = useAuth();
@@ -52,6 +53,40 @@ export function RegisterPage(): React.ReactElement {
     },
     mode: 'onBlur',
   });
+
+  const handleGoogleSuccess = async (credential: string) => {
+    setAuthError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await client.post<{
+        user: { id: string; email: string; name?: string; role?: string };
+        accessToken: string;
+      }>('/auth/google', { credential });
+
+      login({
+        user: response.user,
+        accessToken: response.accessToken,
+      });
+
+      try {
+        const onboarding = await client.get<{ isComplete: boolean }>('/profile/me/onboarding');
+        if (!onboarding?.isComplete) {
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+      } catch {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+
+      navigate('/onboarding', { replace: true });
+    } catch {
+      setAuthError(AUTH_MESSAGES.googleSignInFailed);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const onSubmit = async (data: RegisterFormValues) => {
     setAuthError(null);
@@ -108,14 +143,24 @@ export function RegisterPage(): React.ReactElement {
         </CardHeader>
 
         <CardContent>
+          {authError && (
+            <FormErrorBanner
+              error={authError}
+              onDismiss={() => setAuthError(null)}
+              ref={errorBannerRef}
+            />
+          )}
+
+          <div className="mb-4">
+            <GoogleSignInButton
+              text="signup_with"
+              onSuccess={handleGoogleSuccess}
+              onError={() => setAuthError(AUTH_MESSAGES.googleSignInFailed)}
+              disabled={isSubmitting}
+            />
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            {authError && (
-              <FormErrorBanner
-                error={authError}
-                onDismiss={() => setAuthError(null)}
-                ref={errorBannerRef}
-              />
-            )}
 
             <FormField
               label={AUTH_MESSAGES.nameLabel}
