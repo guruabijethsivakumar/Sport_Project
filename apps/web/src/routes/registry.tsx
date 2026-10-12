@@ -17,6 +17,11 @@ export const coreRoutes: AppRouteDefinition[] = [
     element: <HomePage />,
     isProtected: false,
     owner: 'Core',
+    nav: {
+      label: 'Home',
+      order: 10,
+      requiresAuth: true,
+    },
   },
   {
     path: '/kit',

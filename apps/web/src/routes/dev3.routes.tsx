@@ -10,7 +10,7 @@ export const dev3Routes: DomainRouteModule = [
     isProtected: true,
     owner: 'Dev 3',
     nav: {
-      label: 'Recommended',
+      label: 'Recommendations',
       order: 15,
       requiresAuth: true,
     },

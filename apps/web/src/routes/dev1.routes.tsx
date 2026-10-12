@@ -40,6 +40,7 @@ export const dev1Routes: DomainRouteModule = [
     nav: {
       label: 'Leaderboard',
       order: 20,
+      requiresAuth: true,
     },
   },
 ];

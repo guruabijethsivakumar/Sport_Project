@@ -8,8 +8,6 @@ import { allDomainRoutes } from '../../routes/registry';
 import { Button } from '../ui/Button';
 import { Sheet } from '../ui/Sheet';
 import { Icon } from '../ui/Icon';
-import { NavbarNotificationSlot } from '../slots/NavbarNotificationSlot';
-import { NavbarRecommendedSlot } from '../slots/NavbarRecommendedSlot';
 
 export function Navbar(): React.ReactElement {
   const { isAuthenticated, user, logout } = useAuth();
@@ -23,7 +21,31 @@ export function Navbar(): React.ReactElement {
     navigate('/login', { replace: true });
   };
 
-  // Extract navigable routes dynamically from route registry
+  // Guest Navbar: strictly logo and "Log in" only
+  if (!isAuthenticated) {
+    return (
+      <header className="sticky top-0 z-40 w-full border-b border-border-subtle/50 bg-card/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+              P
+            </div>
+            <span className="text-lg font-bold tracking-tight text-foreground">PlayMatch</span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link to="/login">
+              <Button variant="ghost" size="sm">
+                Log in
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Authenticated: Home, Recommendations, Leaderboard
   const navItems = allDomainRoutes
     .filter((r) => r.nav)
     .filter((r) => {
@@ -67,96 +89,59 @@ export function Navbar(): React.ReactElement {
                 </Link>
               );
             })}
-            <NavbarRecommendedSlot />
           </nav>
         </div>
 
-        {/* Desktop Actions */}
+        {/* Desktop User Menu */}
         <div className="hidden md:flex items-center gap-3">
-          <NavbarNotificationSlot />
-
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Toggle theme"
-          >
-            <Icon name={resolvedTheme === 'dark' ? 'sun' : 'moon'} size={18} />
-          </button>
-
-          {isAuthenticated ? (
-            <DropdownMenu
-              align="end"
-              trigger={
-                <button
-                  type="button"
-                  className="flex items-center gap-2 rounded-lg p-1.5 text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
-                  aria-label="User menu"
-                >
-                  <Avatar fallbackText={displayName} size="sm" />
-                  <span className="text-sm font-medium hidden lg:inline max-w-28 truncate">
-                    {displayName}
-                  </span>
-                  <Icon name="chevron-down" size={14} className="text-muted-foreground" />
-                </button>
-              }
-              items={[
-                {
-                  key: 'profile-name',
-                  label: displayName,
-                  disabled: true,
-                  onSelect: () => {},
-                },
-                'separator',
-                {
-                  key: 'onboarding',
-                  label: 'Onboarding / Profile',
-                  icon: 'user',
-                  onSelect: () => navigate('/onboarding'),
-                },
-                {
-                  key: 'kit',
-                  label: 'UI Kit Showcase',
-                  icon: 'sparkles',
-                  onSelect: () => navigate('/kit'),
-                },
-                'separator',
-                {
-                  key: 'logout',
-                  label: 'Sign out',
-                  icon: 'logout',
-                  destructive: true,
-                  onSelect: handleLogout,
-                },
-              ]}
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login">
-                <Button variant="ghost" size="sm">
-                  Log in
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button variant="primary" size="sm">
-                  Register
-                </Button>
-              </Link>
-            </div>
-          )}
+          <DropdownMenu
+            align="end"
+            trigger={
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-lg p-1.5 text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+                aria-label="User menu"
+              >
+                <Avatar fallbackText={displayName} size="sm" />
+                <span className="text-sm font-medium hidden lg:inline max-w-28 truncate">
+                  {displayName}
+                </span>
+                <Icon name="chevron-down" size={14} className="text-muted-foreground" />
+              </button>
+            }
+            items={[
+              {
+                key: 'profile',
+                label: 'Profile',
+                icon: 'user',
+                onSelect: () => navigate('/onboarding'),
+              },
+              {
+                key: 'theme',
+                label: resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode',
+                icon: resolvedTheme === 'dark' ? 'sun' : 'moon',
+                onSelect: toggleTheme,
+              },
+              {
+                key: 'kit',
+                label: 'UI Kit',
+                icon: 'sparkles',
+                onSelect: () => navigate('/kit'),
+              },
+              'separator',
+              {
+                key: 'logout',
+                label: 'Log out',
+                icon: 'logout',
+                destructive: true,
+                onSelect: handleLogout,
+              },
+            ]}
+          />
         </div>
 
         {/* Mobile Hamburger */}
         <div className="flex items-center gap-2 md:hidden">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground hover:bg-muted"
-            aria-label="Toggle theme"
-          >
-            <Icon name={resolvedTheme === 'dark' ? 'sun' : 'moon'} size={16} />
-          </button>
-
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -182,59 +167,54 @@ export function Navbar(): React.ReactElement {
             </Link>
           ))}
 
-          {isAuthenticated && (
-            <Link
-              to="/onboarding"
-              onClick={() => setMobileOpen(false)}
-              className="text-base font-medium text-foreground py-2 border-b border-border-subtle/30"
-            >
-              Onboarding / Profile
-            </Link>
-          )}
+          <Link
+            to="/onboarding"
+            onClick={() => setMobileOpen(false)}
+            className="text-base font-medium text-foreground py-2 border-b border-border-subtle/30"
+          >
+            Profile
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              toggleTheme();
+            }}
+            className="flex items-center justify-between text-base font-medium text-foreground py-2 border-b border-border-subtle/30 text-left"
+          >
+            <span>Theme</span>
+            <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <Icon name={resolvedTheme === 'dark' ? 'sun' : 'moon'} size={14} />
+              {resolvedTheme === 'dark' ? 'Dark' : 'Light'}
+            </span>
+          </button>
 
           <Link
             to="/kit"
             onClick={() => setMobileOpen(false)}
-            className="text-sm font-medium text-muted-foreground py-2 border-b border-border-subtle/30"
+            className="text-base font-medium text-foreground py-2 border-b border-border-subtle/30"
           >
-            UI Kit Showcase
+            UI Kit
           </Link>
 
-          <div className="pt-4 space-y-2">
-            {isAuthenticated ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 px-1 py-2">
-                  <Avatar fallbackText={displayName} size="sm" />
-                  <span className="text-sm font-medium text-foreground truncate">
-                    {displayName}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    handleLogout();
-                  }}
-                >
-                  <Icon name="logout" size={16} className="mr-2" />
-                  Sign out
-                </Button>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full mb-2">
-                    Log in
-                  </Button>
-                </Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)}>
-                  <Button variant="primary" className="w-full">
-                    Register
-                  </Button>
-                </Link>
-              </>
-            )}
+          <div className="pt-4 space-y-3">
+            <div className="flex items-center gap-3 px-1 py-2">
+              <Avatar fallbackText={displayName} size="sm" />
+              <span className="text-sm font-medium text-foreground truncate">
+                {displayName}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setMobileOpen(false);
+                handleLogout();
+              }}
+            >
+              <Icon name="logout" size={16} className="mr-2" />
+              Log out
+            </Button>
           </div>
         </div>
       </Sheet>
