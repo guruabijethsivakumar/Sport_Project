@@ -150,3 +150,47 @@ export function useMarkAllNotificationsAsRead(
     ...options,
   });
 }
+
+export interface AdminResolveDisputePayload {
+  action?: 'accept_proposal' | 'override_scores' | 'void_match';
+  scores?: Array<{ sideKey: string; score: number; winner: boolean }>;
+  notes?: string;
+}
+
+export function useAdminResolveDispute(
+  client: ApiClient,
+  gameId: string,
+  options?: UseMutationOptions<any, Error, AdminResolveDisputePayload | void>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body?: AdminResolveDisputePayload | void) =>
+      client.post(`/admin/disputes/${gameId}/resolve`, body || {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.gameResult(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.notifications() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ratings.all });
+    },
+    ...options,
+  });
+}
+
+export function useAdminVoidDispute(
+  client: ApiClient,
+  gameId: string,
+  options?: UseMutationOptions<any, Error, { reason?: string } | void>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body?: { reason?: string } | void) =>
+      client.post(`/admin/disputes/${gameId}/void`, body || {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.gameResult(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.notifications() });
+    },
+    ...options,
+  });
+}
+

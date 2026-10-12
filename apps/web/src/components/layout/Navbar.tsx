@@ -8,6 +8,7 @@ import { allDomainRoutes } from '../../routes/registry';
 import { Button } from '../ui/Button';
 import { Sheet } from '../ui/Sheet';
 import { Icon } from '../ui/Icon';
+import { NavbarNotificationSlot } from '../slots/NavbarNotificationSlot';
 
 export function Navbar(): React.ReactElement {
   const { isAuthenticated, user, logout } = useAuth();
@@ -92,8 +93,10 @@ export function Navbar(): React.ReactElement {
           </nav>
         </div>
 
-        {/* Desktop User Menu */}
+        {/* Desktop User Menu & Notification Slot */}
         <div className="hidden md:flex items-center gap-3">
+          <NavbarNotificationSlot />
+
           <DropdownMenu
             align="end"
             trigger={
@@ -140,8 +143,9 @@ export function Navbar(): React.ReactElement {
           />
         </div>
 
-        {/* Mobile Hamburger */}
+        {/* Mobile Header Actions */}
         <div className="flex items-center gap-2 md:hidden">
+          <NavbarNotificationSlot />
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
