@@ -20,3 +20,4 @@ export * from './court-reservation.service.js';
 export * from './discovery.service.js';
 export * from './venue-discovery.service.js';
 export * from './venue-suggestion.service.js';
+export * from './notification.service.js';

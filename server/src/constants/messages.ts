@@ -188,4 +188,12 @@ export const Messages = {
     PROFILE_NOT_FOUND: 'Player profile not found',
     PRIVATE: 'This player has chosen not to share their reliability',
   },
+
+  // Module 10 Notifications
+  NOTIFICATIONS: {
+    FETCH_SUCCESS: 'Notifications retrieved successfully',
+    MARKED_READ: 'Notification marked as read',
+    MARKED_ALL_READ: 'All notifications marked as read',
+    NOT_FOUND: 'Notification not found',
+  },
 } as const;

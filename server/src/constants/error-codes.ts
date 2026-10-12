@@ -114,6 +114,9 @@ export const ErrorCodes = {
   FEEDBACK_WINDOW_CLOSED: 'FEEDBACK_WINDOW_CLOSED',
   FEEDBACK_GAME_NOT_COMPLETED: 'FEEDBACK_GAME_NOT_COMPLETED',
   FEEDBACK_INVALID_TARGET: 'FEEDBACK_INVALID_TARGET',
+
+  // Module 10 Notifications
+  NOTIFICATION_NOT_FOUND: 'NOTIFICATION_NOT_FOUND',
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
