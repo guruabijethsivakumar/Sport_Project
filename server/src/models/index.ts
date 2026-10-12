@@ -16,3 +16,4 @@ export * from './game-team-formation.model.js';
 export * from './game-result.model.js';
 export * from './game-feedback.model.js';
 export * from './player-reliability.model.js';
+export * from './decision-log.model.js';
