@@ -95,6 +95,10 @@ export function useFeatureNotifications(
   return { ...query, isMock };
 }
 
+/** Convenience alias for useFeatureNotifications */
+export const useNotifications = useFeatureNotifications;
+
+
 export function useFeatureReliability(
   client: ApiClient,
   userId: string,
