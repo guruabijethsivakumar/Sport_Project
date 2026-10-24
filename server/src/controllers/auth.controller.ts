@@ -144,6 +144,50 @@ export class AuthController {
     }
   };
 
+  public googleLogin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const clientType = this.getClientType(req);
+      const { credential } = req.body;
+      const userAgent = req.headers['user-agent'] || null;
+      const ip = req.ip || null;
+
+      const result = await authService.googleLogin({
+        credential,
+        clientType,
+        userAgent,
+        ip,
+      });
+
+      if (clientType === ClientTypes.WEB) {
+        this.setRefreshCookie(res, result.refreshToken);
+        sendSuccess(
+          res,
+          {
+            user: result.user,
+            accessToken: result.accessToken,
+          },
+          Messages.AUTH_LOGIN_SUCCESS,
+        );
+      } else {
+        sendSuccess(
+          res,
+          {
+            user: result.user,
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+          },
+          Messages.AUTH_LOGIN_SUCCESS,
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public refresh = async (
     req: Request,
     res: Response,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   forgotPasswordFormSchema,
   type ForgotPasswordFormValues,
@@ -12,13 +12,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { FormField } from '../../components/ui/FormField';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { Icon } from '../../components/ui/Icon';
 
 export function ForgotPasswordPage(): React.ReactElement {
-  const { client } = useAuth();
+  const { client, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
+
+  // If already authenticated, redirect away immediately to / per spec
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const {
     register,
@@ -50,22 +57,21 @@ export function ForgotPasswordPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6">
-        <Card className="shadow-lg border-border-subtle">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
-              <Icon name={isSubmitted ? 'mail' : 'key'} size={24} />
-            </div>
-            <CardTitle className="text-2xl font-bold tracking-tight">
-              {isSubmitted ? AUTH_MESSAGES.resetLinkSentTitle : AUTH_MESSAGES.forgotPasswordTitle}
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              {isSubmitted
-                ? AUTH_MESSAGES.resetLinkSentMessage
-                : AUTH_MESSAGES.forgotPasswordSubtitle}
-            </CardDescription>
-          </CardHeader>
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-md shadow-lg border-border">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-2xl mb-2">
+            P
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            {isSubmitted ? AUTH_MESSAGES.resetLinkSentTitle : AUTH_MESSAGES.forgotPasswordTitle}
+          </CardTitle>
+          <CardDescription className="text-sm">
+            {isSubmitted
+              ? AUTH_MESSAGES.resetLinkSentMessage
+              : AUTH_MESSAGES.forgotPasswordSubtitle}
+          </CardDescription>
+        </CardHeader>
 
           <CardContent className="pt-4">
             {isSubmitted ? (
@@ -76,14 +82,26 @@ export function ForgotPasswordPage(): React.ReactElement {
                   aria-live="polite"
                 >
                   <p className="font-medium text-foreground mb-1">
-                    Password recovery dispatched
+                    Password recovery dispatched via SMTP
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Sent instructions for: <strong className="text-foreground">{submittedEmail}</strong>
                   </p>
+                  <p className="text-[11px] text-muted-foreground pt-1">
+                    Please check your email inbox for the reset link delivered via our SMTP gateway.
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-3">
+                  <Link
+                    to={`/reset-password?email=${encodeURIComponent(submittedEmail)}`}
+                    className="w-full"
+                  >
+                    <Button type="button" variant="primary" className="w-full">
+                      I have a reset token
+                    </Button>
+                  </Link>
+
                   <Button
                     type="button"
                     variant="outline"
@@ -143,7 +161,6 @@ export function ForgotPasswordPage(): React.ReactElement {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

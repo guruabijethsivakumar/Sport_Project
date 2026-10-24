@@ -5,6 +5,13 @@ import { Icon, type IconName } from './Icon';
 
 export type ToastType = 'success' | 'danger' | 'warning' | 'info';
 
+export interface ToastOptions {
+  type?: ToastType;
+  variant?: 'default' | 'destructive';
+  title: string;
+  description?: string;
+}
+
 export interface ToastItem {
   id: string;
   type: ToastType;
@@ -13,7 +20,9 @@ export interface ToastItem {
 }
 
 interface ToastContextType {
-  toast: (options: { type?: ToastType; title: string; description?: string }) => void;
+  toast: (options: ToastOptions) => void;
+  dismiss?: (id?: string) => void;
+  toasts?: ToastItem[];
 }
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -22,9 +31,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }): Reac
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const toast = useCallback(
-    ({ type = 'info', title, description }: { type?: ToastType; title: string; description?: string }) => {
+    ({ type, variant, title, description }: ToastOptions) => {
+      const resolvedType: ToastType =
+        type || (variant === 'destructive' ? 'danger' : variant === 'default' ? 'success' : 'info');
       const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, type, title, description }]);
+      setToasts((prev) => [...prev, { id, type: resolvedType, title, description }]);
     },
     []
   );
@@ -105,7 +116,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }): Reac
 export function useToast(): ToastContextType {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    return {
+      toast: () => {},
+      dismiss: () => {},
+      toasts: [],
+    };
   }
   return context;
 }
+

@@ -19,10 +19,22 @@ export class ApiClient {
   private adapter: PlatformAuthAdapter;
   private refreshPromise: Promise<string> | null = null;
   private loggedOutListeners: Set<LoggedOutListener> = new Set();
+  private isLoggingOut = false;
 
   constructor(config: ClientConfig, adapter: PlatformAuthAdapter) {
     this.config = config;
     this.adapter = adapter;
+  }
+
+  public setLoggingOut(loggingOut: boolean): void {
+    this.isLoggingOut = loggingOut;
+    if (loggingOut) {
+      this.refreshPromise = null;
+    }
+  }
+
+  public getLoggingOut(): boolean {
+    return this.isLoggingOut;
   }
 
   public onLoggedOut(listener: LoggedOutListener): () => void {
@@ -54,12 +66,20 @@ export class ApiClient {
    * Single-flight token refresh with platform lock support.
    */
   public async refreshSession(): Promise<string> {
+    if (this.isLoggingOut) {
+      throw new ApiError('User is logging out', 'AUTH_LOGGING_OUT', 401);
+    }
+
     if (this.refreshPromise) {
       return this.refreshPromise;
     }
 
     const performRefresh = async (): Promise<string> => {
       try {
+        if (this.isLoggingOut) {
+          throw new ApiError('User is logging out', 'AUTH_LOGGING_OUT', 401);
+        }
+
         const payload = await this.adapter.prepareRefreshPayload();
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
@@ -72,6 +92,10 @@ export class ApiClient {
           body: payload ? JSON.stringify(payload) : undefined,
           credentials: this.adapter.clientType === 'web' ? 'include' : 'same-origin',
         });
+
+        if (this.isLoggingOut) {
+          throw new ApiError('User is logging out', 'AUTH_LOGGING_OUT', 401);
+        }
 
         if (!response.ok) {
           const errorJson = (await response.json().catch(() => null)) as ApiErrorEnvelope | null;
@@ -88,11 +112,17 @@ export class ApiClient {
           refreshToken?: string;
         }>;
 
+        if (this.isLoggingOut) {
+          throw new ApiError('User is logging out', 'AUTH_LOGGING_OUT', 401);
+        }
+
         await this.adapter.handleRefreshResponse(json.data);
         return json.data.accessToken;
       } catch (err) {
-        await this.adapter.clearSession();
-        this.notifyLoggedOut();
+        if (!this.isLoggingOut) {
+          await this.adapter.clearSession();
+          this.notifyLoggedOut();
+        }
         throw err;
       } finally {
         this.refreshPromise = null;
@@ -161,7 +191,7 @@ export class ApiClient {
         endpoint.includes('/auth/refresh') ||
         endpoint.includes('/auth/logout');
 
-      if (response.status === 401 && !skipAuth && !isRetry && !isAuthGatewayEndpoint) {
+      if (response.status === 401 && !skipAuth && !isRetry && !isAuthGatewayEndpoint && !this.isLoggingOut) {
         try {
           await this.refreshSession();
           return await this.request<T>(endpoint, options, true);

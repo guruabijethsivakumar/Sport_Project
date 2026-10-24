@@ -14,6 +14,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { FormErrorBanner } from '../../components/patterns/FormPattern';
+import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 
 export function RegisterPage(): React.ReactElement {
   const { client, login, isAuthenticated } = useAuth();
@@ -31,10 +32,10 @@ export function RegisterPage(): React.ReactElement {
     }
   }, [authError]);
 
-  // If already authenticated, redirect away immediately
+  // If already authenticated, redirect away immediately to / per spec
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/onboarding', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -52,6 +53,40 @@ export function RegisterPage(): React.ReactElement {
     },
     mode: 'onBlur',
   });
+
+  const handleGoogleSuccess = async (credential: string) => {
+    setAuthError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await client.post<{
+        user: { id: string; email: string; name?: string; role?: string };
+        accessToken: string;
+      }>('/auth/google', { credential });
+
+      login({
+        user: response.user,
+        accessToken: response.accessToken,
+      });
+
+      try {
+        const onboarding = await client.get<{ isComplete: boolean }>('/profile/me/onboarding');
+        if (!onboarding?.isComplete) {
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+      } catch {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+
+      navigate('/onboarding', { replace: true });
+    } catch {
+      setAuthError(AUTH_MESSAGES.googleSignInFailed);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const onSubmit = async (data: RegisterFormValues) => {
     setAuthError(null);
@@ -80,8 +115,10 @@ export function RegisterPage(): React.ReactElement {
 
       if (status === 409 || code === 'USER_ALREADY_EXISTS') {
         setAuthError(AUTH_MESSAGES.userAlreadyExists);
-      } else if (status === 429) {
+      } else if (status === 429 || code === 'RATE_LIMIT_EXCEEDED') {
         setAuthError(AUTH_MESSAGES.rateLimited);
+      } else if (status === 400 && err?.message) {
+        setAuthError(err.message);
       } else if (err?.message?.includes('Network') || !status) {
         setAuthError(AUTH_MESSAGES.networkError);
       } else {
@@ -93,29 +130,39 @@ export function RegisterPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border-border-subtle">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-md shadow-lg border-border">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
-            <Icon name="user-plus" size={24} />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-2xl mb-2">
+            P
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">
             {AUTH_MESSAGES.registerTitle}
           </CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">
+          <CardDescription className="text-sm">
             {AUTH_MESSAGES.registerSubtitle}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
+          {authError && (
+            <FormErrorBanner
+              error={authError}
+              onDismiss={() => setAuthError(null)}
+              ref={errorBannerRef}
+            />
+          )}
+
+          <div className="mb-4">
+            <GoogleSignInButton
+              text="signup_with"
+              onSuccess={handleGoogleSuccess}
+              onError={() => setAuthError(AUTH_MESSAGES.googleSignInFailed)}
+              disabled={isSubmitting}
+            />
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            {authError && (
-              <FormErrorBanner
-                error={authError}
-                onDismiss={() => setAuthError(null)}
-                ref={errorBannerRef}
-              />
-            )}
 
             <FormField
               label={AUTH_MESSAGES.nameLabel}
@@ -155,6 +202,7 @@ export function RegisterPage(): React.ReactElement {
               label={AUTH_MESSAGES.passwordLabel}
               id="register-password"
               error={errors.password?.message}
+              helperText="Must be at least 8 characters with uppercase, number & symbol"
               required
             >
               <div className="relative">

@@ -8,10 +8,16 @@ export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, config.PASSWORD_HASH_COST);
 }
 
+const DUMMY_HASH = '$2b$12$e8YQz4GvQJzJzJzJzJzJzO7XyO2QY7z6F2G1Qz8F7J6X5V4Y3W2U1';
+
 /**
  * Verifies a plaintext password against a stored bcrypt hash in constant time.
  */
-export async function comparePassword(password: string, hash: string): Promise<boolean> {
+export async function comparePassword(password: string, hash?: string | null): Promise<boolean> {
+  if (!hash || typeof hash !== 'string') {
+    await bcrypt.compare(password, DUMMY_HASH);
+    return false;
+  }
   return bcrypt.compare(password, hash);
 }
 

@@ -9,6 +9,7 @@ import { User, type IUserDocument } from '../models/user.model.js';
 import { passwordService } from './password.service.js';
 import { tokenService } from './token.service.js';
 import { emailService } from './email.service.js';
+import { OAuth2Client } from 'google-auth-library';
 import {
   AuthError,
   AccountLockedError,
@@ -33,6 +34,13 @@ export interface RegisterDTO {
 export interface LoginDTO {
   email: string;
   password: string;
+  clientType: ClientType;
+  userAgent?: string | null;
+  ip?: string | null;
+}
+
+export interface GoogleAuthDTO {
+  credential: string;
   clientType: ClientType;
   userAgent?: string | null;
   ip?: string | null;
@@ -126,9 +134,22 @@ export class AuthService {
       throw new AccountLockedError(Messages.AUTH_ACCOUNT_LOCKED);
     }
 
-    // Check account suspension
-    if (user.status === UserStatuses.SUSPENDED) {
+    // Check account suspension & archived
+    if (user.status === UserStatuses.SUSPENDED || (user.status as any) === 'archived') {
       throw new AccountSuspendedError(Messages.AUTH_ACCOUNT_SUSPENDED);
+    }
+
+    if (!user.passwordHash) {
+      await passwordService.compare(dto.password, DUMMY_HASH);
+      user.failedLoginAttempts += 1;
+      if (user.failedLoginAttempts >= config.MAX_FAILED_LOGINS) {
+        user.lockUntil = new Date(Date.now() + config.LOCKOUT_MINUTES * 60 * 1000);
+      }
+      await user.save();
+      throw new AuthError(
+        Messages.AUTH_GENERIC_INVALID_CREDENTIALS,
+        ErrorCodes.AUTH_INVALID_CREDENTIALS,
+      );
     }
 
     const isMatch = await passwordService.compare(dto.password, user.passwordHash);
@@ -323,6 +344,13 @@ export class AuthService {
       throw new NotFoundError(Messages.USER_NOT_FOUND);
     }
 
+    if (!user.passwordHash) {
+      throw new AuthError(
+        Messages.AUTH_CURRENT_PASSWORD_INCORRECT,
+        ErrorCodes.AUTH_INVALID_CREDENTIALS,
+      );
+    }
+
     const isMatch = await passwordService.compare(currentPassword, user.passwordHash);
     if (!isMatch) {
       throw new AuthError(
@@ -337,6 +365,107 @@ export class AuthService {
 
     // Revoke all sessions
     await tokenService.revokeAllUserSessions(userId);
+  }
+
+  /**
+   * Authenticates or registers a user via Google ID Token (Google Identity Services).
+   */
+  public async googleLogin(dto: GoogleAuthDTO): Promise<AuthResult> {
+    if (!config.GOOGLE_CLIENT_ID || config.GOOGLE_CLIENT_ID.trim() === '') {
+      throw new AuthError(
+        Messages.AUTH_GENERIC_INVALID_CREDENTIALS,
+        ErrorCodes.AUTH_INVALID_CREDENTIALS,
+      );
+    }
+
+    let payload: any;
+    try {
+      const client = new OAuth2Client(config.GOOGLE_CLIENT_ID);
+      const ticket = await client.verifyIdToken({
+        idToken: dto.credential,
+        audience: config.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch {
+      throw new AuthError(
+        Messages.AUTH_GENERIC_INVALID_CREDENTIALS,
+        ErrorCodes.AUTH_INVALID_CREDENTIALS,
+      );
+    }
+
+    if (!payload || !payload.sub || !payload.email || payload.email_verified !== true) {
+      throw new AuthError(
+        Messages.AUTH_GENERIC_INVALID_CREDENTIALS,
+        ErrorCodes.AUTH_INVALID_CREDENTIALS,
+      );
+    }
+
+    const googleId = String(payload.sub);
+    const email = String(payload.email).toLowerCase().trim();
+    const name = String(payload.name || payload.given_name || email.split('@')[0] || 'Player').trim();
+
+    let user = (await User.findOne({ googleId })) as any;
+    if (!user) {
+      user = (await User.findOne({ email }).select('+passwordHash')) as any;
+      if (user) {
+        user.googleId = googleId;
+        // When linking googleId to an existing unverified account:
+        // remove passwordHash, revoke all sessions, and mark email verified.
+        if (!user.isEmailVerified) {
+          user.isEmailVerified = true;
+          user.passwordHash = null;
+          await tokenService.revokeAllUserSessions(user._id);
+        }
+        await user.save();
+      } else {
+        user = await User.create({
+          email,
+          name,
+          googleId,
+          passwordHash: null,
+          role: Roles.PLAYER,
+          isEmailVerified: true,
+          status: UserStatuses.ACTIVE,
+        });
+      }
+    }
+
+    // Check account lockout
+    if (user.isLocked()) {
+      throw new AccountLockedError(Messages.AUTH_ACCOUNT_LOCKED);
+    }
+
+    // Check account suspension & archived
+    if (user.status === UserStatuses.SUSPENDED || (user.status as any) === 'archived') {
+      throw new AccountSuspendedError(Messages.AUTH_ACCOUNT_SUSPENDED);
+    }
+
+    user.failedLoginAttempts = 0;
+    user.lockUntil = null;
+    user.lastLoginAt = new Date();
+    await user.save();
+
+    // Issue tokens using existing session service
+    const rawRefreshToken = tokenService.generateRefreshToken();
+    await tokenService.createRefreshSession({
+      userId: user._id,
+      token: rawRefreshToken,
+      userAgent: dto.userAgent,
+      ip: dto.ip,
+      clientType: dto.clientType,
+    });
+
+    const accessToken = tokenService.generateAccessToken({
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+    });
+
+    return {
+      user,
+      accessToken,
+      refreshToken: rawRefreshToken,
+    };
   }
 }
 

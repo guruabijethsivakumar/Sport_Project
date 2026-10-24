@@ -5,8 +5,7 @@ import { AuthProvider } from './auth/AuthContext';
 import { ThemeProvider } from './theme/ThemeContext';
 import { ToastProvider } from './components/ui/Toast';
 import { AppLayout } from './components/layout/AppLayout';
-import { HomePage } from './pages/home/HomePage';
-import { StatusPage } from './components/StatusPage';
+import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { allDomainRoutes, renderRoute } from './routes/registry';
 
 const queryClient = new QueryClient({
@@ -25,14 +24,14 @@ export function App() {
         <ToastProvider>
           <AuthProvider>
             <BrowserRouter>
-              <AppLayout>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/status" element={<StatusPage />} />
-                  {allDomainRoutes.map((route) => renderRoute(route))}
-                  <Route path="*" element={<Navigate to="/404" replace />} />
-                </Routes>
-              </AppLayout>
+              <ErrorBoundary>
+                <AppLayout>
+                  <Routes>
+                    {allDomainRoutes.map((route) => renderRoute(route))}
+                    <Route path="*" element={<Navigate to="/404" replace />} />
+                  </Routes>
+                </AppLayout>
+              </ErrorBoundary>
             </BrowserRouter>
           </AuthProvider>
         </ToastProvider>

@@ -15,6 +15,7 @@ import { config } from '../config/index.js';
 import {
   GameEventTypes,
   ParticipantStatuses,
+  GameVisibilities,
 } from '../constants/game-constants.js';
 import { AppError } from '../utils/app-error.js';
 import { HttpStatus } from '../constants/http-status.js';
@@ -236,11 +237,17 @@ export class TeamService {
     }
 
     const isHost = game.hostId.toString() === viewerObjectId.toString();
-    if (!isHost) {
+    if (!isHost && game.visibility === GameVisibilities.PRIVATE) {
       const participation = await GameParticipant.findOne({
         gameId: game._id,
         userId: viewerObjectId,
-        status: ParticipantStatuses.JOINED,
+        status: {
+          $in: [
+            ParticipantStatuses.JOINED,
+            ParticipantStatuses.REQUESTED,
+            ParticipantStatuses.WAITLISTED,
+          ],
+        },
       });
       if (!participation) {
         throw new AppError(

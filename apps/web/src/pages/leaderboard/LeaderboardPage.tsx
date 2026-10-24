@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+
 import { useSearchParams } from 'react-router-dom';
 import {
   useSportsCatalog,
@@ -25,11 +26,14 @@ import { LoadMore } from '../../components/ui/LoadMore';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { QueryBoundary } from '../../components/patterns/QueryBoundary';
+import { PlayerProfileModal } from '../../components/profile/PlayerProfileModal';
 import { cn } from '../../lib/utils';
 
 export function LeaderboardPage(): React.ReactElement {
   const { client, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
 
   // 1. Fetch Sports Catalog for sport selector
   const { data: sportsData, isLoading: isSportsLoading } = useSportsCatalog(client);
@@ -201,32 +205,40 @@ export function LeaderboardPage(): React.ReactElement {
                         {/* Player details */}
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar
-                              src={entry.avatarUrl || undefined}
-                              fallbackText={displayName}
-                              size="sm"
-                            />
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Tooltip content={displayName}>
-                                <span className="text-foreground font-semibold max-w-44 truncate block">
-                                  {displayName}
-                                </span>
-                              </Tooltip>
-                              {isCurrentUser && (
-                                <Badge variant="secondary" className="text-[10px] py-0 px-1.5 shrink-0">
-                                  You
-                                </Badge>
-                              )}
-                              {entry.provisional && (
-                                <Tooltip content={LEADERBOARD_MESSAGES.provisionalTooltip}>
-                                  <Badge variant="warning" className="cursor-help shrink-0">
-                                    {LEADERBOARD_MESSAGES.provisionalBadge}
-                                  </Badge>
+                            <button
+                              type="button"
+                              className="flex items-center gap-3 hover:opacity-85 transition-opacity text-left cursor-pointer"
+                              onClick={() => setSelectedPlayerId(entry.userId)}
+                              aria-label={`View profile for ${displayName}`}
+                            >
+                              <Avatar
+                                src={entry.avatarUrl || undefined}
+                                fallbackText={displayName}
+                                size="sm"
+                              />
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Tooltip content={displayName}>
+                                  <span className="text-foreground font-semibold max-w-44 truncate block hover:text-primary transition-colors">
+                                    {displayName}
+                                  </span>
                                 </Tooltip>
-                              )}
-                            </div>
+                              </div>
+                            </button>
+                            {isCurrentUser && (
+                              <Badge variant="secondary" className="text-[10px] py-0 px-1.5 shrink-0">
+                                You
+                              </Badge>
+                            )}
+                            {entry.provisional && (
+                              <Tooltip content={LEADERBOARD_MESSAGES.provisionalTooltip}>
+                                <Badge variant="warning" className="cursor-help shrink-0">
+                                  {LEADERBOARD_MESSAGES.provisionalBadge}
+                                </Badge>
+                              </Tooltip>
+                            )}
                           </div>
                         </TableCell>
+
 
                         {/* Rating */}
                         <TableCell className="text-right tabular-nums font-semibold">
@@ -276,7 +288,13 @@ export function LeaderboardPage(): React.ReactElement {
                     data-current-user={isCurrentUser ? 'true' : undefined}
                   >
                     <CardContent className="p-0 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                        onClick={() => setSelectedPlayerId(entry.userId)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`View profile for ${displayName}`}
+                      >
                         {/* Rank Circle */}
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm text-foreground">
                           {rank}
@@ -291,7 +309,7 @@ export function LeaderboardPage(): React.ReactElement {
 
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 truncate">
-                            <span className="font-semibold text-foreground text-sm truncate">
+                            <span className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors">
                               {displayName}
                             </span>
                             {isCurrentUser && (
@@ -322,6 +340,7 @@ export function LeaderboardPage(): React.ReactElement {
                         )}
                       </div>
                     </CardContent>
+
                   </Card>
                 );
               })}
@@ -337,6 +356,14 @@ export function LeaderboardPage(): React.ReactElement {
           </div>
         )}
       </QueryBoundary>
+
+      {/* Player Public Profile Modal */}
+      <PlayerProfileModal
+        userId={selectedPlayerId}
+        isOpen={Boolean(selectedPlayerId)}
+        onClose={() => setSelectedPlayerId(null)}
+      />
     </div>
   );
 }
+

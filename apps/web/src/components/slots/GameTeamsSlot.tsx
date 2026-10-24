@@ -1,4 +1,5 @@
 import React from 'react';
+import { TeamBalancingView } from '../teams/TeamBalancingView';
 
 export interface GameTeamsSlotProps {
   gameId: string;
@@ -8,8 +9,26 @@ export interface GameTeamsSlotProps {
 
 /**
  * Typed slot for Dev 3's AI Team Balancing widget in GameDetailsPage.
- * Renders null (or fallback) by default until Dev 3 implements team formation UI.
+ * Automatically mounts TeamBalancingView using live gameId and viewer role permissions.
  */
-export function GameTeamsSlot({ fallback = null }: GameTeamsSlotProps): React.ReactElement | null {
-  return fallback ? <>{fallback}</> : null;
+export function GameTeamsSlot({
+  gameId,
+  viewerRole,
+  fallback = null,
+}: GameTeamsSlotProps): React.ReactElement | null {
+  if (!gameId) {
+    return fallback ? <>{fallback}</> : null;
+  }
+
+  const canManage =
+    viewerRole === 'host' ||
+    viewerRole === 'organizer' ||
+    viewerRole === 'admin';
+
+  return (
+    <TeamBalancingView
+      gameId={gameId}
+      canManage={canManage}
+    />
+  );
 }

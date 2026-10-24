@@ -5,7 +5,9 @@ import { Icon } from './Icon';
 
 export interface DialogProps {
   open?: boolean;
+  isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onClose?: () => void;
   trigger?: React.ReactNode;
   title: string;
   description?: string;
@@ -15,15 +17,25 @@ export interface DialogProps {
 
 export function Dialog({
   open,
+  isOpen,
   onOpenChange,
+  onClose,
   trigger,
   title,
   description,
   children,
   className,
 }: DialogProps): React.ReactElement {
+  const isControlledOpen = open !== undefined ? open : isOpen;
+  const handleOpenChange = (nextOpen: boolean) => {
+    onOpenChange?.(nextOpen);
+    if (!nextOpen) {
+      onClose?.();
+    }
+  };
+
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={isControlledOpen} onOpenChange={handleOpenChange}>
       {trigger && <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>}
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/30 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />

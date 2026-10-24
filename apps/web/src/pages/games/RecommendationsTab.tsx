@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles,
   Target,
@@ -7,10 +9,14 @@ import {
   Loader2,
   RefreshCw,
   ChevronRight,
+  UserPlus,
+  CheckCircle2,
 } from 'lucide-react';
-import { useFeatureRecommendations } from '@playmatch/shared';
+import { useFeatureRecommendations, useJoinGame, queryKeys } from '@playmatch/shared';
 import type { RecommendationItem, RecommendationFactor } from '@playmatch/shared/features/recommendations';
 import { useAuth } from '../../auth/AuthContext';
+import { useToast } from '../../components/ui/Toast';
+import { DecisionExplanationModal } from '../../components/explain/DecisionExplanationModal';
 
 // ─── Confidence badge helpers ───────────────────────────────────────────────
 
@@ -159,7 +165,55 @@ function FactorBar({
 
 // ─── Single recommendation card ─────────────────────────────────────────────
 
-function RecommendationCard({ item }: { item: RecommendationItem }) {
+function RecommendationCard({
+  item,
+  onExplain,
+}: {
+  item: RecommendationItem;
+  onExplain?: () => void;
+}) {
+  const navigate = useNavigate();
+  const { client } = useAuth();
+  const queryClient = useQueryClient();
+  const [hasJoined, setHasJoined] = useState(false);
+
+  let toast: (opts: any) => void = () => {};
+  try {
+    const t = useToast();
+    toast = t.toast;
+  } catch {
+    // If rendered outside ToastProvider
+  }
+
+  const joinMutation = useJoinGame(client, item.gameId, {
+    onSuccess: () => {
+      setHasJoined(true);
+      toast({
+        type: 'success',
+        title: 'Joined Match!',
+        description: `You have successfully joined ${item.title}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.recommendations() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(item.gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.my() });
+    },
+    onError: (err: any) => {
+      toast({
+        type: 'danger',
+        title: 'Unable to Join',
+        description: err?.message || 'Failed to join game. Please check eligibility requirements.',
+      });
+    },
+  });
+
+  const handleJoin = async () => {
+    try {
+      await joinMutation.mutateAsync();
+    } catch {
+      // Handled in onError
+    }
+  };
+
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-slate-800/60 to-slate-900/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:shadow-xl hover:shadow-purple-500/5">
       {/* Subtle glow */}
@@ -175,7 +229,19 @@ function RecommendationCard({ item }: { item: RecommendationItem }) {
             {item.sportKey}
           </span>
         </div>
-        <ConfidenceBadge level={item.confidence} />
+        <div className="flex items-center gap-2">
+          <ConfidenceBadge level={item.confidence} />
+          {onExplain && (
+            <button
+              type="button"
+              onClick={onExplain}
+              className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 transition-colors"
+            >
+              <Sparkles className="h-3 w-3" />
+              Explain
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Score gauge + factors */}
@@ -195,10 +261,21 @@ function RecommendationCard({ item }: { item: RecommendationItem }) {
       {/* Reasons */}
       {item.reasons.length > 0 && (
         <div className="mt-6 rounded-xl bg-white/[0.03] p-4">
-          <p className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            <Target className="h-3.5 w-3.5" />
-            Why this game?
-          </p>
+          <div className="mb-2.5 flex items-center justify-between">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <Target className="h-3.5 w-3.5" />
+              Why this game?
+            </p>
+            {onExplain && (
+              <button
+                type="button"
+                onClick={onExplain}
+                className="text-xs text-purple-400 hover:text-purple-300 font-medium"
+              >
+                Deep Dive &rarr;
+              </button>
+            )}
+          </div>
           <ul className="space-y-2">
             {item.reasons.map((reason: string, i: number) => (
               <li
@@ -212,6 +289,45 @@ function RecommendationCard({ item }: { item: RecommendationItem }) {
           </ul>
         </div>
       )}
+
+      {/* Action buttons: View Game & Join Game */}
+      <div className="mt-5 flex items-center justify-end gap-3 pt-4 border-t border-white/[0.08]">
+        <button
+          type="button"
+          onClick={() => navigate(`/games/${item.gameId}`)}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/[0.1] hover:text-white"
+        >
+          View Game
+        </button>
+
+        <button
+          type="button"
+          onClick={handleJoin}
+          disabled={hasJoined || joinMutation.isPending}
+          className={`inline-flex items-center gap-2 rounded-xl px-5 py-2 text-xs font-bold transition-all shadow-md ${
+            hasJoined
+              ? 'bg-emerald-600/20 text-emerald-400 ring-1 ring-inset ring-emerald-500/30 cursor-default'
+              : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-600/25 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60'
+          }`}
+        >
+          {joinMutation.isPending ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Joining...</span>
+            </>
+          ) : hasJoined ? (
+            <>
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Joined</span>
+            </>
+          ) : (
+            <>
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>Join Game</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
@@ -266,6 +382,7 @@ function EmptyState() {
 
 export default function RecommendationsTab() {
   const { client } = useAuth();
+  const [selectedItem, setSelectedItem] = useState<RecommendationItem | null>(null);
   const { data, isLoading, isError, error, isMock, refetch, isFetching } =
     useFeatureRecommendations(client);
 
@@ -332,27 +449,60 @@ export default function RecommendationsTab() {
       )}
 
       {/* Data states */}
-      {!isLoading && !isError && data && (
-        <>
-          {data.items.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="grid gap-5">
-              {data.items.map((item) => (
-                <RecommendationCard key={item.gameId} item={item} />
-              ))}
-            </div>
-          )}
+      {!isLoading && !isError && data && (() => {
+        const items = Array.isArray(data.items)
+          ? data.items
+          : Array.isArray((data as any).data?.items)
+          ? (data as any).data.items
+          : Array.isArray((data as any).data)
+          ? (data as any).data
+          : [];
 
-          {/* Live updating indicator */}
-          {isFetching && !isLoading && (
-            <div className="flex items-center justify-center gap-2 py-3 text-xs text-slate-500">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Updating…
-            </div>
-          )}
-        </>
-      )}
+        return (
+          <>
+            {items.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <div className="grid gap-5">
+                {items.map((item: any) => (
+                  <RecommendationCard
+                    key={item.gameId}
+                    item={item}
+                    onExplain={() => setSelectedItem(item)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Live updating indicator */}
+            {isFetching && !isLoading && (
+              <div className="flex items-center justify-center gap-2 py-3 text-xs text-slate-500">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Updating…
+              </div>
+            )}
+          </>
+        );
+      })()}
+
+      {/* Explainability Modal */}
+      <DecisionExplanationModal
+        isOpen={Boolean(selectedItem)}
+        onClose={() => setSelectedItem(null)}
+        mode="game"
+        gameData={
+          selectedItem
+            ? {
+                gameTitle: selectedItem.title,
+                sportKey: selectedItem.sportKey,
+                matchScore: selectedItem.score,
+                confidence: selectedItem.confidence,
+                factors: selectedItem.factors,
+                reasons: selectedItem.reasons,
+              }
+            : undefined
+        }
+      />
     </section>
   );
 }

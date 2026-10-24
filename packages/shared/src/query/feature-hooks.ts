@@ -46,7 +46,7 @@ export function useFeatureRecommendations(
 export function useFeatureTeamSuggestion(
   client: ApiClient,
   gameId: string,
-  options?: Partial<UseQueryOptions<TeamSuggestionResponse, Error>>,
+  options?: Partial<UseQueryOptions<TeamSuggestionResponse | null, Error>>,
 ) {
   const mode = client.getConfig().features?.teamsMode || 'mock';
   const isMock = mode === 'mock';
@@ -101,7 +101,7 @@ export const useNotifications = useFeatureNotifications;
 
 export function useFeatureReliability(
   client: ApiClient,
-  userId: string,
+  userId: string = 'me',
   options?: Partial<UseQueryOptions<ProfileReliabilityResponse, Error>>,
 ) {
   const mode = client.getConfig().features?.reliabilityMode || 'mock';
@@ -115,4 +115,12 @@ export function useFeatureReliability(
   });
 
   return { ...query, isMock };
+}
+
+/** Convenience alias for useFeatureReliability with 'me' */
+export function useMyReliability(
+  client: ApiClient,
+  options?: Partial<UseQueryOptions<ProfileReliabilityResponse, Error>>,
+) {
+  return useFeatureReliability(client, 'me', options);
 }

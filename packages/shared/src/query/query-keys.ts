@@ -49,6 +49,7 @@ export const queryKeys = {
   venues: {
     all: ['venues'] as const,
     list: (filters?: Record<string, unknown>) => [...queryKeys.venues.all, 'list', filters || {}] as const,
+    mine: () => [...queryKeys.venues.all, 'mine'] as const,
     detail: (venueId: string) => [...queryKeys.venues.all, 'detail', venueId] as const,
     courts: (venueId: string) => [...queryKeys.venues.all, 'courts', venueId] as const,
     availability: (venueId: string, courtId: string, date: string) =>

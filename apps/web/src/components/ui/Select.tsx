@@ -9,6 +9,8 @@ export interface SelectOption {
 }
 
 export interface SelectProps {
+  id?: string;
+  'aria-label'?: string;
   value?: string;
   onValueChange?: (value: string) => void;
   defaultValue?: string;
@@ -20,6 +22,8 @@ export interface SelectProps {
 }
 
 export function Select({
+  id,
+  'aria-label': ariaLabel,
   value,
   onValueChange,
   defaultValue,
@@ -37,6 +41,8 @@ export function Select({
       disabled={disabled}
     >
       <SelectPrimitive.Trigger
+        id={id}
+        aria-label={ariaLabel}
         className={cn(
           'flex h-10 w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
           isError ? 'border-danger focus:ring-danger' : 'border-border',

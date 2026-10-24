@@ -20,6 +20,7 @@ function renderRegisterPage(initialEntries = ['/register']) {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/onboarding" element={<div>Onboarding Destination</div>} />
             <Route path="/login" element={<div>Login Destination</div>} />
+            <Route path="/" element={<div>Home Destination</div>} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>
@@ -144,7 +145,7 @@ describe('RegisterPage Screen', () => {
     renderRegisterPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Onboarding Destination')).toBeDefined();
+      expect(screen.getByText('Home Destination')).toBeDefined();
     });
   });
 });
