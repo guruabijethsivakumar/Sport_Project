@@ -120,6 +120,12 @@ export function Navbar(): React.ReactElement {
                 onSelect: () => navigate('/profile'),
               },
               {
+                key: 'admin',
+                label: 'Admin Operations',
+                icon: 'shield-check',
+                onSelect: () => navigate('/admin'),
+              },
+              {
                 key: 'theme',
                 label: resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode',
                 icon: resolvedTheme === 'dark' ? 'sun' : 'moon',

@@ -73,6 +73,11 @@ export const dev2Routes: DomainRouteModule = [
     element: <AdminDashboardPage />,
     isProtected: true,
     owner: 'Dev 2',
+    nav: {
+      label: 'Admin',
+      order: 15,
+      requiresAuth: true,
+    },
   },
 ];
 
