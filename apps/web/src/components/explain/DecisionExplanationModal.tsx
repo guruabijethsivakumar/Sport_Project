@@ -7,11 +7,26 @@ import {
   Target,
   ShieldCheck,
   Scale,
-  Award,
   ChevronRight,
   Info,
   Zap,
+  ShieldAlert,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  Loader2,
+  Users,
 } from 'lucide-react';
+import {
+  useExplainEligibility,
+  useExplainTeams,
+  useExplainRating,
+  useExplainRecommendation,
+  type UnifiedExplanation,
+} from '@playmatch/shared';
+import { useAuth, sharedApiClient } from '../../auth/AuthContext';
+import { QueryClient, QueryClientProvider, QueryClientContext } from '@tanstack/react-query';
 
 export interface GameExplanationData {
   gameTitle?: string;
@@ -41,79 +56,52 @@ export interface RatingExplanationData {
   explanationText?: string;
 }
 
+export type ExplanationModalMode = 'game' | 'rating' | 'eligibility' | 'teams';
+
 export interface DecisionExplanationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode?: 'game' | 'rating';
+  mode?: ExplanationModalMode;
+  gameId?: string;
+  eventId?: string;
   gameData?: GameExplanationData;
   ratingData?: RatingExplanationData;
   className?: string;
 }
 
-// ─── Default Sample Data ─────────────────────────────────────────────────────
+const fallbackQueryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, gcTime: 0 } },
+});
 
-const DEFAULT_GAME_DATA: GameExplanationData = {
-  gameTitle: 'Saturday Evening Doubles',
-  sportKey: 'badminton',
-  matchScore: 0.92,
-  confidence: 'high',
-  factors: [
-    {
-      name: 'Skill Compatibility',
-      value: 0.95,
-      weight: 1.5,
-      description: 'Opponents and partner within ±45 Elo of your rating',
-    },
-    {
-      name: 'Geographic Proximity',
-      value: 0.88,
-      weight: 1.2,
-      description: 'Venue located 2.4 km from your primary travel zone',
-    },
-    {
-      name: 'Schedule Alignment',
-      value: 0.92,
-      weight: 1.0,
-      description: 'Matches your regular weekend playing preferences',
-    },
-    {
-      name: 'Host Reliability',
-      value: 0.96,
-      weight: 1.0,
-      description: 'Host holds a 98% attendance and match fulfillment rating',
-    },
-  ],
-  reasons: [
-    'Optimal skill bracket: 95% likelihood of a competitive, balanced set',
-    'Short travel time: Estimated 8 minutes from your location',
-    'Court surface & format match your preferred doubles profile',
-  ],
-};
+export function DecisionExplanationModal(props: DecisionExplanationModalProps) {
+  if (!props.isOpen) return null;
 
-const DEFAULT_RATING_DATA: RatingExplanationData = {
-  sportKey: 'badminton',
-  ratingBefore: 1200,
-  ratingAfter: 1218.6,
-  delta: 18.6,
-  expectedScore: 0.42,
-  actualScore: 1.0,
-  kFactor: 32,
-  opponentRatingAverage: 1245,
-  marginOfVictory: '2 - 1 Sets',
-  provisionalMultiplier: 1.0,
-  explanationText:
-    'Because your opponents entered the match with a higher average rating (1,245 vs 1,200), the model predicted a 42% win probability. Securing victory yielded an elevated rating gain of +18.6 points.',
-};
+  const existingClient = React.useContext(QueryClientContext);
+  if (!existingClient) {
+    return (
+      <QueryClientProvider client={fallbackQueryClient}>
+        <DecisionExplanationModalInner {...props} />
+      </QueryClientProvider>
+    );
+  }
 
-export function DecisionExplanationModal({
+  return <DecisionExplanationModalInner {...props} />;
+}
+
+function DecisionExplanationModalInner({
   isOpen,
   onClose,
   mode: initialMode = 'game',
-  gameData = DEFAULT_GAME_DATA,
-  ratingData = DEFAULT_RATING_DATA,
+  gameId,
+  eventId,
+  gameData,
+  ratingData,
   className = '',
 }: DecisionExplanationModalProps) {
-  const [activeTab, setActiveTab] = useState<'game' | 'rating'>(initialMode);
+  const auth = useAuth?.();
+  const client = auth?.client || sharedApiClient;
+
+  const [activeTab, setActiveTab] = useState<ExplanationModalMode>(initialMode);
 
   // Sync activeTab when mode prop changes
   useEffect(() => {
@@ -131,7 +119,69 @@ export function DecisionExplanationModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // ── Live TanStack Query Hooks ──────────────────────────────────────────────
+  const eligibilityQuery = useExplainEligibility(client, gameId || '', {
+    enabled: isOpen && Boolean(gameId) && (activeTab === 'eligibility' || initialMode === 'eligibility'),
+  });
+
+  const recommendationQuery = useExplainRecommendation(client, gameId || '', {
+    enabled: isOpen && Boolean(gameId) && !gameData && activeTab === 'game',
+  });
+
+  const ratingQuery = useExplainRating(client, eventId || '', {
+    enabled: isOpen && Boolean(eventId) && !ratingData && activeTab === 'rating',
+  });
+
+  const teamsQuery = useExplainTeams(client, gameId || '', {
+    enabled: isOpen && Boolean(gameId) && activeTab === 'teams',
+  });
+
   if (!isOpen) return null;
+
+  // Derive active game data (prop takes precedence, then live query)
+  const resolvedGameData: GameExplanationData | null =
+    gameData ||
+    (recommendationQuery.data
+      ? {
+          gameTitle: recommendationQuery.data.summary,
+          matchScore: (recommendationQuery.data.metrics?.score as number) ?? 0.88,
+          confidence: (recommendationQuery.data.metrics?.confidence as 'low' | 'medium' | 'high') ?? 'high',
+          factors: recommendationQuery.data.factors?.map((f) => ({
+            name: f.name,
+            value: typeof f.value === 'number' ? f.value : 0.85,
+            weight: typeof f.weight === 'number' ? f.weight : 1.0,
+            description: f.description,
+          })),
+          reasons: recommendationQuery.data.reasons,
+        }
+      : null);
+
+  // Derive active rating data (prop takes precedence, then live query)
+  const resolvedRatingData: RatingExplanationData | null =
+    ratingData ||
+    (ratingQuery.data
+      ? {
+          ratingBefore: Number(ratingQuery.data.metrics?.oldRating ?? 1200),
+          ratingAfter: Number(ratingQuery.data.metrics?.newRating ?? 1200),
+          delta: Number(ratingQuery.data.metrics?.delta ?? 0),
+          expectedScore:
+            typeof ratingQuery.data.metrics?.winProbabilityPercent === 'number'
+              ? Number(ratingQuery.data.metrics.winProbabilityPercent) / 100
+              : 0.5,
+          actualScore:
+            typeof ratingQuery.data.metrics?.actualScore === 'number'
+              ? Number(ratingQuery.data.metrics.actualScore)
+              : undefined,
+          kFactor: Number(ratingQuery.data.metrics?.kFactorUsed ?? 32),
+          opponentRatingAverage: ratingQuery.data.metrics?.opponentRatingAverage
+            ? Number(ratingQuery.data.metrics.opponentRatingAverage)
+            : undefined,
+          explanationText: ratingQuery.data.summary,
+        }
+      : null);
+
+  const isEligibilityMode = activeTab === 'eligibility';
+  const isTeamsMode = activeTab === 'teams';
 
   return (
     <div
@@ -156,18 +206,30 @@ export function DecisionExplanationModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-border p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Sparkles className="h-5 w-5" />
+            <div
+              className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+                isEligibilityMode
+                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  : 'bg-primary/10 text-primary'
+              }`}
+            >
+              {isEligibilityMode ? (
+                <ShieldAlert className="h-5 w-5" />
+              ) : (
+                <Sparkles className="h-5 w-5" />
+              )}
             </div>
             <div>
               <h2
                 id="explanation-modal-title"
                 className="text-lg font-bold text-foreground"
               >
-                Decision Explainability
+                {isEligibilityMode ? 'Eligibility Breakdown' : 'Decision Explainability'}
               </h2>
               <p className="text-xs text-muted-foreground">
-                Transparent breakdown of matchmaking AI & Elo calculations
+                {isEligibilityMode
+                  ? 'Transparent analysis of match participation constraints & requirements'
+                  : 'Transparent breakdown of matchmaking AI & Elo calculations'}
               </p>
             </div>
           </div>
@@ -182,41 +244,98 @@ export function DecisionExplanationModal({
           </button>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex border-b border-border bg-muted/40 px-6">
-          <button
-            type="button"
-            onClick={() => setActiveTab('game')}
-            className={`flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
-              activeTab === 'game'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Target className="h-4 w-4" />
-            Why This Game?
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('rating')}
-            className={`ml-6 flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
-              activeTab === 'rating'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Calculator className="h-4 w-4" />
-            Why This Rating Change?
-          </button>
-        </div>
+        {/* Tab Selector: Only render tabs if not in exclusive single-focus mode */}
+        {initialMode === 'eligibility' ? (
+          <div className="flex border-b border-border bg-muted/40 px-6">
+            <button
+              type="button"
+              className="flex items-center gap-2 border-b-2 border-primary py-3 text-xs font-bold text-primary"
+            >
+              <ShieldAlert className="h-4 w-4" />
+              Eligibility Status
+            </button>
+            {gameId && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('game')}
+                className="ml-6 flex items-center gap-2 border-b-2 border-transparent py-3 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Target className="h-4 w-4" />
+                Match Fit
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex border-b border-border bg-muted/40 px-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab('game')}
+              className={`flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
+                activeTab === 'game'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Target className="h-4 w-4" />
+              Why This Game?
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('rating')}
+              className={`ml-6 flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
+                activeTab === 'rating'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Calculator className="h-4 w-4" />
+              Why This Rating Change?
+            </button>
+            {gameId && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('teams')}
+                className={`ml-6 flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
+                  activeTab === 'teams'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                Team Balance
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Scrollable Body Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {activeTab === 'game' ? (
-            <GameExplanationView data={gameData} />
-          ) : (
-            <RatingExplanationView data={ratingData} />
-          )}
+          {activeTab === 'eligibility' ? (
+            <EligibilityExplanationView
+              isLoading={eligibilityQuery.isLoading}
+              isError={eligibilityQuery.isError}
+              error={eligibilityQuery.error}
+              data={eligibilityQuery.data}
+            />
+          ) : activeTab === 'game' ? (
+            <GameExplanationView
+              data={resolvedGameData}
+              isLoading={recommendationQuery.isLoading}
+              isError={recommendationQuery.isError}
+            />
+          ) : activeTab === 'rating' ? (
+            <RatingExplanationView
+              data={resolvedRatingData}
+              isLoading={ratingQuery.isLoading}
+              isError={ratingQuery.isError}
+            />
+          ) : isTeamsMode ? (
+            <TeamBalancingExplanationView
+              isLoading={teamsQuery.isLoading}
+              isError={teamsQuery.isError}
+              data={teamsQuery.data}
+            />
+          ) : null}
         </div>
 
         {/* Modal Footer */}
@@ -234,9 +353,209 @@ export function DecisionExplanationModal({
   );
 }
 
+// ─── Subcomponent: Eligibility Explanation View ("Why I'm Ineligible") ────────
+
+function EligibilityExplanationView({
+  isLoading,
+  isError,
+  error,
+  data,
+}: {
+  isLoading: boolean;
+  isError: boolean;
+  error?: Error | null;
+  data?: UnifiedExplanation;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-xs font-medium text-muted-foreground">
+          Evaluating match participation requirements...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-5 text-center text-xs">
+        <AlertCircle className="mx-auto mb-2 h-6 w-6 text-destructive" />
+        <p className="font-semibold text-destructive">
+          {error?.message || 'Unable to retrieve eligibility explanation at this time.'}
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          Please check your network connection or verify that the match still exists.
+        </p>
+      </div>
+    );
+  }
+
+  const isEligible = Boolean(data.metrics?.eligible ?? data.reasons?.length === 0);
+  const codes = data.codes || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Hero Banner: Ineligible or Eligible */}
+      <div
+        className={`rounded-2xl border p-5 ${
+          isEligible
+            ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-950 dark:text-emerald-200 dark:border-emerald-500/30'
+            : 'border-rose-500/20 bg-rose-500/5 text-rose-950 dark:text-rose-200 dark:border-rose-500/30'
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          {isEligible ? (
+            <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+          ) : (
+            <XCircle className="h-6 w-6 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+          )}
+          <div className="space-y-1">
+            <span
+              className={`inline-block text-[11px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 ${
+                isEligible
+                  ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
+              }`}
+            >
+              {isEligible ? 'Eligible to Join' : 'Blocked from Joining'}
+            </span>
+            <h3 className="text-base font-bold text-foreground">
+              {data.summary || (isEligible ? 'You meet all criteria for this match' : 'Participation requirements not met')}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {isEligible
+                ? 'Your rating, profile, and schedule are compatible with this game.'
+                : 'Review the blockers below to see what is preventing you from registering.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Blockers & Reasons List */}
+      {data.reasons && data.reasons.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+          <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <ShieldAlert className="h-3.5 w-3.5 text-rose-500" />
+            Identified Participation Constraints
+          </h4>
+          <ul className="space-y-2.5">
+            {data.reasons.map((reason: string, idx: number) => (
+              <li
+                key={idx}
+                className="flex items-start gap-2.5 text-xs text-foreground bg-muted/30 p-2.5 rounded-xl border border-border/50"
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-500 mt-0.5" />
+                <span className="font-medium leading-relaxed">{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Factors / Criteria Breakdown */}
+      {data.factors && data.factors.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <Scale className="h-3.5 w-3.5" />
+            Eligibility Rule Checks
+          </h4>
+          <div className="space-y-2">
+            {data.factors.map((factor: any, idx: number) => {
+              const isPositive = factor.impact === 'positive' || factor.value >= 1;
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-3 text-xs"
+                >
+                  <span className="font-semibold text-foreground">{factor.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                        isPositive
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                      }`}
+                    >
+                      {isPositive ? (
+                        <>
+                          <CheckCircle2 className="h-3 w-3" /> Met
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-3 w-3" /> Failed
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Actionable Next Steps Resolution Card */}
+      {!isEligible && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-xs space-y-2">
+          <h4 className="font-bold text-foreground flex items-center gap-1.5">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            How to resolve these blockers:
+          </h4>
+          <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+            {codes.includes('sport_profile_missing') && (
+              <li>Add this sport to your player profile under Profile Settings.</li>
+            )}
+            {codes.includes('outside_rating_range') && (
+              <li>Look for matches within your current Elo rating bracket or unranked community games.</li>
+            )}
+            {codes.includes('schedule_conflict') && (
+              <li>Resolve conflicting active matches scheduled during the same timeframe.</li>
+            )}
+            <li>You can also contact the match organizer to request an invitation or host override.</li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Subcomponent: Game Explanation View ('Why this game?') ──────────────────
 
-function GameExplanationView({ data }: { data: GameExplanationData }) {
+function GameExplanationView({
+  data,
+  isLoading,
+  isError,
+}: {
+  data: GameExplanationData | null;
+  isLoading?: boolean;
+  isError?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-xs font-medium text-muted-foreground">
+          Retrieving matchmaking compatibility breakdown...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="rounded-xl border border-border bg-muted/30 p-5 text-center text-xs">
+        <Target className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+        <p className="font-semibold text-foreground">
+          No recommendation details found for this match.
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          Compatibility factors are calculated automatically when viewing games in the discovery feed.
+        </p>
+      </div>
+    );
+  }
+
   const normalizedScore =
     data.matchScore <= 1 ? Math.round(data.matchScore * 100) : Math.round(data.matchScore);
 
@@ -359,7 +678,40 @@ function GameExplanationView({ data }: { data: GameExplanationData }) {
 
 // ─── Subcomponent: Rating Explanation View ('Why this rating change?') ────────
 
-function RatingExplanationView({ data }: { data: RatingExplanationData }) {
+function RatingExplanationView({
+  data,
+  isLoading,
+  isError,
+}: {
+  data: RatingExplanationData | null;
+  isLoading?: boolean;
+  isError?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-xs font-medium text-muted-foreground">
+          Calculating Elo rating movements and variables...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="rounded-xl border border-border bg-muted/30 p-5 text-center text-xs">
+        <Calculator className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+        <p className="font-semibold text-foreground">
+          No rating adjustment recorded for this event.
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          Ratings are calculated and stored once match results are verified.
+        </p>
+      </div>
+    );
+  }
+
   const isPositive = data.delta > 0;
   const isNegative = data.delta < 0;
 
@@ -502,6 +854,71 @@ function RatingExplanationView({ data }: { data: RatingExplanationData }) {
         <div className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
           <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-indigo-500" />
           <p>{data.explanationText}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Subcomponent: Team Balancing Explanation View ('Why these teams?') ───────
+
+function TeamBalancingExplanationView({
+  isLoading,
+  isError,
+  data,
+}: {
+  isLoading: boolean;
+  isError: boolean;
+  data?: UnifiedExplanation;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-xs font-medium text-muted-foreground">
+          Fetching team balancing rationale...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="rounded-xl border border-border bg-muted/30 p-5 text-center text-xs">
+        <Users className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+        <p className="font-semibold text-foreground">
+          Team balancing explanation not available yet.
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          Balancing models run once players join and rosters are formed.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+        <span className="text-xs font-bold uppercase tracking-wider text-primary">
+          Team Balancing Summary
+        </span>
+        <p className="mt-1 font-bold text-base text-foreground">{data.summary}</p>
+      </div>
+
+      {data.reasons && data.reasons.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+          <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <Scale className="h-3.5 w-3.5 text-primary" />
+            Balancing Objectives
+          </h4>
+          <ul className="space-y-2">
+            {data.reasons.map((r: string, i: number) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-foreground">
+                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                <span>{r}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

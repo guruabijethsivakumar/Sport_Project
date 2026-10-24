@@ -41,6 +41,12 @@ import {
   Mail,
   Key,
   Lock,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Scale,
+  FileCheck,
+  Award,
 } from 'lucide-react';
 
 export const ICON_MAP = {
@@ -86,6 +92,12 @@ export const ICON_MAP = {
   sparkles: Sparkles,
   eye: Eye,
   'eye-off': EyeOff,
+  'trending-up': TrendingUp,
+  'trending-down': TrendingDown,
+  minus: Minus,
+  scale: Scale,
+  'file-check': FileCheck,
+  award: Award,
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

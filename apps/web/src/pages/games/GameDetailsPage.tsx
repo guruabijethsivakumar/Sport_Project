@@ -28,6 +28,9 @@ import { GameTeamsSlot } from '../../components/slots/GameTeamsSlot';
 import { GameResultSlot } from '../../components/slots/GameResultSlot';
 import { AttendanceFeedbackModal } from '../../components/games/AttendanceFeedbackModal';
 import { PlayerProfileModal } from '../../components/profile/PlayerProfileModal';
+import { GameTimelineCard } from '../../components/games/GameTimelineCard';
+import { MatchStakesCard } from '../../components/games/MatchStakesCard';
+import { DecisionExplanationModal, type ExplanationModalMode } from '../../components/explain';
 
 
 export function GameDetailsPage(): React.ReactElement {
@@ -44,6 +47,8 @@ export function GameDetailsPage(): React.ReactElement {
   const [removeParticipantId, setRemoveParticipantId] = useState<string | null>(null);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [selectedProfileUserId, setSelectedProfileUserId] = useState<string | null>(null);
+  const [explainModalOpen, setExplainModalOpen] = useState(false);
+  const [explainModalMode, setExplainModalMode] = useState<ExplanationModalMode>('eligibility');
 
   // Queries
   const {
@@ -139,6 +144,8 @@ export function GameDetailsPage(): React.ReactElement {
         title: 'Unable to Join',
         description: err?.message || 'Failed to join game. You may not meet the eligibility requirements.',
       });
+      setExplainModalMode('eligibility');
+      setExplainModalOpen(true);
     }
   };
 
@@ -421,16 +428,30 @@ export function GameDetailsPage(): React.ReactElement {
               </Button>
             </div>
           ) : (
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              leftIcon="user-plus"
-              isLoading={joinMutation.isPending}
-              onClick={handleJoinGame}
-            >
-              {gameStatus === 'full' ? 'Join Waitlist' : game.joinPolicy === 'approval' ? 'Request to Join' : 'Join Game'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => {
+                  setExplainModalMode('eligibility');
+                  setExplainModalOpen(true);
+                }}
+                title="Check match participation eligibility criteria"
+              >
+                Eligibility
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                leftIcon="user-plus"
+                isLoading={joinMutation.isPending}
+                onClick={handleJoinGame}
+              >
+                {gameStatus === 'full' ? 'Join Waitlist' : game.joinPolicy === 'approval' ? 'Request to Join' : 'Join Game'}
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -586,6 +607,25 @@ export function GameDetailsPage(): React.ReactElement {
             )}
           </Card>
 
+          {/* What's at Stake? Widget */}
+          <MatchStakesCard
+            gameId={game.id || game._id}
+            sportKey={game.sportKey}
+            roster={roster}
+            onExplainRatings={() => {
+              setExplainModalMode('rating');
+              setExplainModalOpen(true);
+            }}
+          />
+
+          {/* Match Activity Timeline */}
+          <GameTimelineCard
+            gameId={game.id || game._id}
+            gameStatus={gameStatus}
+            hasPendingResult={isResultPending}
+            participantCount={joinedList.length}
+          />
+
           {/* Roster View Component */}
           <RosterView
             roster={roster}
@@ -728,6 +768,14 @@ export function GameDetailsPage(): React.ReactElement {
         userId={selectedProfileUserId}
         isOpen={Boolean(selectedProfileUserId)}
         onClose={() => setSelectedProfileUserId(null)}
+      />
+
+      {/* Decision Explainability & Eligibility Modal */}
+      <DecisionExplanationModal
+        isOpen={explainModalOpen}
+        onClose={() => setExplainModalOpen(false)}
+        mode={explainModalMode}
+        gameId={game?.id || game?._id}
       />
     </div>
   );

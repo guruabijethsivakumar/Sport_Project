@@ -3,4 +3,5 @@ export type {
   DecisionExplanationModalProps,
   GameExplanationData,
   RatingExplanationData,
+  ExplanationModalMode,
 } from './DecisionExplanationModal';

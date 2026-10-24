@@ -1,4 +1,4 @@
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
 import { queryKeys } from './query-keys.js';
 import type { ApiClient } from '../client/api-client.js';
 import {
@@ -123,4 +123,257 @@ export function useMyReliability(
   options?: Partial<UseQueryOptions<ProfileReliabilityResponse, Error>>,
 ) {
   return useFeatureReliability(client, 'me', options);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sprint 1: Explainability, Timeline, and Rating Preview Hooks
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface UnifiedExplanationFactor {
+  name: string;
+  value: number;
+  weight?: number;
+  impact?: 'positive' | 'negative' | 'neutral' | string;
+  description?: string;
+}
+
+export interface UnifiedExplanationResponse {
+  subjectId: string;
+  type: string;
+  summary: string;
+  reasons: string[];
+  factors: UnifiedExplanationFactor[];
+  metrics: Record<string, any>;
+  codes?: string[];
+}
+
+export type UnifiedExplanation = UnifiedExplanationResponse;
+
+/**
+ * Explains why the caller is or is not eligible to join a specific game.
+ * Calls GET /api/v1/explain/games/:id/eligibility
+ */
+export function useExplainEligibility(
+  client: ApiClient,
+  gameId: string,
+  options?: Partial<UseQueryOptions<UnifiedExplanationResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: [...queryKeys.features.all, 'explain', 'eligibility', gameId],
+    queryFn: async () => {
+      const res = await client.get(`/explain/games/${gameId}/eligibility`);
+      return (res as any)?.data || res;
+    },
+    enabled: Boolean(gameId),
+    ...options,
+  });
+}
+
+/**
+ * Explains how teams were formed and balanced for a match.
+ * Calls GET /api/v1/explain/games/:id/teams
+ */
+export function useExplainTeams(
+  client: ApiClient,
+  gameId: string,
+  options?: Partial<UseQueryOptions<UnifiedExplanationResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: [...queryKeys.features.all, 'explain', 'teams', gameId],
+    queryFn: async () => {
+      const res = await client.get(`/explain/games/${gameId}/teams`);
+      return (res as any)?.data || res;
+    },
+    enabled: Boolean(gameId),
+    ...options,
+  });
+}
+
+/**
+ * Explains a player's Elo delta and mathematical calculation from a rating event.
+ * Calls GET /api/v1/explain/ratings/:eventId
+ */
+export function useExplainRating(
+  client: ApiClient,
+  eventId: string,
+  options?: Partial<UseQueryOptions<UnifiedExplanationResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: [...queryKeys.features.all, 'explain', 'rating', eventId],
+    queryFn: async () => {
+      const res = await client.get(`/explain/ratings/${eventId}`);
+      return (res as any)?.data || res;
+    },
+    enabled: Boolean(eventId),
+    ...options,
+  });
+}
+
+/**
+ * Explains why a specific game was recommended to the player.
+ * Calls GET /api/v1/explain/recommendations/:gameId
+ */
+export function useExplainRecommendation(
+  client: ApiClient,
+  gameId: string,
+  options?: Partial<UseQueryOptions<UnifiedExplanationResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: [...queryKeys.features.all, 'explain', 'recommendation', gameId],
+    queryFn: async () => {
+      const res = await client.get(`/explain/recommendations/${gameId}`);
+      return (res as any)?.data || res;
+    },
+    enabled: Boolean(gameId),
+    ...options,
+  });
+}
+
+export interface DecisionLogItem {
+  id?: string;
+  _id?: string;
+  decisionType: string;
+  subjectId: string;
+  summary: string;
+  reasons: string[];
+  factors: UnifiedExplanationFactor[];
+  metrics: Record<string, any>;
+  createdAt: string;
+}
+
+export interface DecisionLogsListResponse {
+  decisions: DecisionLogItem[];
+  total: number;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Retrieves the audit trail of decisions made for the caller.
+ * Calls GET /api/v1/explain/decisions
+ */
+export function useDecisionLogs(
+  client: ApiClient,
+  queryParams?: { decisionType?: string; limit?: number; page?: number },
+  options?: Partial<UseQueryOptions<DecisionLogsListResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: [...queryKeys.features.all, 'explain', 'decisions', queryParams || {}],
+    queryFn: async () => {
+      const search = new URLSearchParams();
+      if (queryParams?.decisionType) search.set('decisionType', queryParams.decisionType);
+      if (queryParams?.limit) search.set('limit', String(queryParams.limit));
+      if (queryParams?.page) search.set('page', String(queryParams.page));
+      const qs = search.toString();
+      const res = await client.get(`/explain/decisions${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+export interface GameTimelineEvent {
+  id?: string;
+  _id?: string;
+  gameId: string;
+  type: string;
+  actorId?: string | null;
+  payload?: Record<string, any>;
+  createdAt: string;
+}
+
+/**
+ * Retrieves the chronological audit timeline of events for a match.
+ * Calls GET /api/v1/games/:id/timeline
+ */
+export function useGameTimeline(
+  client: ApiClient,
+  gameId: string,
+  options?: Partial<UseQueryOptions<GameTimelineEvent[], Error>>,
+) {
+  return useQuery({
+    queryKey: [...queryKeys.games.all, 'timeline', gameId],
+    queryFn: async () => {
+      const res = await client.get(`/games/${gameId}/timeline`);
+      const data = (res as any)?.data || res;
+      return Array.isArray(data) ? data : (data as any)?.events || [];
+    },
+    enabled: Boolean(gameId),
+    ...options,
+  });
+}
+
+export interface PreviewMatchSide {
+  sideKey: string;
+  playerIds: string[];
+}
+
+export interface PreviewMatchPayload {
+  sportKey: string;
+  sides: [PreviewMatchSide, PreviewMatchSide] | PreviewMatchSide[];
+}
+
+export interface MatchPreviewResponse {
+  sportKey: string;
+  sideA: {
+    sideKey: string;
+    teamRating: number;
+    winProbabilityPercent: number;
+  };
+  sideB: {
+    sideKey: string;
+    teamRating: number;
+    winProbabilityPercent: number;
+  };
+  callerHypotheticalDeltas?: {
+    win: number;
+    draw: number;
+    loss: number;
+  };
+}
+
+/**
+ * Mutation hook to calculate prospective win probabilities and rating adjustments.
+ * Calls POST /api/v1/ratings/preview
+ */
+export function usePreviewMatchRatings(
+  client: ApiClient,
+  options?: Partial<UseMutationOptions<MatchPreviewResponse, Error, PreviewMatchPayload>>,
+) {
+  return useMutation({
+    mutationFn: async (payload: PreviewMatchPayload) => {
+      const res = await client.post('/ratings/preview', payload);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+/**
+ * Automatic query hook to compute prospective match stakes when sides/players are known.
+ * Calls POST /api/v1/ratings/preview
+ */
+export function useMatchRatingPreview(
+  client: ApiClient,
+  payload?: PreviewMatchPayload | null,
+  options?: Partial<UseQueryOptions<MatchPreviewResponse, Error>>,
+) {
+  const isEnabled = Boolean(
+    payload &&
+      payload.sportKey &&
+      payload.sides?.length === 2 &&
+      payload.sides[0]?.playerIds?.length > 0 &&
+      payload.sides[1]?.playerIds?.length > 0,
+  );
+
+  return useQuery({
+    queryKey: [...queryKeys.ratings.all, 'preview', payload?.sportKey, payload?.sides],
+    queryFn: async () => {
+      const res = await client.post('/ratings/preview', payload);
+      return (res as any)?.data || res;
+    },
+    enabled: isEnabled,
+    staleTime: 60 * 1000,
+    ...options,
+  });
 }
