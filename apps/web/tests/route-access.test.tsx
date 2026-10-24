@@ -43,7 +43,7 @@ describe('Route Access, Registry Flags & Next-Query Validation (Wireframe Spec)'
     });
 
     it('verifies protected routes are marked isProtected === true', () => {
-      const protectedPaths = ['/leaderboard', '/recommendations', '/onboarding', '/kit'];
+      const protectedPaths = ['/leaderboard', '/recommendations', '/onboarding'];
       for (const p of protectedPaths) {
         const found = allDomainRoutes.find((r) => r.path === p);
         expect(found, `Protected route ${p} must exist in route registry`).toBeDefined();

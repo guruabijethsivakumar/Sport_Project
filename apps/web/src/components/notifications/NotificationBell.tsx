@@ -34,10 +34,10 @@ export function NotificationBell({
       onClick={onClick}
       aria-label={`Notifications${hasUnread ? `, ${count} unread` : ''}`}
       aria-expanded={isOpen}
-      className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+      className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         isOpen
-          ? 'bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-400'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+          ? 'bg-muted text-primary'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
       } ${className}`}
     >
       {/* Bell Icon */}
@@ -51,10 +51,10 @@ export function NotificationBell({
       {hasUnread && (
         <span className="absolute -top-1 -right-1 flex items-center justify-center">
           {/* Subtle animated pulsing ping effect */}
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-60" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger opacity-60" />
 
           {/* Badge Counter */}
-          <span className="relative inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black tabular-nums leading-none text-white shadow-xs ring-2 ring-white dark:ring-slate-900">
+          <span className="relative inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-black tabular-nums leading-none text-danger-foreground shadow-xs ring-2 ring-card">
             {displayCount}
           </span>
         </span>

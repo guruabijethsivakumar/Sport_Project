@@ -125,12 +125,7 @@ export function Navbar(): React.ReactElement {
                 icon: resolvedTheme === 'dark' ? 'sun' : 'moon',
                 onSelect: toggleTheme,
               },
-              {
-                key: 'kit',
-                label: 'UI Kit',
-                icon: 'sparkles',
-                onSelect: () => navigate('/kit'),
-              },
+
               'separator',
               {
                 key: 'logout',
@@ -193,13 +188,7 @@ export function Navbar(): React.ReactElement {
             </span>
           </button>
 
-          <Link
-            to="/kit"
-            onClick={() => setMobileOpen(false)}
-            className="text-base font-medium text-foreground py-2 border-b border-border-subtle/30"
-          >
-            UI Kit
-          </Link>
+
 
           <div className="pt-4 space-y-3">
             <div className="flex items-center gap-3 px-1 py-2">

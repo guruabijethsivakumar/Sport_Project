@@ -101,16 +101,16 @@ export function TeamBalancingView({
 
   const renderEmptyState = () => (
     <div
-      className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:p-8 ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-border bg-card p-6 text-foreground shadow-sm sm:p-8 ${className}`}
     >
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Scale className="h-7 w-7" />
         </div>
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+        <h3 className="text-lg font-bold text-foreground">
           Teams have not been generated yet
         </h3>
-        <p className="mt-1.5 max-w-md text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
           {canManage
             ? 'As host, you can generate balanced rosters using Elo ratings once enough players join the match.'
             : 'The match host has not generated balanced teams yet. Rosters will appear here once finalized.'}
@@ -122,7 +122,7 @@ export function TeamBalancingView({
               type="button"
               onClick={handleRegenerate}
               disabled={isSolving || regenerateMutation.isPending}
-              className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition-all hover:shadow-lg hover:shadow-indigo-500/30 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+              className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
             >
               <RefreshCw
                 className={`h-4 w-4 transition-transform ${
@@ -132,7 +132,7 @@ export function TeamBalancingView({
               <span>{isSolving ? 'Solving Draft...' : 'Generate Balanced Teams'}</span>
             </button>
             {generateError && (
-              <p className="text-xs font-medium text-red-500 dark:text-red-400 max-w-sm text-center">
+              <p className="text-xs font-medium text-danger max-w-sm text-center">
                 {generateError}
               </p>
             )}
@@ -164,14 +164,14 @@ export function TeamBalancingView({
 
     if (isForbidden) {
       return (
-        <div className={`rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/90 text-center ${className}`}>
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+        <div className={`rounded-2xl border border-border bg-card p-6 text-center ${className}`}>
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-warning/15 text-warning">
             <Shield className="h-6 w-6" />
           </div>
-          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+          <h3 className="text-base font-semibold text-foreground">
             Team Roster Restricted
           </h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Team balancing rosters are visible to match participants only.
           </p>
         </div>
@@ -179,16 +179,16 @@ export function TeamBalancingView({
     }
 
     return (
-      <div className={`rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-center ${className}`}>
-        <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-400" />
-        <h3 className="text-base font-semibold text-red-300">Failed to load team split</h3>
-        <p className="mt-1 text-sm text-red-400/80">
+      <div className={`rounded-2xl border border-danger/30 bg-danger/10 p-6 text-center ${className}`}>
+        <AlertCircle className="mx-auto mb-2 h-8 w-8 text-danger" />
+        <h3 className="text-base font-semibold text-foreground">Failed to load team split</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           {error?.message || 'Unable to balance teams at this moment.'}
         </p>
         <button
           type="button"
           onClick={() => refetch()}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-300 ring-1 ring-inset ring-red-500/20 hover:bg-red-500/20"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-danger/15 px-4 py-2 text-xs font-semibold text-danger ring-1 ring-inset ring-danger/30 hover:bg-danger/25"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Retry
@@ -219,7 +219,8 @@ export function TeamBalancingView({
     ratingAverage: 0,
   };
 
-  const delta = Math.abs(sideA.ratingTotal - sideB.ratingTotal);
+  const rawDelta = Math.abs(sideA.ratingTotal - sideB.ratingTotal);
+  const delta = Math.round(rawDelta * 10) / 10;
   const totalRosterCount = sideA.players.length + sideB.players.length;
 
   // Delta quality scoring
@@ -229,30 +230,30 @@ export function TeamBalancingView({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:p-8 ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 text-foreground shadow-sm ${className}`}
     >
       {/* Background ambient accents */}
-      <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl dark:bg-blue-600/10" />
-      <div className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/5 blur-3xl dark:bg-purple-600/10" />
+      <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
 
       {/* Header bar: Title, Solver Badge & Regenerate CTA */}
       <div className="relative mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Scale className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
                 Balanced Team Rosters
               </h2>
               {isMock && (
-                <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-600 ring-1 ring-inset ring-amber-500/20 dark:text-amber-400">
+                <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-inset ring-warning/20">
                   Demo
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Optimal Elo snake-draft distribution across {totalRosterCount} players
             </p>
           </div>
@@ -264,7 +265,7 @@ export function TeamBalancingView({
             type="button"
             onClick={handleRegenerate}
             disabled={isSolving || regenerateMutation.isPending}
-            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/30 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
           >
             <RefreshCw
               className={`h-4 w-4 transition-transform ${
@@ -278,30 +279,30 @@ export function TeamBalancingView({
 
       {/* Solver Visual Simulation State Banner (when drafting is active) */}
       {isSolving && (
-        <div className="relative mb-6 overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 p-5 backdrop-blur-md">
+        <div className="relative mb-6 overflow-hidden rounded-xl border border-primary/30 bg-primary/10 p-4 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-inner">
+            <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-inner">
               <Zap className="h-4 w-4 animate-bounce" />
             </div>
             <div className="flex-1 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                <span className="text-xs font-bold uppercase tracking-wider text-primary">
                   Snake Draft Elo Solver Active
                 </span>
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-medium text-muted-foreground">
                   Step {solverStepIndex + 1} of {SOLVER_STEPS.length}
                 </span>
               </div>
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              <p className="text-sm font-semibold text-foreground">
                 {SOLVER_STEPS[solverStepIndex]}
               </p>
             </div>
           </div>
 
           {/* Stepper Progress Bar */}
-          <div className="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700/60">
+          <div className="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300"
+              className="h-full rounded-full bg-primary transition-all duration-300"
               style={{
                 width: `${((solverStepIndex + 1) / SOLVER_STEPS.length) * 100}%`,
               }}
@@ -311,36 +312,37 @@ export function TeamBalancingView({
       )}
 
       {/* Balance Delta Overview Panel */}
-      <div className="mb-6 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4.5 dark:border-slate-800/80 dark:bg-slate-800/40">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
+        {/* Top: Status & Algorithm */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border/60">
           <div className="flex items-center gap-3">
             <div
-              className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold ring-1 ring-inset ${
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-bold ring-1 ring-inset ${
                 isPerfect
-                  ? 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/30 dark:text-emerald-400'
+                  ? 'bg-success/15 text-success ring-success/30'
                   : isExcellent
-                    ? 'bg-blue-500/10 text-blue-600 ring-blue-500/30 dark:text-blue-400'
+                    ? 'bg-info/15 text-info ring-info/30'
                     : isFair
-                      ? 'bg-amber-500/10 text-amber-600 ring-amber-500/30 dark:text-amber-400'
-                      : 'bg-rose-500/10 text-rose-600 ring-rose-500/30 dark:text-rose-400'
+                      ? 'bg-warning/15 text-warning ring-warning/30'
+                      : 'bg-danger/15 text-danger ring-danger/30'
               }`}
             >
-              <ArrowRightLeft className="h-5 w-5" />
+              <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-foreground">
                   Balance Rating Delta
                 </span>
                 <span
                   className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
                     isPerfect
-                      ? 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/30 dark:text-emerald-400'
+                      ? 'bg-success/15 text-success ring-success/30'
                       : isExcellent
-                        ? 'bg-blue-500/10 text-blue-600 ring-blue-500/30 dark:text-blue-400'
+                        ? 'bg-info/15 text-info ring-info/30'
                         : isFair
-                          ? 'bg-amber-500/10 text-amber-600 ring-amber-500/30 dark:text-amber-400'
-                          : 'bg-rose-500/10 text-rose-600 ring-rose-500/30 dark:text-rose-400'
+                          ? 'bg-warning/15 text-warning ring-warning/30'
+                          : 'bg-danger/15 text-danger ring-danger/30'
                   }`}
                 >
                   <CheckCircle2 className="h-3 w-3" />
@@ -353,55 +355,76 @@ export function TeamBalancingView({
                         : `Higher Variance (Δ ${delta} Elo)`}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300">
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
                 Algorithm:{' '}
-                <span className="font-semibold text-slate-900 dark:text-white">
+                <span className="font-semibold text-foreground">
                   {teamData?.balance.method.replace(/_/g, ' ') || 'Snake Draft Elo Solver'}
                 </span>
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Quick delta numbers comparison */}
-          <div className="flex items-center gap-4 text-right">
-            <div>
-              <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+        {/* Middle: Side-by-Side Symmetrical Team Totals Comparison */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-3.5">
+          <div className="flex items-center justify-between rounded-lg border border-border/80 bg-card p-3 shadow-2xs">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 {sideA.name} Total
               </span>
-              <span className="text-sm font-bold tabular-nums text-blue-600 dark:text-blue-400">
-                {sideA.ratingTotal.toLocaleString()} Elo
-              </span>
+              <p className="text-xs text-muted-foreground">
+                Avg: <span className="font-semibold text-foreground">{sideA.ratingAverage}</span>
+              </p>
             </div>
-            <div className="text-xs font-semibold text-slate-400">vs</div>
-            <div>
-              <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <div className="text-right">
+              <span className="text-base sm:text-lg font-extrabold tabular-nums text-foreground">
+                {sideA.ratingTotal.toLocaleString()}
+              </span>
+              <span className="ml-1 text-xs font-medium text-muted-foreground">Elo</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border/80 bg-card p-3 shadow-2xs">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 {sideB.name} Total
               </span>
-              <span className="text-sm font-bold tabular-nums text-purple-600 dark:text-purple-400">
-                {sideB.ratingTotal.toLocaleString()} Elo
+              <p className="text-xs text-muted-foreground">
+                Avg: <span className="font-semibold text-foreground">{sideB.ratingAverage}</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-base sm:text-lg font-extrabold tabular-nums text-foreground">
+                {sideB.ratingTotal.toLocaleString()}
               </span>
+              <span className="ml-1 text-xs font-medium text-muted-foreground">Elo</span>
             </div>
           </div>
         </div>
 
         {/* Reasons pills */}
         {teamData?.reasons && teamData.reasons.length > 0 && (
-          <div className="mt-3.5 flex flex-wrap gap-2 border-t border-slate-200/60 pt-3 dark:border-slate-800/60">
-            {teamData.reasons.map((reason, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-2xs ring-1 ring-slate-200/80 dark:bg-slate-900/60 dark:text-slate-300 dark:ring-slate-700/60"
-              >
-                <Sparkles className="h-3 w-3 text-indigo-500 dark:text-indigo-400" />
-                {reason}
-              </span>
-            ))}
+          <div className="flex flex-wrap gap-2 pt-3 border-t border-border/60">
+            {teamData.reasons.map((reason, idx) => {
+              const formattedReason = reason.replace(/(\d+\.\d{2,})/g, (m) =>
+                Number(m).toFixed(1)
+              );
+              return (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground shadow-2xs"
+                >
+                  <Sparkles className="h-3 w-3 text-primary shrink-0" />
+                  <span>{formattedReason}</span>
+                </span>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Side A vs Side B Rosters Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <TeamRosterColumn
           team={sideA}
           theme="blue"
@@ -431,52 +454,38 @@ interface TeamRosterColumnProps {
 function TeamRosterColumn({ team, theme, tagLabel, isSolving }: TeamRosterColumnProps) {
   const isBlue = theme === 'blue';
 
-  const themeClasses = isBlue
-    ? {
-        border: 'border-blue-500/20 dark:border-blue-500/30',
-        headerBg: 'bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent',
-        badgeBg: 'bg-blue-500/10 text-blue-600 ring-blue-500/20 dark:text-blue-400',
-        ringGlow: 'hover:border-blue-500/40',
-        accentText: 'text-blue-600 dark:text-blue-400',
-        avatarBg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-      }
-    : {
-        border: 'border-purple-500/20 dark:border-purple-500/30',
-        headerBg: 'bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent',
-        badgeBg: 'bg-purple-500/10 text-purple-600 ring-purple-500/20 dark:text-purple-400',
-        ringGlow: 'hover:border-purple-500/40',
-        accentText: 'text-purple-600 dark:text-purple-400',
-        avatarBg: 'bg-gradient-to-br from-purple-500 to-pink-600',
-      };
-
   return (
     <div
-      className={`flex flex-col rounded-2xl border ${themeClasses.border} ${themeClasses.ringGlow} bg-slate-50/50 backdrop-blur-xs transition-all dark:bg-slate-900/60`}
+      className="flex flex-col rounded-2xl border border-border bg-card shadow-xs transition-all overflow-hidden"
     >
       {/* Team Header */}
-      <div className={`rounded-t-2xl border-b border-slate-200/80 p-5 dark:border-slate-800 ${themeClasses.headerBg}`}>
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
+      <div className="border-b border-border bg-muted/40 p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1 min-w-0">
             <span
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wider ring-1 ring-inset ${themeClasses.badgeBg}`}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wider ring-1 ring-inset ${
+                isBlue
+                  ? 'bg-info/10 text-info ring-info/20'
+                  : 'bg-primary/10 text-primary ring-primary/20'
+              }`}
             >
               <Shield className="h-3 w-3" />
               {tagLabel}
             </span>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="text-lg font-bold text-foreground truncate">
               {team.name}
             </h3>
           </div>
 
-          <div className="text-right">
-            <div className="flex items-baseline justify-end gap-1.5">
-              <span className={`text-2xl font-extrabold tabular-nums tracking-tight ${themeClasses.accentText}`}>
+          <div className="text-right shrink-0">
+            <div className="flex items-baseline justify-end gap-1">
+              <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-foreground">
                 {team.ratingTotal.toLocaleString()}
               </span>
-              <span className="text-xs font-semibold uppercase text-slate-400">Elo</span>
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Elo</span>
             </div>
-            <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              Avg: <span className="font-semibold text-slate-700 dark:text-slate-300">{team.ratingAverage}</span> • {team.players.length} players
+            <div className="text-[11px] font-medium text-muted-foreground">
+              Avg: <span className="font-semibold text-foreground">{team.ratingAverage}</span> • {team.players.length} {team.players.length === 1 ? 'player' : 'players'}
             </div>
           </div>
         </div>
@@ -485,14 +494,12 @@ function TeamRosterColumn({ team, theme, tagLabel, isSolving }: TeamRosterColumn
       {/* Players list */}
       <div className="flex-1 space-y-2.5 p-4 sm:p-5">
         {team.players.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 py-10 text-center dark:border-slate-800">
-            <Users className="mb-2 h-6 w-6 text-slate-400" />
-            <p className="text-xs font-medium text-slate-500">No players assigned yet</p>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-10 text-center">
+            <Users className="mb-2 h-6 w-6 text-muted-foreground" />
+            <p className="text-xs font-medium text-muted-foreground">No players assigned yet</p>
           </div>
         ) : (
           team.players.map((player: TeamPlayer, index: number) => {
-            // Simulated snake draft pick round calculation
-            // Round 1: A1, B1. Round 2: B2, A2.
             const pickNumber = isBlue
               ? index % 2 === 0
                 ? index * 2 + 1
@@ -504,37 +511,39 @@ function TeamRosterColumn({ team, theme, tagLabel, isSolving }: TeamRosterColumn
             return (
               <div
                 key={player.userId || index}
-                className={`group flex items-center justify-between rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs transition-all duration-200 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-800/80 dark:hover:border-slate-700 ${
+                className={`group flex items-center justify-between rounded-xl border border-border bg-card p-3.5 shadow-xs transition-all duration-200 hover:bg-muted/30 ${
                   isSolving ? 'animate-pulse' : ''
                 }`}
               >
                 {/* Left: Avatar + Names */}
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-xs ${themeClasses.avatarBg}`}
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-xs ${
+                      isBlue ? 'bg-info' : 'bg-primary'
+                    }`}
                   >
                     {player.displayName?.slice(0, 2).toUpperCase() || 'PL'}
                   </div>
 
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400">
+                      <span className="text-sm font-semibold text-foreground">
                         {player.displayName}
                       </span>
                       {index === 0 && (
                         <span title="Top Seed in Side">
-                          <Crown className="h-3.5 w-3.5 text-amber-500" />
+                          <Crown className="h-3.5 w-3.5 text-warning" />
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-2">
                       {player.position && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                           {player.position}
                         </span>
                       )}
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-muted-foreground">
                         Pick #{pickNumber}
                       </span>
                     </div>
@@ -543,8 +552,8 @@ function TeamRosterColumn({ team, theme, tagLabel, isSolving }: TeamRosterColumn
 
                 {/* Right: Elo Rating */}
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold tabular-nums text-slate-800 dark:bg-slate-700 dark:text-slate-200">
-                    <TrendingUp className="h-3 w-3 text-slate-400" />
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs font-bold tabular-nums text-foreground">
+                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
                     {player.rating}
                   </span>
                 </div>
@@ -561,26 +570,26 @@ function TeamRosterColumn({ team, theme, tagLabel, isSolving }: TeamRosterColumn
 
 function TeamBalancingSkeleton() {
   return (
-    <div className="animate-pulse rounded-3xl border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
+    <div className="animate-pulse rounded-2xl border border-border bg-card p-6 text-foreground sm:p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+          <div className="h-11 w-11 rounded-xl bg-muted" />
           <div className="space-y-2">
-            <div className="h-5 w-48 rounded bg-slate-200 dark:bg-slate-800" />
-            <div className="h-3 w-32 rounded bg-slate-200 dark:bg-slate-800" />
+            <div className="h-5 w-48 rounded bg-muted" />
+            <div className="h-3 w-32 rounded bg-muted" />
           </div>
         </div>
-        <div className="h-10 w-44 rounded-xl bg-slate-200 dark:bg-slate-800" />
+        <div className="h-10 w-44 rounded-xl bg-muted" />
       </div>
 
-      <div className="mb-6 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800/40" />
+      <div className="mb-6 h-20 rounded-xl bg-muted/40" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {[1, 2].map((col) => (
-          <div key={col} className="space-y-3 rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
-            <div className="h-12 rounded-xl bg-slate-200 dark:bg-slate-800" />
+          <div key={col} className="space-y-3 rounded-2xl border border-border bg-card p-5">
+            <div className="h-12 rounded-xl bg-muted" />
             {[1, 2].map((i) => (
-              <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+              <div key={i} className="h-14 rounded-xl bg-muted/60" />
             ))}
           </div>
         ))}

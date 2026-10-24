@@ -142,31 +142,31 @@ export function DecisionExplanationModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Card */}
       <div
-        className={`relative z-10 flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 ${className}`}
+        className={`relative z-10 flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl ${className}`}
       >
         {/* Ambient Top Glow */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-600/15" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 p-6 dark:border-slate-800/80">
+        <div className="flex items-center justify-between border-b border-border p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
               <h2
                 id="explanation-modal-title"
-                className="text-lg font-bold text-slate-900 dark:text-slate-50"
+                className="text-lg font-bold text-foreground"
               >
                 Decision Explainability
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Transparent breakdown of matchmaking AI & Elo calculations
               </p>
             </div>
@@ -176,21 +176,21 @@ export function DecisionExplanationModal({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-slate-100 bg-slate-50/60 px-6 dark:border-slate-800 dark:bg-slate-800/30">
+        <div className="flex border-b border-border bg-muted/40 px-6">
           <button
             type="button"
             onClick={() => setActiveTab('game')}
             className={`flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
               activeTab === 'game'
-                ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Target className="h-4 w-4" />
@@ -201,8 +201,8 @@ export function DecisionExplanationModal({
             onClick={() => setActiveTab('rating')}
             className={`ml-6 flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
               activeTab === 'rating'
-                ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Calculator className="h-4 w-4" />
@@ -220,11 +220,11 @@ export function DecisionExplanationModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end border-t border-slate-100 bg-slate-50/50 p-4.5 dark:border-slate-800 dark:bg-slate-900/60">
+        <div className="flex items-center justify-end border-t border-border bg-card p-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary-hover transition-colors"
           >
             Got it, thanks
           </button>
@@ -335,18 +335,18 @@ function GameExplanationView({ data }: { data: GameExplanationData }) {
 
       {/* Reasons Bullet Points */}
       {data.reasons && data.reasons.length > 0 && (
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4.5 dark:border-slate-800 dark:bg-slate-800/30">
-          <h4 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            <ShieldCheck className="h-3.5 w-3.5 text-indigo-500" />
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h4 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
             Key Match Drivers
           </h4>
           <ul className="space-y-2">
             {data.reasons.map((reason, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300"
+                className="flex items-start gap-2 text-xs text-foreground"
               >
-                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-indigo-500" />
+                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
                 <span>{reason}</span>
               </li>
             ))}

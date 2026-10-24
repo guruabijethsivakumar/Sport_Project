@@ -5,7 +5,6 @@ import type { AppRouteDefinition } from './types';
 import { dev1Routes } from './dev1.routes';
 import { dev2Routes } from './dev2.routes';
 import { dev3Routes } from './dev3.routes';
-import { KitShowcasePage } from '../pages/KitShowcasePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 
@@ -23,12 +22,7 @@ export const coreRoutes: AppRouteDefinition[] = [
       requiresAuth: true,
     },
   },
-  {
-    path: '/kit',
-    element: <KitShowcasePage />,
-    isProtected: true,
-    owner: 'Core',
-  },
+
   {
     path: '/unauthorized',
     element: <ForbiddenPage />,

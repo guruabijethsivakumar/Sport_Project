@@ -8,6 +8,8 @@ const config: Config = {
     colors: {
       transparent: 'transparent',
       current: 'currentColor',
+      white: '#ffffff',
+      black: '#000000',
       bg: 'var(--color-bg)',
       card: 'var(--color-card)',
       muted: 'var(--color-muted)',

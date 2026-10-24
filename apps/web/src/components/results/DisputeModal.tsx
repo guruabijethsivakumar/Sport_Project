@@ -104,33 +104,33 @@ export function DisputeModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={() => {
           if (!disputeMutation.isPending) onClose();
         }}
       />
 
       {/* Modal Dialog Card with Warning / Danger theme */}
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-red-500/30 bg-white p-6 shadow-2xl dark:border-red-500/30 dark:bg-slate-900 sm:p-8">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-danger/40 bg-card text-foreground p-6 shadow-2xl sm:p-8">
         {/* Subtle danger ambient glow */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-red-600/10 blur-3xl dark:bg-red-600/20" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-danger/10 blur-3xl" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-5 border-b border-red-100 dark:border-red-950/60">
+        <div className="flex items-center justify-between pb-5 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/15 text-red-600 ring-1 ring-red-500/30 dark:text-red-400">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-danger/15 text-danger ring-1 ring-danger/30">
               <ShieldAlert className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+                <h2 className="text-lg font-bold text-foreground">
                   Dispute Match Result
                 </h2>
-                <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-600 ring-1 ring-inset ring-red-500/20 dark:text-red-400">
+                <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-danger ring-1 ring-inset ring-danger/20">
                   Contested Call
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Flag discrepancies before Elo ratings are processed
               </p>
             </div>
@@ -140,15 +140,15 @@ export function DisputeModal({
             type="button"
             onClick={onClose}
             disabled={disputeMutation.isPending}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Warning Notice Banner */}
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
-          <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="mt-5 flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-3.5 text-xs text-warning">
+          <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" />
           <p>
             Filing a dispute pauses automatic rating adjustments for all players. Both sides
             and match moderators will be alerted to review the score.
@@ -157,7 +157,7 @@ export function DisputeModal({
 
         {/* Error message */}
         {errorMessage && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400">
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
             <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
@@ -167,7 +167,7 @@ export function DisputeModal({
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
           {/* Quick preset chips */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Common Dispute Reasons
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -176,7 +176,7 @@ export function DisputeModal({
                   key={i}
                   type="button"
                   onClick={() => handleSelectChip(chip)}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700 transition-colors hover:border-red-300 hover:bg-red-50 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-red-900 dark:hover:bg-red-950/40"
+                  className="rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs text-foreground transition-colors hover:border-danger hover:bg-danger/10"
                 >
                   + {chip}
                 </button>
@@ -186,12 +186,12 @@ export function DisputeModal({
 
           {/* Text Area */}
           <div className="space-y-1.5">
-            <label className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <label className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <Scale className="h-3.5 w-3.5 text-red-500" />
+                <Scale className="h-3.5 w-3.5 text-danger" />
                 Explanation of Contested Call
               </span>
-              <span className="text-[11px] font-normal tabular-nums text-slate-400">
+              <span className="text-[11px] font-normal tabular-nums text-muted-foreground">
                 {reason.length} characters
               </span>
             </label>
@@ -200,24 +200,24 @@ export function DisputeModal({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Explain clearly what happened (e.g., 'We won the second set 21-17, but the submission claims 21-12 in favor of Side B...')"
-              className="w-full rounded-2xl border border-red-200/80 bg-red-50/20 p-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-red-900/60 dark:bg-red-950/20 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500 dark:focus:bg-slate-900"
+              className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground placeholder:text-placeholder focus:border-danger focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
             />
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
               disabled={disputeMutation.isPending}
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={disputeMutation.isPending}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-red-600/25 transition-all hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-danger px-5 py-2.5 text-sm font-bold text-danger-foreground shadow-md shadow-danger/25 transition-all hover:bg-danger-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {disputeMutation.isPending ? (
                 <>

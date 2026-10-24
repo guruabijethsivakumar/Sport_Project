@@ -113,28 +113,28 @@ export function SubmitScoreModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={() => {
           if (!submitMutation.isPending) onClose();
         }}
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card p-6 text-foreground shadow-2xl sm:p-8">
         {/* Glow effect */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl dark:bg-blue-600/15" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-5 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-5 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Trophy className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+              <h2 className="text-lg font-bold text-foreground">
                 Submit Match Score
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Enter game results for opponent verification
               </p>
             </div>
@@ -144,7 +144,7 @@ export function SubmitScoreModal({
             type="button"
             onClick={onClose}
             disabled={submitMutation.isPending}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -152,7 +152,7 @@ export function SubmitScoreModal({
 
         {/* Error message */}
         {errorMessage && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 p-3.5 text-xs text-red-600 dark:text-red-400">
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger/10 p-3.5 text-xs text-danger">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
@@ -163,14 +163,14 @@ export function SubmitScoreModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Side A Score Card */}
             <div
-              className={`flex flex-col items-center rounded-2xl border p-4.5 transition-all ${
+              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
                 isAWinner
-                  ? 'border-blue-500/40 bg-blue-50/60 ring-2 ring-blue-500/20 dark:border-blue-500/40 dark:bg-blue-950/20'
-                  : 'border-slate-200 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-800/40'
+                  ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
+                  : 'border-border bg-muted/40'
               }`}
             >
-              <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-                <Shield className="h-3.5 w-3.5 text-blue-500" />
+              <div className="mb-2.5 flex items-center gap-1.5 text-xs font-bold text-foreground">
+                <Shield className="h-3.5 w-3.5 text-primary" />
                 <span className="truncate max-w-[120px]">{sideAName}</span>
               </div>
 
@@ -179,7 +179,7 @@ export function SubmitScoreModal({
                 <button
                   type="button"
                   onClick={() => setScoreA((prev) => Math.max(0, prev - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm hover:bg-muted active:scale-95 transition-colors"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
@@ -188,19 +188,19 @@ export function SubmitScoreModal({
                   min="0"
                   value={scoreA}
                   onChange={(e) => setScoreA(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                  className="w-16 text-center text-3xl font-extrabold tabular-nums text-slate-900 focus:outline-none dark:text-white"
+                  className="w-16 bg-transparent text-center text-3xl font-extrabold tabular-nums text-foreground focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setScoreA((prev) => prev + 1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm hover:bg-muted active:scale-95 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
               </div>
 
               {isAWinner && (
-                <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600 ring-1 ring-inset ring-blue-500/20 dark:text-blue-400">
+                <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-inset ring-primary/30">
                   <CheckCircle2 className="h-3 w-3" /> Winner
                 </span>
               )}
@@ -208,14 +208,14 @@ export function SubmitScoreModal({
 
             {/* Side B Score Card */}
             <div
-              className={`flex flex-col items-center rounded-2xl border p-4.5 transition-all ${
+              className={`flex flex-col items-center rounded-xl border p-4 transition-all ${
                 isBWinner
-                  ? 'border-purple-500/40 bg-purple-50/60 ring-2 ring-purple-500/20 dark:border-purple-500/40 dark:bg-purple-950/20'
-                  : 'border-slate-200 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-800/40'
+                  ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
+                  : 'border-border bg-muted/40'
               }`}
             >
-              <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-                <Shield className="h-3.5 w-3.5 text-purple-500" />
+              <div className="mb-2.5 flex items-center gap-1.5 text-xs font-bold text-foreground">
+                <Shield className="h-3.5 w-3.5 text-primary" />
                 <span className="truncate max-w-[120px]">{sideBName}</span>
               </div>
 
@@ -224,7 +224,7 @@ export function SubmitScoreModal({
                 <button
                   type="button"
                   onClick={() => setScoreB((prev) => Math.max(0, prev - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm hover:bg-muted active:scale-95 transition-colors"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
@@ -233,19 +233,19 @@ export function SubmitScoreModal({
                   min="0"
                   value={scoreB}
                   onChange={(e) => setScoreB(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                  className="w-16 text-center text-3xl font-extrabold tabular-nums text-slate-900 focus:outline-none dark:text-white"
+                  className="w-16 bg-transparent text-center text-3xl font-extrabold tabular-nums text-foreground focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setScoreB((prev) => prev + 1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm hover:bg-muted active:scale-95 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
               </div>
 
               {isBWinner && (
-                <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-purple-600 ring-1 ring-inset ring-purple-500/20 dark:text-purple-400">
+                <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-inset ring-primary/30">
                   <CheckCircle2 className="h-3 w-3" /> Winner
                 </span>
               )}
@@ -253,14 +253,14 @@ export function SubmitScoreModal({
           </div>
 
           {isTie && (
-            <p className="text-center text-xs font-medium text-amber-600 dark:text-amber-400">
+            <p className="text-center text-xs font-medium text-warning">
               Draw / Tie score will be submitted.
             </p>
           )}
 
           {/* Optional Match Notes */}
           <div className="space-y-1.5">
-            <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <FileText className="h-3.5 w-3.5" />
               Match Notes (Optional)
             </label>
@@ -269,24 +269,24 @@ export function SubmitScoreModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g., 3 sets played, decisive tie-break in 3rd set. Great game!"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900"
+              className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground placeholder:text-placeholder focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
               disabled={submitMutation.isPending}
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitMutation.isPending}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary-hover active:scale-[0.98] transition-all disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitMutation.isPending ? (
                 <>

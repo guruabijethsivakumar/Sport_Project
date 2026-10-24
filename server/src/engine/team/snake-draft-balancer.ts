@@ -37,14 +37,15 @@ export interface SnakeDraftResult {
 }
 
 function sumRatings(players: DraftTeamPlayer[]): number {
-  return players.reduce((acc, p) => acc + p.rating, 0);
+  const sum = players.reduce((acc, p) => acc + p.rating, 0);
+  return Math.round(sum * 10) / 10;
 }
 
 function averageRating(players: DraftTeamPlayer[]): number {
   if (players.length === 0) {
     return 0;
   }
-  return sumRatings(players) / players.length;
+  return Math.round((sumRatings(players) / players.length) * 10) / 10;
 }
 
 /**
@@ -87,7 +88,8 @@ export function balanceTeamsSnakeDraft(players: DraftPlayerInput[]): SnakeDraftR
     };
   });
 
-  const difference = Math.abs(teams[0].ratingTotal - teams[1].ratingTotal);
+  const rawDiff = Math.abs(teams[0].ratingTotal - teams[1].ratingTotal);
+  const difference = Math.round(rawDiff * 10) / 10;
   const reasons = [
     `Snake draft assigned ${sorted.length} players by descending Elo rating`,
     `Rating totals: ${teams[0].name} ${teams[0].ratingTotal}, ${teams[1].name} ${teams[1].ratingTotal}`,

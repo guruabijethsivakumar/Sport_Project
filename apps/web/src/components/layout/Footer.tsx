@@ -27,9 +27,7 @@ export function Footer(): React.ReactElement {
             <Link to="/recommendations" className="transition-colors hover:text-foreground">
               Recommendations
             </Link>
-            <Link to="/kit" className="font-medium text-primary transition-colors hover:underline">
-              UI Kit Showcase
-            </Link>
+
           </div>
         )}
 

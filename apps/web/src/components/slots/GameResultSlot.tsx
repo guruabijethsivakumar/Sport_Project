@@ -80,51 +80,51 @@ export function GameResultSlot({
 
       {/* 2. Verified Result Card */}
       {isVerified && resultData?.proposal && (
-        <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-white to-blue-500/10 p-5 shadow-sm dark:from-emerald-950/30 dark:via-slate-900 dark:to-blue-950/30">
-          <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20">
+        <div className="rounded-2xl border border-success/30 bg-card p-5 shadow-sm">
+          <div className="flex items-center justify-between pb-3 border-b border-border/60">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 ring-1 ring-inset ring-emerald-500/30 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-bold text-success ring-1 ring-inset ring-success/30">
                 <Icon name="check-circle" size={14} />
                 Match Verified
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 Ratings {resultData.ratingStatus === 'applied' ? 'Applied' : 'Processed'}
               </span>
             </div>
             {resultData.proposal.proposedAt && (
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 {new Date(resultData.proposal.proposedAt).toLocaleDateString()}
               </span>
             )}
           </div>
           <div className="mt-4 flex items-center justify-around">
             <div className="text-center">
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Side A</span>
+              <span className="text-xs font-semibold text-muted-foreground">Side A</span>
               <div className="flex items-center justify-center gap-1 mt-1">
-                <span className="text-2xl font-black text-slate-900 dark:text-slate-100">
+                <span className="text-2xl font-black text-foreground">
                   {resultData.proposal.scores[0]?.score ?? 0}
                 </span>
                 {resultData.proposal.scores[0]?.winner && (
-                  <Icon name="trophy" size={16} className="text-amber-500" />
+                  <Icon name="trophy" size={16} className="text-warning" />
                 )}
               </div>
             </div>
-            <div className="text-xl font-bold text-slate-300 dark:text-slate-600">:</div>
+            <div className="text-xl font-bold text-muted-foreground">:</div>
             <div className="text-center">
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Side B</span>
+              <span className="text-xs font-semibold text-muted-foreground">Side B</span>
               <div className="flex items-center justify-center gap-1 mt-1">
-                <span className="text-2xl font-black text-slate-900 dark:text-slate-100">
+                <span className="text-2xl font-black text-foreground">
                   {resultData.proposal.scores[1]?.score ?? 0}
                 </span>
                 {resultData.proposal.scores[1]?.winner && (
-                  <Icon name="trophy" size={16} className="text-amber-500" />
+                  <Icon name="trophy" size={16} className="text-warning" />
                 )}
               </div>
             </div>
           </div>
           {resultData.proposal.notes && (
-            <p className="mt-3 text-xs italic text-slate-500 text-center">
-              "{resultData.proposal.notes}"
+            <p className="mt-3 text-xs italic text-muted-foreground text-center">
+              &quot;{resultData.proposal.notes}&quot;
             </p>
           )}
         </div>
@@ -132,16 +132,16 @@ export function GameResultSlot({
 
       {/* 3. Disputed Match Notice */}
       {isDisputed && (
-        <div className="rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-500/10 via-white to-amber-500/10 p-5 shadow-sm dark:from-red-950/30 dark:via-slate-900 dark:to-amber-950/30">
+        <div className="rounded-2xl border border-danger/30 bg-card p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-red-500/15 text-red-600 dark:text-red-400">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-danger/15 text-danger">
               <Icon name="alert-circle" size={20} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <h4 className="text-sm font-bold text-foreground">
                 Match Result Disputed
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 The reported score is contested. Elo rating adjustments are paused pending review.
               </p>
             </div>
@@ -151,10 +151,10 @@ export function GameResultSlot({
 
       {/* 4. Score submission controls when no result is submitted yet */}
       {hasNoResult && !isLoading && (
-        <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
+        <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
           <div>
-            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Match Scores</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <h4 className="text-sm font-semibold text-foreground">Match Scores</h4>
+            <p className="text-xs text-muted-foreground">
               {canSubmit
                 ? 'Submit match results after game completion to update player ratings.'
                 : 'Awaiting participants to complete the match and report scores.'}
