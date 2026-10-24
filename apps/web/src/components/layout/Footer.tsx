@@ -13,7 +13,7 @@ export function Footer(): React.ReactElement {
             P
           </div>
           <span className="font-semibold text-foreground">PlayMatch</span>
-          <span className="text-xs text-muted-foreground">Electric Amber & Ink</span>
+          {/* <span className="text-xs text-muted-foreground">Electric Amber & Ink</span> */}
         </div>
 
         {isAuthenticated && (
@@ -27,7 +27,9 @@ export function Footer(): React.ReactElement {
             <Link to="/recommendations" className="transition-colors hover:text-foreground">
               Recommendations
             </Link>
-
+            <Link to="/venues" className="transition-colors hover:text-foreground">
+              Venues
+            </Link>
           </div>
         )}
 

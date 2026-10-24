@@ -1152,28 +1152,7 @@ export function AdminDashboardPage(): React.ReactElement {
         )}
       </div>
 
-      {/* Non-admin / Account Notice */}
-      {!isAdmin && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-start gap-3">
-            <Icon name="info" size={18} className="text-primary mt-0.5 shrink-0" />
-            <div>
-              <p className="font-semibold text-foreground">
-                Viewing with {userRole === 'venue_owner' ? 'Venue Owner' : 'Player'} Permissions
-              </p>
-              <p className="text-muted-foreground mt-0.5">
-                You are viewing the operations dashboard in preview mode. Platform metric aggregation and privileged mutations require an Admin account.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 bg-card px-3 py-1.5 rounded-lg border border-border">
-            <span className="text-muted-foreground">Demo Admin:</span>
-            <code className="font-mono text-primary font-semibold">admin@playmatch.demo</code>
-            <span className="text-muted-foreground">/</span>
-            <code className="font-mono text-foreground">Password123!</code>
-          </div>
-        </div>
-      )}
+
 
       {/* Tabbed Navigation */}
       <Tabs

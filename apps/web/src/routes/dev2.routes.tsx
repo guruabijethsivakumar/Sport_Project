@@ -4,10 +4,29 @@ import { GamesDiscoveryPage } from '../pages/games/GamesDiscoveryPage';
 import { CreateGamePage } from '../pages/games/CreateGamePage';
 import { GameDetailsPage } from '../pages/games/GameDetailsPage';
 import { VenueManagementPage } from '../pages/venues/VenueManagementPage';
+import { VenueDiscoveryPage } from '../pages/venues/VenueDiscoveryPage';
+import { VenueDetailsPublicPage } from '../pages/venues/VenueDetailsPublicPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 
 // Dev 2 owns Games, Venues, and Admin routes
 export const dev2Routes: DomainRouteModule = [
+  {
+    path: '/venues',
+    element: <VenueDiscoveryPage />,
+    isProtected: false,
+    owner: 'Dev 2',
+    nav: {
+      label: 'Venues',
+      order: 13,
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/venues/:id',
+    element: <VenueDetailsPublicPage />,
+    isProtected: false,
+    owner: 'Dev 2',
+  },
   {
     path: '/games',
     element: <GamesDiscoveryPage />,
@@ -56,7 +75,7 @@ export const dev2Routes: DomainRouteModule = [
     isProtected: true,
     owner: 'Dev 2',
     nav: {
-      label: 'Venues',
+      label: 'Manage Venues',
       order: 14,
       requiresAuth: true,
       roles: ['venue_owner', 'admin'],
@@ -66,17 +85,20 @@ export const dev2Routes: DomainRouteModule = [
     path: '/dashboard',
     element: <AdminDashboardPage />,
     isProtected: true,
+    allowedRoles: ['admin'],
     owner: 'Dev 2',
   },
   {
     path: '/admin',
     element: <AdminDashboardPage />,
     isProtected: true,
+    allowedRoles: ['admin'],
     owner: 'Dev 2',
     nav: {
       label: 'Admin',
       order: 15,
       requiresAuth: true,
+      roles: ['admin'],
     },
   },
 ];

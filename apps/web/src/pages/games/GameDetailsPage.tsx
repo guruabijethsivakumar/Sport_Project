@@ -11,6 +11,7 @@ import {
   useDeclineParticipant,
   useRemoveParticipant,
   useFeatureGameResult,
+  useUpdateGame,
 } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
@@ -78,6 +79,7 @@ export function GameDetailsPage(): React.ReactElement {
   const approveMutation = useApproveParticipant(client, id || '');
   const declineMutation = useDeclineParticipant(client, id || '');
   const removeMutation = useRemoveParticipant(client, id || '');
+  const updateGameMutation = useUpdateGame(client, id || '');
 
   const game = (gameData as any)?.data || gameData;
   const roster = (rosterData as any)?.data || rosterData;
@@ -699,6 +701,10 @@ export function GameDetailsPage(): React.ReactElement {
               }}
               isCancelling={cancelMutation.isPending}
               pendingRequestsCount={requestedList.length}
+              onVenueSelected={async (venueId) => {
+                await updateGameMutation.mutateAsync({ venueId });
+                refetchGame();
+              }}
             />
           )}
 

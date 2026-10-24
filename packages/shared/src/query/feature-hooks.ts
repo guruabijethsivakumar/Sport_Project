@@ -663,3 +663,181 @@ export function useUpdateSport(
   });
 }
 
+// ==============================================================================
+// Sprint 3: Venues & Smart Matchmaking Hooks
+// ==============================================================================
+
+export interface VenueSuggestionItem {
+  venue: {
+    id: string;
+    _id?: string;
+    name: string;
+    areaLabel?: string;
+    description?: string;
+    address?: {
+      line1?: string;
+      line2?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+    };
+    location?: {
+      type: 'Point';
+      coordinates: [number, number];
+    };
+    photoUrls?: string[];
+    amenities?: string[];
+  };
+  totalDistanceKm: number;
+  averageDistanceKm: number;
+  maxDistanceKm: number;
+  participantsCounted: number;
+  availableAtTime: boolean;
+  reasons: string[];
+}
+
+export interface VenueSuggestionsResponse {
+  data: VenueSuggestionItem[];
+  items?: VenueSuggestionItem[];
+}
+
+/**
+ * Retrieves centroid-based venue recommendations for a game based on confirmed participants.
+ * Calls GET /api/v1/games/:id/venue-suggestions
+ */
+export function useVenueSuggestions(
+  client: ApiClient,
+  gameId: string,
+  options?: Partial<UseQueryOptions<VenueSuggestionItem[], Error>>,
+) {
+  return useQuery({
+    queryKey: ['games', gameId, 'venue-suggestions'] as const,
+    queryFn: async () => {
+      const res = await client.get(`/games/${gameId}/venue-suggestions`);
+      const body = (res as any)?.data !== undefined ? (res as any).data : res;
+      if (Array.isArray(body)) return body;
+      if (Array.isArray(body?.items)) return body.items;
+      return [];
+    },
+    enabled: Boolean(gameId),
+    ...options,
+  });
+}
+
+export interface PublicVenuesQueryParams {
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  sportKey?: string;
+  amenity?: string;
+  openAt?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface PublicVenueItem {
+  id?: string;
+  _id?: string;
+  name: string;
+  description?: string;
+  address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state?: string;
+    postalCode?: string;
+  };
+  areaLabel: string;
+  location: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
+  timezone: string;
+  contactInfo?: {
+    phone?: string;
+    email?: string;
+    website?: string;
+  };
+  photoUrls?: string[];
+  amenities?: string[];
+  weeklyHours?: Array<{
+    dayOfWeek: number;
+    openMinute: number;
+    closeMinute: number;
+  }>;
+  courts?: Array<{
+    courtId: string;
+    name: string;
+    sportKeys: string[];
+    isActive: boolean;
+  }>;
+  status: string;
+}
+
+export interface DiscoveredVenueItem {
+  venue: PublicVenueItem;
+  distanceKm: number;
+}
+
+export interface PublicVenuesResponse {
+  items: DiscoveredVenueItem[];
+  pagination: {
+    hasMore: boolean;
+    nextCursor: string | null;
+    totalReturned: number;
+  };
+}
+
+/**
+ * Retrieves public venue directory with geospatial/amenity filters.
+ * Calls GET /api/v1/venues
+ */
+export function usePublicVenues(
+  client: ApiClient,
+  params?: PublicVenuesQueryParams,
+  options?: Partial<UseQueryOptions<PublicVenuesResponse, Error>>,
+) {
+  const queryParams = new URLSearchParams();
+  if (params?.lat !== undefined) queryParams.set('lat', params.lat.toString());
+  if (params?.lng !== undefined) queryParams.set('lng', params.lng.toString());
+  if (params?.radiusKm !== undefined) queryParams.set('radiusKm', params.radiusKm.toString());
+  if (params?.sportKey) queryParams.set('sportKey', params.sportKey);
+  if (params?.amenity) queryParams.set('amenity', params.amenity);
+  if (params?.openAt) queryParams.set('openAt', params.openAt);
+  if (params?.limit !== undefined) queryParams.set('limit', params.limit.toString());
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+
+  const queryString = queryParams.toString();
+  const url = queryString ? `/venues?${queryString}` : '/venues';
+
+  return useQuery({
+    queryKey: ['venues', 'public', params || {}] as const,
+    queryFn: async () => {
+      const res = await client.get(url);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+/**
+ * Retrieves public or detailed venue profile by ID.
+ * Calls GET /api/v1/venues/:id
+ */
+export function usePublicVenueDetail(
+  client: ApiClient,
+  venueId: string,
+  options?: Partial<UseQueryOptions<PublicVenueItem, Error>>,
+) {
+  return useQuery({
+    queryKey: ['venues', 'detail', venueId] as const,
+    queryFn: async () => {
+      const res = await client.get(`/venues/${venueId}`);
+      return (res as any)?.data || res;
+    },
+    enabled: Boolean(venueId),
+    ...options,
+  });
+}
+
+

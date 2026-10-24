@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useSportsCatalog } from '@playmatch/shared';
+import { useSportsCatalog, usePublicVenues } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Stepper, type StepItem } from '../../components/ui/Stepper';
@@ -113,20 +113,18 @@ export function CreateGamePage(): React.ReactElement {
     return 2 * (currentFormat.playersPerSide || 2);
   }, [currentFormat]);
 
-  // 2. Fetch Venues (using user profile homeLocation or default Chennai coordinates)
+  // 2. Fetch Venues using new usePublicVenues hook (using user profile homeLocation or default Chennai coordinates)
   const userCoords = user?.homeLocation?.coordinates || [80.28, 13.06];
-  const { data: venuesData, isLoading: isLoadingVenues } = useQuery({
-    queryKey: ['venues', 'discovery', userCoords[0], userCoords[1]],
-    queryFn: async () => {
-      const q = new URLSearchParams({
-        lat: String(userCoords[1]),
-        lng: String(userCoords[0]),
-        radiusKm: '50',
-      });
-      return client.get(`/venues?${q.toString()}`);
+  const { data: venuesData, isLoading: isLoadingVenues } = usePublicVenues(
+    client,
+    {
+      lat: userCoords[1],
+      lng: userCoords[0],
+      radiusKm: 50,
+      sportKey: sportKey || undefined,
     },
-    staleTime: 60000,
-  });
+    { staleTime: 60000 },
+  );
 
   const venueItems: any[] = (venuesData as any)?.data?.items || (venuesData as any)?.items || [];
   const venueList = useMemo(() => {
