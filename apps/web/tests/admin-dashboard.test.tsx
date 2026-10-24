@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AdminDashboardPage } from '../src/pages/admin/AdminDashboardPage';
@@ -138,6 +138,15 @@ describe('Module 2.4: AdminDashboardPage (Platform Overview Without Admin Privil
 
   it('displays administrative dispute governance notice for non-admin accounts', async () => {
     renderDashboard();
+
+    // Wait for the dashboard to load, then switch to the Disputes tab
+    await waitFor(() => {
+      expect(screen.getByText('Platform Operations Dashboard')).toBeDefined();
+    });
+
+    // Radix UI TabsTrigger activates on mouseDown
+    const disputesTab = screen.getByRole('tab', { name: /disputes/i });
+    fireEvent.mouseDown(disputesTab, { button: 0 });
 
     await waitFor(() => {
       expect(screen.getByText('Administrative Dispute Governance')).toBeDefined();

@@ -47,6 +47,17 @@ import {
   Scale,
   FileCheck,
   Award,
+  Building2,
+  Plus,
+  PlusCircle,
+  Pencil,
+  Ban,
+  Power,
+  LayoutDashboard,
+  List,
+  Settings,
+  ToggleLeft,
+  ToggleRight,
 } from 'lucide-react';
 
 export const ICON_MAP = {
@@ -98,6 +109,17 @@ export const ICON_MAP = {
   scale: Scale,
   'file-check': FileCheck,
   award: Award,
+  building: Building2,
+  plus: Plus,
+  'plus-circle': PlusCircle,
+  pencil: Pencil,
+  ban: Ban,
+  power: Power,
+  'layout-dashboard': LayoutDashboard,
+  list: List,
+  settings: Settings,
+  'toggle-left': ToggleLeft,
+  'toggle-right': ToggleRight,
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

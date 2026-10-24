@@ -377,3 +377,289 @@ export function useMatchRatingPreview(
     ...options,
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sprint 2: Admin Dashboard, Venue Moderation, and Sport Catalog Hooks
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Admin Dashboard Stats ────────────────────────────────────────────────────
+
+export interface AdminDashboardStats {
+  users: { total: number; active: number; suspended: number };
+  games: {
+    total: number;
+    open: number;
+    confirmed: number;
+    inProgress: number;
+    completed: number;
+    cancelled: number;
+  };
+  venues: {
+    total: number;
+    pendingApproval: number;
+    active: number;
+    suspended: number;
+  };
+  disputes: { open: number };
+}
+
+/**
+ * Fetches platform-wide aggregated metrics for the admin dashboard.
+ * Calls GET /api/v1/admin/dashboard/stats
+ */
+export function useAdminDashboardStats(
+  client: ApiClient,
+  options?: Partial<UseQueryOptions<AdminDashboardStats, Error>>,
+) {
+  return useQuery({
+    queryKey: queryKeys.admin.stats(),
+    queryFn: async () => {
+      const res = await client.get('/admin/dashboard/stats');
+      return (res as any)?.data || res;
+    },
+    staleTime: 30 * 1000,
+    ...options,
+  });
+}
+
+// ── Admin Disputes ───────────────────────────────────────────────────────────
+
+export interface AdminDispute {
+  _id?: string;
+  id?: string;
+  gameId: string;
+  status: string;
+  proposal: {
+    proposedByUserId: string;
+    scores: Array<{ sideKey: string; score: number }>;
+    notes?: string;
+  };
+  disputedByUserId?: string;
+  disputeReason?: string;
+  disputedAt?: string;
+  createdAt: string;
+}
+
+export interface AdminDisputesListResponse {
+  disputes: AdminDispute[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/**
+ * Retrieves all disputed match results platform-wide.
+ * Calls GET /api/v1/admin/disputes
+ */
+export function useAdminDisputes(
+  client: ApiClient,
+  queryParams?: { page?: number; limit?: number },
+  options?: Partial<UseQueryOptions<AdminDisputesListResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: queryKeys.admin.disputes(queryParams),
+    queryFn: async () => {
+      const search = new URLSearchParams();
+      if (queryParams?.page) search.set('page', String(queryParams.page));
+      if (queryParams?.limit) search.set('limit', String(queryParams.limit));
+      const qs = search.toString();
+      const res = await client.get(`/admin/disputes${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+// ── Venue Moderation ─────────────────────────────────────────────────────────
+
+/**
+ * Fetches all venues (for admin moderation table).
+ * Calls GET /api/v1/venues (discovery endpoint, returns all statuses for admin).
+ */
+export function useAdminAllVenues(
+  client: ApiClient,
+  queryParams?: { status?: string },
+  options?: Partial<UseQueryOptions<any, Error>>,
+) {
+  return useQuery({
+    queryKey: queryKeys.admin.venuesAll(queryParams),
+    queryFn: async () => {
+      const search = new URLSearchParams();
+      if (queryParams?.status) search.set('status', queryParams.status);
+      const qs = search.toString();
+      const res = await client.get(`/venues${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+/**
+ * Mutation to approve a pending venue.
+ * Calls POST /api/v1/venues/:id/approve
+ */
+export function useApproveVenue(
+  client: ApiClient,
+  options?: Partial<UseMutationOptions<any, Error, string>>,
+) {
+  return useMutation({
+    mutationFn: async (venueId: string) => {
+      const res = await client.post(`/venues/${venueId}/approve`, {});
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+/**
+ * Mutation to suspend an active venue.
+ * Calls POST /api/v1/venues/:id/suspend
+ */
+export function useSuspendVenue(
+  client: ApiClient,
+  options?: Partial<UseMutationOptions<any, Error, string>>,
+) {
+  return useMutation({
+    mutationFn: async (venueId: string) => {
+      const res = await client.post(`/venues/${venueId}/suspend`, {});
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+/**
+ * Mutation to reinstate a suspended venue.
+ * Calls POST /api/v1/venues/:id/reinstate
+ */
+export function useReinstateVenue(
+  client: ApiClient,
+  options?: Partial<UseMutationOptions<any, Error, string>>,
+) {
+  return useMutation({
+    mutationFn: async (venueId: string) => {
+      const res = await client.post(`/venues/${venueId}/reinstate`, {});
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+// ── Sport Catalog Management ─────────────────────────────────────────────────
+
+export interface AdminSport {
+  _id?: string;
+  id?: string;
+  key: string;
+  name: string;
+  isActive: boolean;
+  isTeamBased?: boolean;
+  allowsDraws?: boolean;
+  minPlayers: number;
+  maxPlayers: number;
+  formats?: Array<{
+    key: string;
+    label: string;
+    playersPerSide: number;
+    isDefault: boolean;
+  }>;
+  scoring?: { type: string; allowsDraws: boolean };
+  skillBands?: Array<{
+    key: string;
+    label: string;
+    order: number;
+    seedRating: number;
+  }>;
+  playStyles?: Array<{ key: string; label: string }>;
+  positions?: Array<{ key: string; label: string }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminSportsListResponse {
+  sports: AdminSport[];
+}
+
+/**
+ * Retrieves all sports (including inactive) for admin catalog management.
+ * Calls GET /api/v1/admin/sports
+ */
+export function useAdminSports(
+  client: ApiClient,
+  options?: Partial<UseQueryOptions<AdminSportsListResponse, Error>>,
+) {
+  return useQuery({
+    queryKey: queryKeys.admin.sports(),
+    queryFn: async () => {
+      const res = await client.get('/admin/sports');
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+export interface CreateSportPayload {
+  key: string;
+  name: string;
+  isActive?: boolean;
+  isTeamBased?: boolean;
+  allowsDraws?: boolean;
+  minPlayers: number;
+  maxPlayers: number;
+  formats?: Array<{
+    key: string;
+    label: string;
+    playersPerSide: number;
+    isDefault: boolean;
+  }>;
+  scoring?: { type: string; allowsDraws: boolean };
+  skillBands: Array<{
+    key: string;
+    label: string;
+    order: number;
+    seedRating: number;
+  }>;
+  playStyles: Array<{ key: string; label: string }>;
+  positions?: Array<{ key: string; label: string }>;
+}
+
+/**
+ * Mutation to create a new sport in the catalog.
+ * Calls POST /api/v1/admin/sports
+ */
+export function useCreateSport(
+  client: ApiClient,
+  options?: Partial<UseMutationOptions<any, Error, CreateSportPayload>>,
+) {
+  return useMutation({
+    mutationFn: async (payload: CreateSportPayload) => {
+      const res = await client.post('/admin/sports', payload);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+
+export interface UpdateSportPayload {
+  sportId: string;
+  body: Partial<Omit<CreateSportPayload, 'key'>>;
+}
+
+/**
+ * Mutation to update an existing sport definition.
+ * Calls PATCH /api/v1/admin/sports/:id
+ */
+export function useUpdateSport(
+  client: ApiClient,
+  options?: Partial<UseMutationOptions<any, Error, UpdateSportPayload>>,
+) {
+  return useMutation({
+    mutationFn: async ({ sportId, body }: UpdateSportPayload) => {
+      const res = await client.patch(`/admin/sports/${sportId}`, body);
+      return (res as any)?.data || res;
+    },
+    ...options,
+  });
+}
+

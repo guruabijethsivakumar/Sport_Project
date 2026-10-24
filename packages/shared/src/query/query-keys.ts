@@ -56,6 +56,17 @@ export const queryKeys = {
       [...queryKeys.venues.all, 'availability', venueId, courtId, date] as const,
   },
 
+  // Admin
+  admin: {
+    all: ['admin'] as const,
+    stats: () => [...queryKeys.admin.all, 'stats'] as const,
+    disputes: (params?: Record<string, unknown>) => [...queryKeys.admin.all, 'disputes', params || {}] as const,
+    users: (search?: string) => [...queryKeys.admin.all, 'users', search || ''] as const,
+    venuesAll: (params?: Record<string, unknown>) => [...queryKeys.admin.all, 'venues', 'all', params || {}] as const,
+    venuesPending: () => [...queryKeys.admin.all, 'venues', 'pending'] as const,
+    sports: () => [...queryKeys.admin.all, 'sports'] as const,
+  },
+
   // Future features
   features: {
     all: ['features'] as const,
