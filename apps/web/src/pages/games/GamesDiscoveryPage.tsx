@@ -53,18 +53,6 @@ interface RawDiscoveryItem {
   matchSignals: MatchSignals;
 }
 
-interface RawDiscoveryResponse {
-  success: boolean;
-  data: {
-    items: RawDiscoveryItem[];
-    pagination?: {
-      hasMore: boolean;
-      nextCursor: string | null;
-      totalReturned: number;
-    };
-  };
-}
-
 const DATE_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'Any Date' },
   { value: 'today', label: 'Today' },

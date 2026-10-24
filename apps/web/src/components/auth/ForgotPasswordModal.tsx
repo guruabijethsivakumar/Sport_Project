@@ -84,7 +84,7 @@ export function ForgotPasswordModal({
         description: `Password recovery link sent to ${data.email.trim()} via SMTP.`,
         type: 'success',
       });
-    } catch (err: any) {
+    } catch {
       // Keep message uniform to avoid email enumeration
       setSentEmail(data.email.trim());
       setRequestSent(true);

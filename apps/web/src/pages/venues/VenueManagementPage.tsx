@@ -11,7 +11,6 @@ import {
   useVenueAvailability,
 } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
-import { PageHeader } from '../../components/ui/PageHeader';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -19,7 +18,7 @@ import { Icon } from '../../components/ui/Icon';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { FormField } from '../../components/ui/FormField';
-import { Select, type SelectOption } from '../../components/ui/Select';
+import { Select } from '../../components/ui/Select';
 import { Dialog, ConfirmDialog } from '../../components/ui/Dialog';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -60,7 +59,7 @@ export function VenueManagementPage(): React.ReactElement {
 
   // Mutations
   const createVenueMutation = useCreateVenue(client);
-  const updateVenueMutation = useUpdateVenue(client, currentVenue?.id || currentVenue?._id || '');
+  const _updateVenueMutation = useUpdateVenue(client, currentVenue?.id || currentVenue?._id || '');
   const addCourtMutation = useAddCourt(client, currentVenue?.id || currentVenue?._id || '');
   const updateCourtMutation = useUpdateCourt(client, currentVenue?.id || currentVenue?._id || '');
   const addClosureMutation = useAddClosure(client, currentVenue?.id || currentVenue?._id || '');
@@ -80,7 +79,6 @@ export function VenueManagementPage(): React.ReactElement {
   const [newVenueArea, setNewVenueArea] = useState('');
   const [newVenueLng, setNewVenueLng] = useState('80.28');
   const [newVenueLat, setNewVenueLat] = useState('13.06');
-  const [newVenuePhone, setNewVenuePhone] = useState('');
   const [newVenueAmenities, setNewVenueAmenities] = useState('parking, water, floodlights');
   const [createVenueError, setCreateVenueError] = useState('');
 
@@ -128,7 +126,7 @@ export function VenueManagementPage(): React.ReactElement {
           coordinates: [Number(newVenueLng) || 80.28, Number(newVenueLat) || 13.06],
         },
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata',
-        contactInfo: newVenuePhone.trim() ? { phone: newVenuePhone.trim() } : undefined,
+        contactInfo: undefined,
         amenities: newVenueAmenities
           .split(',')
           .map((a) => a.trim().toLowerCase().replace(/\s+/g, '_'))

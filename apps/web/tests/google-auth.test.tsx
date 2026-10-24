@@ -1,10 +1,9 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, act } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoginPage } from '../src/pages/auth/LoginPage';
-import { RegisterPage } from '../src/pages/auth/RegisterPage';
 import { GoogleSignInButton } from '../src/components/auth/GoogleSignInButton';
 import { AuthProvider, sharedApiClient } from '../src/auth/AuthContext';
 import { AUTH_MESSAGES } from '@playmatch/shared';
@@ -125,7 +124,7 @@ describe('Google Authentication (Option A: GIS)', () => {
                   <GoogleSignInButton
                     clientId="test-client-id.apps.googleusercontent.com"
                     onSuccess={async (credential) => {
-                      const res = await sharedApiClient.post('/auth/google', { credential });
+                      const _res = await sharedApiClient.post('/auth/google', { credential });
                       const onboarding = await sharedApiClient.get<{ isComplete: boolean }>('/profile/me/onboarding');
                       if (!onboarding?.isComplete) {
                         window.history.pushState({}, '', '/onboarding');

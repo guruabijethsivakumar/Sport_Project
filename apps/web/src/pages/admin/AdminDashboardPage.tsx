@@ -53,7 +53,7 @@ export function AdminDashboardPage(): React.ReactElement {
     enabled: isAdmin,
   });
 
-  const adminStats = (adminStatsData as any)?.data || adminStatsData;
+  const _adminStats = (adminStatsData as any)?.data || adminStatsData;
   const adminUsers: any[] = (adminUsersData as any)?.users || (adminUsersData as any)?.data?.users || [];
 
   const handleToggleSuspend = async (targetUser: any) => {

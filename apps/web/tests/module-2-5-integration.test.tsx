@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '../src/components/ui/Toast';
 import { allDomainRoutes, renderRoute } from '../src/routes/registry';
@@ -9,7 +9,6 @@ import { GameTeamsSlot } from '../src/components/slots/GameTeamsSlot';
 import { GameResultSlot } from '../src/components/slots/GameResultSlot';
 import { NavbarNotificationSlot } from '../src/components/slots/NavbarNotificationSlot';
 import { Navbar } from '../src/components/layout/Navbar';
-import RecommendationsTab from '../src/pages/games/RecommendationsTab';
 import { DecisionExplanationModal } from '../src/components/explain/DecisionExplanationModal';
 
 // Polyfill ResizeObserver for Radix UI slider in jsdom

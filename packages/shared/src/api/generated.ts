@@ -961,6 +961,52 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/auth/google": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Authenticate or register with Google ID token */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            credential: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Google authentication successful */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiResponse"];
+          };
+        };
+        401: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/auth/login": {
     parameters: {
       query?: never;

@@ -6,7 +6,7 @@ import { ProfilePage } from '../src/pages/profile/ProfilePage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock AuthContext
-let mockAuthState = {
+const mockAuthState = {
   user: {
     id: 'usr-123',
     name: 'Alex Morgan',

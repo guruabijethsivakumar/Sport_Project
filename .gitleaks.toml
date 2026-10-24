@@ -1,0 +1,13 @@
+# Gitleaks configuration for PlayMatch
+[extend]
+useDefault = true
+
+[allowlist]
+description = "PlayMatch allowlist for test suites, mocks, and demo seed scripts"
+paths = [
+  '''(?i)tests/.*''',
+  '''(?i).*\.test\.(ts|tsx|js)''',
+  '''(?i)server/src/scripts/seed-demo\.ts''',
+  '''(?i)packages/shared/src/api/generated\.ts''',
+  '''(?i)\.env\.example''',
+]

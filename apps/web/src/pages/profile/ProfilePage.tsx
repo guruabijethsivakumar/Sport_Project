@@ -56,8 +56,8 @@ export function ProfilePage(): React.ReactElement {
   // 3. Fetch Player Attendance Reliability
   const {
     data: reliabilityData,
-    isLoading: isReliabilityLoading,
-    error: reliabilityError,
+    isLoading: _isReliabilityLoading,
+    error: _reliabilityError,
     refetch: refetchReliability,
   } = useMyReliability(client);
 

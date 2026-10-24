@@ -28,7 +28,7 @@ import { ApiClient } from '../src/client/api-client.js';
 import { WebAuthAdapter } from '../src/client/adapters/web.js';
 
 describe('Future Features Mock Seam Tests', () => {
-  const dummyClient = new ApiClient({ baseUrl: 'http://localhost:5000/api/v1' }, new WebAuthAdapter());
+  const dummyClient = new ApiClient({ baseUrl: 'http://127.0.0.1:59999/api/v1' }, new WebAuthAdapter());
 
   it('validates mock recommendations fixture against schema and live attempts network call', async () => {
     const data = await getMockRecommendations({ simulatedLatencyMs: 0 });

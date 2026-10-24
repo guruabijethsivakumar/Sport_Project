@@ -13,7 +13,6 @@ import {
   useFeatureGameResult,
 } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
-import { PageHeader } from '../../components/ui/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Badge, StatusBadge, type GameStatusType } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -312,8 +311,6 @@ export function GameDetailsPage(): React.ReactElement {
   const gameStatus: GameStatusType = (game.status as GameStatusType) || 'open';
   const isCancelled = gameStatus === 'cancelled';
   const isCompleted = gameStatus === 'completed';
-  const isExpired = gameStatus === 'expired';
-  const isInactive = isCancelled || isCompleted || isExpired;
 
   // Format dates & timings
   const startDate = game.startsAt ? new Date(game.startsAt) : null;

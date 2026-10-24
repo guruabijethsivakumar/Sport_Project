@@ -5,7 +5,7 @@ import { useSportsCatalog } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Stepper, type StepItem } from '../../components/ui/Stepper';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { FormField } from '../../components/ui/FormField';
 import { Select, type SelectOption } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
