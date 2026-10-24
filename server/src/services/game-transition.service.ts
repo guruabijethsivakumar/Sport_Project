@@ -1,5 +1,5 @@
 import type { ClientSession, Types } from 'mongoose';
-import { Game, type IGameDocument } from '../models/game.model.js';
+import { type IGameDocument } from '../models/game.model.js';
 import { GameEvent } from '../models/game-event.model.js';
 import {
   AllowedGameTransitions,
@@ -92,7 +92,7 @@ export async function transitionGame(
   }
 
   // Persist GameEvent in database
-  const [createdEvent] = await GameEvent.create(
+  const [_createdEvent] = await GameEvent.create(
     [
       {
         gameId: game._id,

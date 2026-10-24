@@ -1,5 +1,4 @@
-import { Types } from 'mongoose';
-import { Venue, type IVenueDocument } from '../models/venue.model.js';
+import { Venue } from '../models/venue.model.js';
 import { config } from '../config/index.js';
 import { VenueStatuses } from '../constants/venue-constants.js';
 import { AppError } from '../utils/app-error.js';
@@ -49,7 +48,7 @@ export class VenueDiscoveryService {
 
   static async discoverVenues(
     filters: DiscoverVenuesFilter,
-    clock: Clock = defaultClock,
+    _clock: Clock = defaultClock,
   ): Promise<DiscoverVenuesResult> {
     const rawRadius = filters.radiusKm ?? config.DISCOVERY_DEFAULT_RADIUS_KM;
     const clampedRadiusKm = Math.min(

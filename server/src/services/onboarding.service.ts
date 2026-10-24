@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { profileService, recordStepCompletion } from './profile.service.js';
+import { profileService } from './profile.service.js';
 import { SportProfile } from '../models/sport-profile.model.js';
 import {
   ALL_ONBOARDING_STEPS,
@@ -9,7 +9,6 @@ import {
 } from '../constants/onboarding-steps.js';
 import { ValidationError } from '../utils/app-error.js';
 import { Messages } from '../constants/messages.js';
-import { ErrorCodes } from '../constants/error-codes.js';
 import type { IProfileDocument } from '../models/profile.model.js';
 
 export interface OnboardingStatusReport {

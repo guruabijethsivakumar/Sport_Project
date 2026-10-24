@@ -1,7 +1,6 @@
 import { Types } from 'mongoose';
 import { Game } from '../models/game.model.js';
 import { GameParticipant } from '../models/game-participant.model.js';
-import { User } from '../models/user.model.js';
 import { Profile } from '../models/profile.model.js';
 import { Rating } from '../models/rating.model.js';
 import { Sport } from '../models/sport.model.js';

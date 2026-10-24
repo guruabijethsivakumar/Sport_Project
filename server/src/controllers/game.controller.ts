@@ -14,9 +14,8 @@ import { HttpStatus } from '../constants/http-status.js';
 import { Messages } from '../constants/messages.js';
 import { AppError } from '../utils/app-error.js';
 import { ErrorCodes } from '../constants/error-codes.js';
-import { ParticipantRoles, ParticipantStatuses } from '../constants/game-constants.js';
+import { ParticipantRoles } from '../constants/game-constants.js';
 import { config } from '../config/index.js';
-import { logger } from '../utils/logger.js';
 import { defaultClock } from '../utils/clock.js';
 
 export async function createGame(req: Request, res: Response, next: NextFunction): Promise<void> {

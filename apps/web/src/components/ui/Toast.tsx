@@ -69,7 +69,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }): Reac
             <ToastPrimitive.Root
               key={t.id}
               duration={duration}
-              onOpenChange={(open) => {
+              onOpenChange={(open: boolean) => {
                 if (!open) removeToast(t.id);
               }}
               className={cn(

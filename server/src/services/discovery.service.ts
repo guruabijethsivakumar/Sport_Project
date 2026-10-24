@@ -1,6 +1,5 @@
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { Game } from '../models/game.model.js';
-import { Venue } from '../models/venue.model.js';
 import { Profile } from '../models/profile.model.js';
 import { Rating } from '../models/rating.model.js';
 import { Sport } from '../models/sport.model.js';
@@ -13,7 +12,6 @@ import {
 import {
   DiscoverySortOptions,
   type DiscoverySortOption,
-  VenueStatuses,
 } from '../constants/venue-constants.js';
 import { AppError } from '../utils/app-error.js';
 import { HttpStatus } from '../constants/http-status.js';

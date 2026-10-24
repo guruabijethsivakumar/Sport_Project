@@ -1,8 +1,7 @@
-import mongoose, { type ClientSession, type Types } from 'mongoose';
+import { type ClientSession, type Types } from 'mongoose';
 import { Venue } from '../models/venue.model.js';
 import { CourtGuard } from '../models/court-guard.model.js';
 import { Game } from '../models/game.model.js';
-import { Sport } from '../models/sport.model.js';
 import { config } from '../config/index.js';
 import { VenueStatuses } from '../constants/venue-constants.js';
 import { GameStatuses } from '../constants/game-constants.js';
@@ -39,7 +38,7 @@ export class CourtReservationService {
       endsAt,
       excludeGameId,
       session,
-      clock = defaultClock,
+      clock: _clock = defaultClock,
     } = params;
 
     const venue = await Venue.findById(venueId).session(session);

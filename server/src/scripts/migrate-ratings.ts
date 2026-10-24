@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { Rating } from '../models/rating.model.js';
 import { Collections } from '../constants/collections.js';
 import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';

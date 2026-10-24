@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { User } from '../models/user.model.js';
 import { Profile } from '../models/profile.model.js';
 import { Sport } from '../models/sport.model.js';
@@ -6,7 +6,6 @@ import { SportProfile } from '../models/sport-profile.model.js';
 import { Venue } from '../models/venue.model.js';
 import { CourtGuard } from '../models/court-guard.model.js';
 import { Game } from '../models/game.model.js';
-import { GameParticipant } from '../models/game-participant.model.js';
 import { Rating } from '../models/rating.model.js';
 import { MatchResult } from '../models/match-result.model.js';
 import { passwordService } from '../services/password.service.js';
@@ -17,15 +16,13 @@ import { ratingEngineService } from '../services/rating-engine.service.js';
 import { VenueService } from '../services/venue.service.js';
 import { Roles } from '../constants/roles.js';
 import { UserStatuses } from '../constants/user-status.js';
-import { VenueStatuses } from '../constants/venue-constants.js';
-import { JoinPolicies, GameVisibilities, ParticipantStatuses, GameStatuses, CancellationReasonCodes } from '../constants/game-constants.js';
+import { JoinPolicies, GameVisibilities, GameStatuses, CancellationReasonCodes } from '../constants/game-constants.js';
 import { MatchSourceTypes } from '../constants/match-sources.js';
 import { transitionGame } from '../services/game-transition.service.js';
 import { DemoConstants } from '../constants/demo-constants.js';
 import { OnboardingStatuses, OnboardingSteps } from '../constants/onboarding-steps.js';
-import { defaultClock, TestClock } from '../utils/clock.js';
+import { TestClock } from '../utils/clock.js';
 import { logger } from '../utils/logger.js';
-import crypto from 'node:crypto';
 
 export class DatabaseSafetyError extends Error {
   constructor(message: string) {

@@ -1,6 +1,6 @@
 import mongoose, { Types, type ClientSession } from 'mongoose';
 import { Game, type IGameDocument } from '../models/game.model.js';
-import { GameParticipant, type IGameParticipantDocument } from '../models/game-participant.model.js';
+import { GameParticipant } from '../models/game-participant.model.js';
 import { GameEvent } from '../models/game-event.model.js';
 import { config } from '../config/index.js';
 import {

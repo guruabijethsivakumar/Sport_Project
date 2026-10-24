@@ -7,7 +7,6 @@ import { config } from '../config/index.js';
 import {
   VenueStatuses,
   VenueEventTypes,
-  type VenueStatus,
 } from '../constants/venue-constants.js';
 import { GameStatuses } from '../constants/game-constants.js';
 import { AppError } from '../utils/app-error.js';
@@ -572,7 +571,7 @@ export class VenueService {
     actorId: Types.ObjectId | string,
     actorRole: string,
     closureInput: { startsAt: Date; endsAt: Date; reason?: string; adminOverride?: boolean },
-    clock: Clock = defaultClock,
+    _clock: Clock = defaultClock,
   ): Promise<IVenueClosure> {
     const actorObjectId = typeof actorId === 'string' ? new Types.ObjectId(actorId) : actorId;
     const venue = await Venue.findById(venueId);
@@ -821,7 +820,7 @@ export class VenueService {
   static async getVenueAvailability(
     venueId: Types.ObjectId | string,
     dateStr: string, // YYYY-MM-DD
-    clock: Clock = defaultClock,
+    _clock: Clock = defaultClock,
   ): Promise<CourtAvailability[]> {
     const venue = await Venue.findById(venueId);
     if (!venue || venue.status !== VenueStatuses.ACTIVE) {

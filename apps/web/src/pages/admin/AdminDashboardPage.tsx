@@ -53,8 +53,18 @@ export function AdminDashboardPage(): React.ReactElement {
     enabled: isAdmin,
   });
 
+  const { data: adminDisputesData, refetch: refetchDisputes } = useQuery({
+    queryKey: ['admin', 'disputes'],
+    queryFn: () => client.get('/admin/disputes'),
+    enabled: isAdmin,
+  });
+
   const _adminStats = (adminStatsData as any)?.data || adminStatsData;
   const adminUsers: any[] = (adminUsersData as any)?.users || (adminUsersData as any)?.data?.users || [];
+  const rawAdminDisputes: any[] =
+    (adminDisputesData as any)?.disputes ||
+    (adminDisputesData as any)?.data?.disputes ||
+    [];
 
   const handleToggleSuspend = async (targetUser: any) => {
     try {
@@ -94,9 +104,11 @@ export function AdminDashboardPage(): React.ReactElement {
   const gamesList: any[] = (myGamesData as any)?.games || (myGamesData as any)?.data || (myGamesData as any)?.items || [];
   const notificationsList: any[] = (notificationsData as any)?.notifications || (notificationsData as any)?.items || [];
 
-  const disputedGames = gamesList.filter(
+  const myDisputedGames = gamesList.filter(
     (g: any) => g.status === 'disputed' || g.resultStatus === 'disputed'
   );
+
+  const displayedDisputes = isAdmin ? rawAdminDisputes : myDisputedGames;
 
   const isLoading = isLoadingVenues || isLoadingGames || isLoadingNotifications;
 
@@ -144,31 +156,75 @@ export function AdminDashboardPage(): React.ReactElement {
 
       {/* Real Metric Highlights (strictly from verified backend queries) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <p className="text-xs text-muted-foreground font-medium">My Managed Venues</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{venueList.length}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
-            {isVenueOwner ? 'Facilities configured' : 'Standard player role'}
-          </p>
-        </Card>
+        {isAdmin ? (
+          <>
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Platform Users</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {_adminStats?.users?.total ?? 0}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {_adminStats?.users?.active ?? 0} active • {_adminStats?.users?.suspended ?? 0} suspended
+              </p>
+            </Card>
 
-        <Card className="p-4">
-          <p className="text-xs text-muted-foreground font-medium">My Active Games</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{gamesList.length}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">Hosted or joined</p>
-        </Card>
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Platform Matches</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {_adminStats?.games?.total ?? 0}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {_adminStats?.games?.open ?? 0} open • {_adminStats?.games?.completed ?? 0} completed
+              </p>
+            </Card>
 
-        <Card className="p-4">
-          <p className="text-xs text-muted-foreground font-medium">Notifications & Alerts</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{notificationsList.length}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">Live event notices</p>
-        </Card>
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Registered Venues</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {_adminStats?.venues?.total ?? 0}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {_adminStats?.venues?.pendingApproval ?? 0} pending review • {_adminStats?.venues?.active ?? 0} active
+              </p>
+            </Card>
 
-        <Card className="p-4">
-          <p className="text-xs text-muted-foreground font-medium">Disputed Matches</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{disputedGames.length}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">Awaiting resolution</p>
-        </Card>
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Disputed Matches</p>
+              <p className="text-2xl font-bold text-danger mt-1">
+                {_adminStats?.disputes?.open ?? displayedDisputes.length}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Awaiting resolution</p>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">My Managed Venues</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{venueList.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {isVenueOwner ? 'Facilities configured' : 'Standard player role'}
+              </p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">My Active Games</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{gamesList.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Hosted or joined</p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Notifications & Alerts</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{notificationsList.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Live event notices</p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-xs text-muted-foreground font-medium">Disputed Matches</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{displayedDisputes.length}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Awaiting resolution</p>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Section 1: My Managed Facilities */}
@@ -414,33 +470,47 @@ export function AdminDashboardPage(): React.ReactElement {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!disputedGames.length ? (
+          {!displayedDisputes.length ? (
             <p className="text-xs text-muted-foreground py-1">
-              No active match disputes recorded for your games.
+              {isAdmin
+                ? 'No contested match disputes currently pending on the platform.'
+                : 'No active match disputes recorded for your games.'}
             </p>
           ) : (
             <div className="space-y-3">
-              {disputedGames.map((dGame: any) => (
-                <div
-                  key={dGame.id || dGame._id}
-                  className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-foreground">
-                      {dGame.sportKey?.toUpperCase()} match dispute
-                    </span>
-                    <Badge variant="warning">Contested Result</Badge>
-                  </div>
-                  <p className="text-muted-foreground">
-                    Match ID: {dGame.id || dGame._id}. This score proposal has been contested by a player.
-                  </p>
-                  {isAdmin && (
-                    <div className="pt-2">
-                      <AdminDisputeResolver gameId={dGame.id || dGame._id} />
+              {displayedDisputes.map((dGame: any) => {
+                const gameIdentifier = dGame.gameId || dGame.game || dGame.id || dGame._id;
+                const sportLabel = dGame.sportKey || dGame.sport || 'Match';
+                const reasonText = dGame.disputeReason || dGame.reason || dGame.disputeNotes;
+
+                return (
+                  <div
+                    key={dGame.id || dGame._id || gameIdentifier}
+                    className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground uppercase">
+                        {sportLabel} Match Dispute
+                      </span>
+                      <Badge variant="warning">Contested Result</Badge>
                     </div>
-                  )}
-                </div>
-              ))}
+                    <p className="text-muted-foreground">
+                      Match ID: <span className="font-mono text-foreground">{gameIdentifier}</span>.
+                      {reasonText ? ` Reason: ${reasonText}` : ' This score proposal has been contested by a player.'}
+                    </p>
+                    {isAdmin && (
+                      <div className="pt-2">
+                        <AdminDisputeResolver
+                          gameId={String(gameIdentifier)}
+                          onResolved={() => {
+                            refetchDisputes();
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

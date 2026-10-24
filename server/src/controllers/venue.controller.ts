@@ -1,13 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 import { VenueService } from '../services/venue.service.js';
-import { DiscoveryService } from '../services/discovery.service.js';
 import { VenueDiscoveryService } from '../services/venue-discovery.service.js';
-import { VenueSuggestionService } from '../services/venue-suggestion.service.js';
 import { Venue } from '../models/venue.model.js';
 import { sendSuccess, sendCreated } from '../utils/api-response.js';
 import { Messages } from '../constants/messages.js';
-import { logger } from '../utils/logger.js';
 import { defaultClock } from '../utils/clock.js';
 import { config } from '../config/index.js';
 

@@ -1,7 +1,15 @@
+import dns from 'node:dns';
 import http from 'node:http';
 import mongoose from 'mongoose';
 import { app } from './app.js';
 import { config } from './config/index.js';
+
+// Resolve MongoDB SRV records via public DNS if local router/ISP DNS rejects SRV lookups
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Ignore in environments where setting custom DNS servers is restricted
+}
 import { logger } from './utils/logger.js';
 import { initializeWebSockets } from './engine/websockets/index.js';
 import { registerNotificationListeners } from './services/notification.service.js';

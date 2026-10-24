@@ -1,14 +1,14 @@
 import mongoose, { Types } from 'mongoose';
 import { Sport, type ISportDocument } from '../models/sport.model.js';
 import { Rating, type IRatingDocument } from '../models/rating.model.js';
-import { MatchResult, type IMatchResultDocument } from '../models/match-result.model.js';
+import { MatchResult } from '../models/match-result.model.js';
 import { RatingEvent } from '../models/rating-event.model.js';
 import { config } from '../config/index.js';
 import { ErrorCodes } from '../constants/error-codes.js';
 import { Messages } from '../constants/messages.js';
 import { MatchOutcomes, type MatchOutcome } from '../constants/match-outcomes.js';
 import { MatchStatuses } from '../constants/match-status.js';
-import { MatchSourceTypes, type MatchSourceType } from '../constants/match-sources.js';
+import { type MatchSourceType } from '../constants/match-sources.js';
 import {
   ValidationError,
   NotFoundError,

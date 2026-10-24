@@ -50,7 +50,7 @@ export class VenueSuggestionService {
   static async getVenueSuggestions(
     gameId: Types.ObjectId | string,
     hostId: Types.ObjectId | string,
-    clock: Clock = defaultClock,
+    _clock: Clock = defaultClock,
   ): Promise<VenueSuggestionAggregate[]> {
     const game = await Game.findById(gameId);
     if (!game) {
