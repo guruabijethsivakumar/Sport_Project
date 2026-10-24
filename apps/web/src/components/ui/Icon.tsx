@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   UserPlus,
+  UserCheck,
   Users,
   CheckCircle2,
   PlayCircle,
@@ -39,6 +40,7 @@ import {
   Home,
   Mail,
   Key,
+  Lock,
 } from 'lucide-react';
 
 export const ICON_MAP = {
@@ -46,7 +48,9 @@ export const ICON_MAP = {
   user: User,
   mail: Mail,
   key: Key,
+  lock: Lock,
   'user-plus': UserPlus,
+  'user-check': UserCheck,
   users: Users,
   'check-circle': CheckCircle2,
   'play-circle': PlayCircle,
@@ -70,6 +74,7 @@ export const ICON_MAP = {
   'arrow-right': ArrowRight,
   refresh: RefreshCw,
   logout: LogOut,
+  'log-out': LogOut,
   calendar: Calendar,
   'map-pin': MapPin,
   menu: Menu,

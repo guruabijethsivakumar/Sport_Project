@@ -117,7 +117,7 @@ export function Navbar(): React.ReactElement {
                 key: 'profile',
                 label: 'Profile',
                 icon: 'user',
-                onSelect: () => navigate('/onboarding'),
+                onSelect: () => navigate('/profile'),
               },
               {
                 key: 'theme',
@@ -172,7 +172,7 @@ export function Navbar(): React.ReactElement {
           ))}
 
           <Link
-            to="/onboarding"
+            to="/profile"
             onClick={() => setMobileOpen(false)}
             className="text-base font-medium text-foreground py-2 border-b border-border-subtle/30"
           >

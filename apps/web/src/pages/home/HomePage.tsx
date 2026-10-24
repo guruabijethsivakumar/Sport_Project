@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
-import { useOnboardingStatus, useMyProfile } from '@playmatch/shared';
+import { useOnboardingStatus, useMyProfile, useMyGames } from '@playmatch/shared';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
@@ -14,6 +14,10 @@ export function HomePage(): React.ReactElement {
   });
 
   const { data: profileData } = useMyProfile(client, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: myGamesData } = useMyGames(client, {
     enabled: isAuthenticated,
   });
 
@@ -47,6 +51,20 @@ export function HomePage(): React.ReactElement {
       : typeof rawRadius === 'string' && rawRadius
       ? `${rawRadius} km`
       : null;
+
+  const myGamesList: any[] =
+    (myGamesData as any)?.games ||
+    (myGamesData as any)?.data?.games ||
+    (Array.isArray(myGamesData) ? myGamesData : []);
+
+  const currentUserId = user?.id || (user as any)?._id;
+  const gamesNeedingVerification = myGamesList.filter((g) => {
+    return Boolean(
+      g.canUserVerifyResult ||
+      (g.hasPendingResult &&
+        g.whoMustActNext?.some((id: any) => String(id) === String(currentUserId)))
+    );
+  });
 
   // Unauthenticated Landing View
   if (!isAuthenticated) {
@@ -140,6 +158,46 @@ export function HomePage(): React.ReactElement {
           Here is your PlayMatch control center and competitive activity.
         </p>
       </div>
+
+      {/* Action Required: Match Result Pending Verification */}
+      {gamesNeedingVerification.length > 0 && (
+        <div className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 p-4 sm:p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                <Icon name="alert-circle" size={22} className="animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                    Action Required
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {gamesNeedingVerification.length === 1
+                      ? '1 match score awaiting your verification'
+                      : `${gamesNeedingVerification.length} match scores awaiting your verification`}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-foreground">
+                  Confirm Match Result
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Your opponent reported the match scores. Please review and verify or dispute to update your player rating.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <Link to={`/games/${gamesNeedingVerification[0].id || gamesNeedingVerification[0]._id}`}>
+                <Button variant="primary" size="sm" className="bg-amber-600 hover:bg-amber-500 text-white font-bold">
+                  <Icon name="check-circle" size={16} className="mr-1.5" />
+                  Review & Verify Score
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Onboarding Incomplete Banner */}
       {!isComplete && (

@@ -46,7 +46,7 @@ export function useFeatureRecommendations(
 export function useFeatureTeamSuggestion(
   client: ApiClient,
   gameId: string,
-  options?: Partial<UseQueryOptions<TeamSuggestionResponse, Error>>,
+  options?: Partial<UseQueryOptions<TeamSuggestionResponse | null, Error>>,
 ) {
   const mode = client.getConfig().features?.teamsMode || 'mock';
   const isMock = mode === 'mock';

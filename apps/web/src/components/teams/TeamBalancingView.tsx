@@ -48,6 +48,7 @@ export function TeamBalancingView({
   const { client } = useAuth();
   const [isSolving, setIsSolving] = useState(false);
   const [solverStepIndex, setSolverStepIndex] = useState(0);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   // Hook for team suggestion (used when initialData is not passed)
   const {
@@ -64,12 +65,13 @@ export function TeamBalancingView({
   // Mutation for backend regeneration
   const regenerateMutation = useRegenerateTeams(client, gameId);
 
-  const teamData: TeamSuggestionResponse | undefined = initialData || fetchedData;
+  const teamData: TeamSuggestionResponse | undefined | null = initialData || fetchedData;
 
   const handleRegenerate = async () => {
     if (isSolving) return;
     setIsSolving(true);
     setSolverStepIndex(0);
+    setGenerateError(null);
 
     // Visual snake draft solver animation cycle
     const stepInterval = setInterval(() => {
@@ -84,9 +86,9 @@ export function TeamBalancingView({
         // Fallback simulated solver latency
         await new Promise((r) => setTimeout(r, 1500));
       }
-      onTeamsRegenerated?.(teamData);
-    } catch {
-      // In case server generation fails in mock/demo mode, refetch fallback
+      onTeamsRegenerated?.(teamData ?? undefined);
+    } catch (err: any) {
+      setGenerateError(err?.message || 'Failed to generate teams. Ensure enough players have joined the roster.');
       await refetch();
     } finally {
       clearInterval(stepInterval);
@@ -97,13 +99,87 @@ export function TeamBalancingView({
     }
   };
 
+  const renderEmptyState = () => (
+    <div
+      className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:p-8 ${className}`}
+    >
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
+          <Scale className="h-7 w-7" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+          Teams have not been generated yet
+        </h3>
+        <p className="mt-1.5 max-w-md text-sm text-slate-500 dark:text-slate-400">
+          {canManage
+            ? 'As host, you can generate balanced rosters using Elo ratings once enough players join the match.'
+            : 'The match host has not generated balanced teams yet. Rosters will appear here once finalized.'}
+        </p>
+
+        {canManage && (
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              disabled={isSolving || regenerateMutation.isPending}
+              className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition-all hover:shadow-lg hover:shadow-indigo-500/30 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <RefreshCw
+                className={`h-4 w-4 transition-transform ${
+                  isSolving || regenerateMutation.isPending ? 'animate-spin' : 'group-hover:rotate-180'
+                }`}
+              />
+              <span>{isSolving ? 'Solving Draft...' : 'Generate Balanced Teams'}</span>
+            </button>
+            {generateError && (
+              <p className="text-xs font-medium text-red-500 dark:text-red-400 max-w-sm text-center">
+                {generateError}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   if (!initialData && isQueryLoading) {
     return <TeamBalancingSkeleton />;
   }
 
   if (!initialData && isError) {
+    const isForbidden =
+      (error as any)?.code === 'FORBIDDEN_ACCESS' ||
+      (error as any)?.status === 403 ||
+      error?.message?.toLowerCase().includes('permission');
+
+    const isTeamsNotFound =
+      (error as any)?.code === 'TEAMS_NOT_FOUND' ||
+      (error as any)?.status === 404 ||
+      error?.message?.toLowerCase().includes('not been generated') ||
+      error?.message?.toLowerCase().includes('teams have not been');
+
+    if (isTeamsNotFound) {
+      return renderEmptyState();
+    }
+
+    if (isForbidden) {
+      return (
+        <div className={`rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/90 text-center ${className}`}>
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+            <Shield className="h-6 w-6" />
+          </div>
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+            Team Roster Restricted
+          </h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Team balancing rosters are visible to match participants only.
+          </p>
+        </div>
+      );
+    }
+
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-center">
+      <div className={`rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-center ${className}`}>
         <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-400" />
         <h3 className="text-base font-semibold text-red-300">Failed to load team split</h3>
         <p className="mt-1 text-sm text-red-400/80">
@@ -119,6 +195,11 @@ export function TeamBalancingView({
         </button>
       </div>
     );
+  }
+
+  // If no teams returned or empty team list, render clean empty state
+  if (!teamData || !teamData.teams || teamData.teams.length === 0) {
+    return renderEmptyState();
   }
 
   // Fallback defaults if no teams returned yet

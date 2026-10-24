@@ -33,7 +33,8 @@ export async function createGame(req: Request, res: Response, next: NextFunction
 export async function getGameById(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const viewerId = req.user?.id;
-    const game = await GameService.getGameById(req.params.id, viewerId);
+    const inviteCode = (req.query.code || req.query.inviteCode) as string | undefined;
+    const game = await GameService.getGameById(req.params.id, viewerId, inviteCode);
     sendSuccess(res, game, Messages.GAMES.FETCH_SUCCESS);
   } catch (err) {
     next(err);

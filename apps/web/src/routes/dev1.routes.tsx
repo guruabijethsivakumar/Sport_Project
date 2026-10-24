@@ -4,7 +4,9 @@ import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
 import { OnboardingPage } from '../pages/onboarding/OnboardingPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
 import { LeaderboardPage } from '../pages/leaderboard/LeaderboardPage';
+import { ProfilePage } from '../pages/profile/ProfilePage';
 
 // Dev 1 owns Auth, Profile, Onboarding, and Leaderboard reference screens
 export const dev1Routes: DomainRouteModule = [
@@ -30,6 +32,18 @@ export const dev1Routes: DomainRouteModule = [
     path: '/forgot-password',
     element: <ForgotPasswordPage />,
     isProtected: false,
+    owner: 'Dev 1',
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
+    isProtected: false,
+    owner: 'Dev 1',
+  },
+  {
+    path: '/profile',
+    element: <ProfilePage />,
+    isProtected: true,
     owner: 'Dev 1',
   },
   {

@@ -13,16 +13,47 @@ export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
 
   constructor() {
+    this.initTransporter();
+  }
+
+  /**
+   * Initializes or updates the SMTP transporter from current config.
+   */
+  public initTransporter(): void {
     if (config.EMAIL_TRANSPORT === 'smtp') {
+      const hasAuth = Boolean(config.SMTP_USER && config.SMTP_USER.trim().length > 0);
       this.transporter = nodemailer.createTransport({
         host: config.SMTP_HOST,
         port: config.SMTP_PORT,
         secure: config.SMTP_PORT === 465,
-        auth: {
-          user: config.SMTP_USER,
-          pass: config.SMTP_PASS,
+        auth: hasAuth
+          ? {
+              user: config.SMTP_USER,
+              pass: config.SMTP_PASS || '',
+            }
+          : undefined,
+        tls: {
+          rejectUnauthorized: config.NODE_ENV === 'production',
         },
       });
+    } else {
+      this.transporter = null;
+    }
+  }
+
+  /**
+   * Verifies the SMTP connection and credentials.
+   */
+  public async verifySmtpConnection(): Promise<boolean> {
+    if (!this.transporter) {
+      return false;
+    }
+    try {
+      await this.transporter.verify();
+      return true;
+    } catch (error) {
+      logger.error({ error, host: config.SMTP_HOST, port: config.SMTP_PORT }, 'SMTP verification failed');
+      return false;
     }
   }
 
@@ -42,20 +73,35 @@ export class EmailService {
       return;
     }
 
+    if (!this.transporter) {
+      this.initTransporter();
+    }
+
     if (this.transporter) {
       try {
-        await this.transporter.sendMail({
+        const info = await this.transporter.sendMail({
           from: config.EMAIL_FROM,
           to: options.to,
           subject: options.subject,
           text: options.text,
           html: options.html,
         });
-        logger.info({ to: options.to, subject: options.subject }, 'Email sent successfully via SMTP');
+        logger.info(
+          { to: options.to, subject: options.subject, messageId: info.messageId },
+          'Email sent successfully via SMTP',
+        );
       } catch (error) {
         logger.error({ error, to: options.to, subject: options.subject }, 'Failed to deliver email via SMTP');
-        // Do not throw unhandled exception to prevent breaking the auth flow for the user
+        logger.warn(
+          { to: options.to, subject: options.subject },
+          `[EmailService:Fallback] SMTP delivery failed. Fallback content:\n${options.text}`,
+        );
       }
+    } else {
+      logger.warn(
+        { to: options.to },
+        `[EmailService:Notice] SMTP transport requested but no transporter initialized. Fallback content:\n${options.text}`,
+      );
     }
   }
 

@@ -33,7 +33,7 @@ export function VerificationBanner({
   proposerName = 'Opponent',
   onVerified,
   onDispute,
-  canAct = true,
+  canAct,
   className = '',
 }: VerificationBannerProps) {
   const { client, user } = useAuth();
@@ -47,6 +47,21 @@ export function VerificationBanner({
 
   const proposal: GameResultProposal | undefined =
     passedProposal || gameResultData?.proposal;
+
+  const currentUserId = user?.id || (user as any)?._id;
+  const isProposer = Boolean(
+    currentUserId &&
+      (String(proposal?.proposedByUserId) === String(currentUserId) ||
+        String((proposal as any)?.submittedBy) === String(currentUserId))
+  );
+  const isViewerInWhoMustAct = Boolean(
+    currentUserId &&
+      gameResultData?.whoMustActNext?.some((id: any) => String(id) === String(currentUserId))
+  );
+  const effectiveCanAct =
+    typeof canAct === 'boolean'
+      ? canAct
+      : !isProposer && (isViewerInWhoMustAct || (gameResultData as any)?.isMock || !gameResultData?.whoMustActNext?.length);
 
   const verifyMutation = useVerifyResult(client, gameId);
 
@@ -107,10 +122,10 @@ export function VerificationBanner({
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-600 ring-1 ring-inset ring-amber-500/20 dark:text-amber-400">
                   <ShieldAlert className="h-3.5 w-3.5" />
-                  Action Required
+                  {effectiveCanAct ? 'Action Required' : 'Pending Verification'}
                 </span>
                 <span className="text-xs text-slate-500 dark:text-slate-400">
-                  Score awaiting verification
+                  {effectiveCanAct ? 'Score awaiting your verification' : 'Score awaiting opponent verification'}
                 </span>
               </div>
 
@@ -178,8 +193,8 @@ export function VerificationBanner({
             </div>
           </div>
 
-          {/* Right section: Action Buttons */}
-          {canAct && (
+          {/* Right section: Action Buttons or Awaiting Box */}
+          {effectiveCanAct ? (
             <div className="flex items-center gap-3">
               {/* Confirm & Verify (Success/Green) */}
               <button
@@ -211,6 +226,15 @@ export function VerificationBanner({
                 <AlertTriangle className="h-4 w-4" />
                 <span>Dispute</span>
               </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-xs text-amber-700 dark:text-amber-300 shadow-xs">
+              <Clock className="h-4 w-4 shrink-0 animate-pulse text-amber-600" />
+              <span>
+                {proposerName === 'You'
+                  ? 'Score submitted by you. Waiting for opponent to verify or dispute.'
+                  : 'Score proposal submitted. Awaiting participant verification.'}
+              </span>
             </div>
           )}
         </div>

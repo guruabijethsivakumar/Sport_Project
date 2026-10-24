@@ -404,9 +404,9 @@ export class AuthService {
     const email = String(payload.email).toLowerCase().trim();
     const name = String(payload.name || payload.given_name || email.split('@')[0] || 'Player').trim();
 
-    let user = await User.findOne({ googleId });
+    let user = (await User.findOne({ googleId })) as any;
     if (!user) {
-      user = await User.findOne({ email }).select('+passwordHash');
+      user = (await User.findOne({ email }).select('+passwordHash')) as any;
       if (user) {
         user.googleId = googleId;
         // When linking googleId to an existing unverified account:

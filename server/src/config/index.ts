@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from .env file (with override to ensure runtime changes in .env take effect)
+dotenv.config({ override: true });
 
 const booleanStringSchema = z
   .union([z.boolean(), z.string()])

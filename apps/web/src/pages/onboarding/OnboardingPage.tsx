@@ -31,6 +31,15 @@ export function OnboardingPage(): React.ReactElement {
     return (catalogData as any)?.sports || (Array.isArray(catalogData) ? catalogData : []);
   }, [catalogData]);
 
+  // Extract nested profile payload if present
+  const profileObj = (profileData as any)?.profile || profileData;
+  const userSports: any[] = useMemo(() => {
+    return (profileData as any)?.sports || [];
+  }, [profileData]);
+  const userRatings: any[] = useMemo(() => {
+    return (profileData as any)?.ratings || [];
+  }, [profileData]);
+
   // Step 0: Basic Info State
   const [displayName, setDisplayName] = useState(user?.name || '');
   const [bio, setBio] = useState('');
@@ -62,27 +71,120 @@ export function OnboardingPage(): React.ReactElement {
 
   // Prefill when profile data loads
   useEffect(() => {
-    if (profileData?.displayName) {
-      setDisplayName(profileData.displayName);
+    if (profileObj?.displayName) {
+      setDisplayName(profileObj.displayName);
+    } else if (user?.name && !displayName) {
+      setDisplayName(user.name);
     }
-    if (profileData?.bio) {
-      setBio(profileData.bio);
+    if (profileObj?.bio) {
+      setBio(profileObj.bio);
     }
-    if (profileData?.timezone) {
-      setTimezone(profileData.timezone);
+    if (profileObj?.timezone) {
+      setTimezone(profileObj.timezone);
     }
-  }, [profileData]);
+    if (profileObj?.travelRadiusKm) {
+      setTravelRadiusKm(profileObj.travelRadiusKm);
+    }
+    if (
+      profileObj?.homeLocation?.coordinates &&
+      Array.isArray(profileObj.homeLocation.coordinates) &&
+      profileObj.homeLocation.coordinates.length === 2
+    ) {
+      setCoordinates(profileObj.homeLocation.coordinates as [number, number]);
+    }
+  }, [profileObj, user]);
 
-  // Set default sport once catalog loads
+  // Set default sport once catalog or existing sports load
   useEffect(() => {
-    if (sportsList.length > 0 && !selectedSportId) {
-      const first = sportsList[0];
-      setSelectedSportId(first._id || first.id);
-      if (first.skillBands && first.skillBands.length > 0) {
-        setSelectedBandKey(first.skillBands[0].key);
+    if (sportsList.length === 0) return;
+
+    let targetSportId = selectedSportId;
+    if (!targetSportId) {
+      if (userSports.length > 0) {
+        const firstUserSport = userSports[0];
+        targetSportId = firstUserSport.sport?._id || firstUserSport.sport?.id || firstUserSport.sport;
+      } else {
+        const first = sportsList[0];
+        targetSportId = first._id || first.id;
+      }
+      setSelectedSportId(targetSportId);
+    }
+
+    if (!targetSportId) return;
+
+    const ratingForSport = userRatings.find((r: any) => {
+      const rSportId = r.sport?._id || r.sport?.id || r.sport;
+      return String(rSportId) === String(targetSportId);
+    });
+    const sportProfileForSport = userSports.find((sp: any) => {
+      const spSportId = sp.sport?._id || sp.sport?.id || sp.sport;
+      return String(spSportId) === String(targetSportId);
+    });
+    const sportDef = sportsList.find((s: any) => (s._id || s.id) === targetSportId);
+
+    // If rating is locked by played games, force the locked seedBandKey
+    if (ratingForSport && ratingForSport.gamesPlayed > 0 && ratingForSport.seedBandKey) {
+      setSelectedBandKey(ratingForSport.seedBandKey);
+    } else if (!selectedBandKey) {
+      if (sportProfileForSport?.selectedBandKey) {
+        setSelectedBandKey(sportProfileForSport.selectedBandKey);
+      } else if (ratingForSport?.seedBandKey) {
+        setSelectedBandKey(ratingForSport.seedBandKey);
+      } else if (sportDef?.skillBands && sportDef.skillBands.length > 0) {
+        setSelectedBandKey(sportDef.skillBands[0].key);
       }
     }
+
+    if (!playStyle && sportProfileForSport?.playStyle) {
+      setPlayStyle(sportProfileForSport.playStyle);
+    }
+  }, [sportsList, userSports, userRatings, selectedSportId, selectedBandKey, playStyle]);
+
+  const handleSelectSport = (sportId: string) => {
+    setSelectedSportId(sportId);
+
+    const ratingForSport = userRatings.find((r: any) => {
+      const rSportId = r.sport?._id || r.sport?.id || r.sport;
+      return String(rSportId) === String(sportId);
+    });
+    const sportProfileForSport = userSports.find((sp: any) => {
+      const spSportId = sp.sport?._id || sp.sport?.id || sp.sport;
+      return String(spSportId) === String(sportId);
+    });
+    const sportDef = sportsList.find((s: any) => (s._id || s.id) === sportId);
+
+    if (ratingForSport && ratingForSport.gamesPlayed > 0 && ratingForSport.seedBandKey) {
+      setSelectedBandKey(ratingForSport.seedBandKey);
+    } else if (sportProfileForSport?.selectedBandKey) {
+      setSelectedBandKey(sportProfileForSport.selectedBandKey);
+    } else if (ratingForSport?.seedBandKey) {
+      setSelectedBandKey(ratingForSport.seedBandKey);
+    } else if (sportDef?.skillBands && sportDef.skillBands.length > 0) {
+      setSelectedBandKey(sportDef.skillBands[0].key);
+    } else {
+      setSelectedBandKey('');
+    }
+
+    if (sportProfileForSport?.playStyle) {
+      setPlayStyle(sportProfileForSport.playStyle);
+    } else {
+      setPlayStyle('');
+    }
+  };
+
+  // Current sport details and locked status
+  const activeSport = useMemo(() => {
+    return sportsList.find((s) => (s._id || s.id) === selectedSportId);
   }, [sportsList, selectedSportId]);
+
+  const activeRating = useMemo(() => {
+    return userRatings.find((r: any) => {
+      const rSportId = r.sport?._id || r.sport?.id || r.sport;
+      return String(rSportId) === String(selectedSportId);
+    });
+  }, [userRatings, selectedSportId]);
+
+  const isRatingLocked = Boolean(activeRating && activeRating.gamesPlayed > 0);
 
   // Calculate resume step
   const initialStep = useMemo(() => {
@@ -179,8 +281,8 @@ export function OnboardingPage(): React.ReactElement {
         }
       }
       return true;
-    } catch {
-      setStepError('Failed to save basic profile info. Please try again.');
+    } catch (err: any) {
+      setStepError(err?.message || 'Failed to save basic profile info. Please try again.');
       return false;
     } finally {
       setIsSubmitting(false);
@@ -199,6 +301,19 @@ export function OnboardingPage(): React.ReactElement {
       return false;
     }
 
+    // Preserve any other existing sports the user already has configured
+    const otherSports = userSports
+      .filter((sp: any) => {
+        const spId = sp.sport?._id || sp.sport?.id || sp.sport;
+        return String(spId) !== String(selectedSportId);
+      })
+      .map((sp: any) => ({
+        sportId: sp.sport?._id || sp.sport?.id || sp.sport,
+        selectedBandKey: sp.selectedBandKey,
+        playStyle: sp.playStyle || null,
+        preferredPositions: sp.preferredPositions || [],
+      }));
+
     try {
       setIsSubmitting(true);
       await client.put('/profile/me/sports', {
@@ -209,11 +324,12 @@ export function OnboardingPage(): React.ReactElement {
             playStyle: playStyle || null,
             preferredPositions: [],
           },
+          ...otherSports,
         ],
       });
       return true;
-    } catch {
-      setStepError('Failed to save sports preferences. Please try again.');
+    } catch (err: any) {
+      setStepError(err?.message || 'Failed to save sports preferences. Please try again.');
       return false;
     } finally {
       setIsSubmitting(false);
@@ -236,8 +352,8 @@ export function OnboardingPage(): React.ReactElement {
         travelRadiusKm: Number(travelRadiusKm) || 15,
       });
       return true;
-    } catch {
-      setStepError('Failed to save location details. Please try again.');
+    } catch (err: any) {
+      setStepError(err?.message || 'Failed to save location details. Please try again.');
       return false;
     } finally {
       setIsSubmitting(false);
@@ -280,15 +396,12 @@ export function OnboardingPage(): React.ReactElement {
       await client.post('/profile/me/onboarding/complete', {});
 
       navigate('/', { replace: true });
-    } catch {
-      setStepError('Failed to complete onboarding. Please verify required fields and try again.');
+    } catch (err: any) {
+      setStepError(err?.message || 'Failed to complete onboarding. Please verify required fields and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Current sport details
-  const activeSport = sportsList.find((s) => (s._id || s.id) === selectedSportId);
 
   const wizardSteps: WizardStep[] = [
     {
@@ -364,12 +477,7 @@ export function OnboardingPage(): React.ReactElement {
                 <button
                   type="button"
                   key={id}
-                  onClick={() => {
-                    setSelectedSportId(id);
-                    if (sport.skillBands && sport.skillBands.length > 0) {
-                      setSelectedBandKey(sport.skillBands[0].key);
-                    }
-                  }}
+                  onClick={() => handleSelectSport(id)}
                   className={`flex flex-col items-center justify-center p-4 rounded-xl border text-sm font-medium transition-all ${
                     isSelected
                       ? 'border-primary bg-primary/10 text-primary shadow-sm font-semibold'
@@ -385,20 +493,41 @@ export function OnboardingPage(): React.ReactElement {
 
           {activeSport?.skillBands && activeSport.skillBands.length > 0 && (
             <div className="pt-2">
-              <label className="text-sm font-medium text-foreground block mb-2">
-                Your Initial Skill Band ({activeSport.name})
-              </label>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                <label className="text-sm font-medium text-foreground block">
+                  Your Initial Skill Band ({activeSport.name})
+                </label>
+                {isRatingLocked && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    <Icon name="lock" size={12} />
+                    Rating Locked ({activeRating?.gamesPlayed} match{activeRating?.gamesPlayed === 1 ? '' : 'es'} played)
+                  </span>
+                )}
+              </div>
+              {isRatingLocked && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Your seed skill band is locked because you have participated in recorded rated games for this sport. Your rating dynamically updates through match results.
+                </p>
+              )}
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {activeSport.skillBands.map((band: any) => {
                   const isSelected = selectedBandKey === band.key;
+                  const isDisabled = isRatingLocked && !isSelected;
                   return (
                     <button
                       type="button"
                       key={band.key}
-                      onClick={() => setSelectedBandKey(band.key)}
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (!isRatingLocked) {
+                          setSelectedBandKey(band.key);
+                        }
+                      }}
                       className={`flex items-center justify-between p-3 rounded-lg border text-left text-sm transition-all ${
                         isSelected
-                          ? 'border-primary bg-primary/10 text-primary font-semibold'
+                          ? 'border-primary bg-primary/10 text-primary font-semibold shadow-sm'
+                          : isDisabled
+                          ? 'opacity-40 cursor-not-allowed border-border bg-muted/40 text-muted-foreground'
                           : 'border-border bg-card text-foreground hover:bg-muted'
                       }`}
                     >

@@ -16,6 +16,7 @@ import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { FormErrorBanner } from '../../components/patterns/FormPattern';
 import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
+import { ForgotPasswordModal } from '../../components/auth/ForgotPasswordModal';
 
 export function LoginPage(): React.ReactElement {
   const { client, login, isAuthenticated } = useAuth();
@@ -25,6 +26,7 @@ export function LoginPage(): React.ReactElement {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const errorBannerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +52,8 @@ export function LoginPage(): React.ReactElement {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -213,11 +217,24 @@ export function LoginPage(): React.ReactElement {
               </div>
             </FormField>
 
-            {/* Forgot password link */}
-            <div className="flex justify-end pt-1">
+            {/* Forgot and Reset password options */}
+            <div className="flex justify-between items-center pt-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setIsResetModalOpen(true)}
+                className="font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring rounded"
+              >
+                Reset Password
+              </button>
               <Link
                 to="/forgot-password"
-                className="text-xs font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring rounded"
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                    e.preventDefault();
+                    setIsResetModalOpen(true);
+                  }
+                }}
+                className="font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring rounded"
               >
                 {AUTH_MESSAGES.forgotPasswordLink}
               </Link>
@@ -246,6 +263,16 @@ export function LoginPage(): React.ReactElement {
           </div>
         </CardContent>
       </Card>
+
+      {/* Forgot and Reset Password Dialog Modal */}
+      <ForgotPasswordModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        initialEmail={watch('email')}
+        onPasswordResetSuccess={(email) => {
+          if (email) setValue('email', email);
+        }}
+      />
     </div>
   );
 }

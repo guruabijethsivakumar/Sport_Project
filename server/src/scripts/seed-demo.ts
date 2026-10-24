@@ -22,6 +22,7 @@ import { JoinPolicies, GameVisibilities, ParticipantStatuses, GameStatuses, Canc
 import { MatchSourceTypes } from '../constants/match-sources.js';
 import { transitionGame } from '../services/game-transition.service.js';
 import { DemoConstants } from '../constants/demo-constants.js';
+import { OnboardingStatuses, OnboardingSteps } from '../constants/onboarding-steps.js';
 import { defaultClock, TestClock } from '../utils/clock.js';
 import { logger } from '../utils/logger.js';
 import crypto from 'node:crypto';
@@ -110,7 +111,9 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
   const nodeEnv = process.env.NODE_ENV;
 
   // 1. SAFETY CHECK BEFORE CONNECTION
-  assertSafeLocalDatabase(uri, nodeEnv);
+  if (process.env.ALLOW_REMOTE_DB !== 'yes' && process.env.ALLOW_REMOTE_DB !== 'true') {
+    assertSafeLocalDatabase(uri, nodeEnv);
+  }
 
   // Connect if not already connected
   if (mongoose.connection.readyState === 0) {
@@ -127,7 +130,7 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
   await seedSportsCatalog({ deactivateMissing: false });
 
   // Resolve demo password
-  const demoPassword = options.demoPassword || process.env.DEMO_PASSWORD || crypto.randomBytes(12).toString('base64url') + '!Aa1';
+  const demoPassword = options.demoPassword || process.env.DEMO_PASSWORD || 'Password123!';
   const passwordHash = await passwordService.hash(demoPassword);
 
   // 2. Create Admin and Venue Owner
@@ -141,6 +144,9 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
       status: UserStatuses.ACTIVE,
       isEmailVerified: true,
     });
+  } else {
+    admin.passwordHash = passwordHash;
+    await admin.save();
   }
 
   let owner = await User.findOne({ email: DemoConstants.VENUE_OWNER_EMAIL });
@@ -153,6 +159,9 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
       status: UserStatuses.ACTIVE,
       isEmailVerified: true,
     });
+  } else {
+    owner.passwordHash = passwordHash;
+    await owner.save();
   }
 
   // Ensure owner profile
@@ -162,7 +171,17 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
       user: owner._id,
       displayName: 'Venue Master',
       homeLocation: { type: 'Point', coordinates: [DemoConstants.CITY.LONGITUDE, DemoConstants.CITY.LATITUDE] },
-      onboarding: { isCompleted: true, completedSteps: ['basic', 'sports', 'availability', 'location', 'preferences'], completedAt: new Date() },
+      onboarding: {
+        status: OnboardingStatuses.COMPLETED,
+        completedSteps: [
+          OnboardingSteps.BASIC_INFO,
+          OnboardingSteps.SPORTS,
+          OnboardingSteps.AVAILABILITY,
+          OnboardingSteps.LOCATION,
+          OnboardingSteps.PREFERENCES,
+        ],
+        completedAt: new Date(),
+      },
     },
     { upsert: true, new: true },
   );
@@ -191,6 +210,9 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
         status: UserStatuses.ACTIVE,
         isEmailVerified: true,
       });
+    } else {
+      player.passwordHash = passwordHash;
+      await player.save();
     }
     players.push(player);
 
@@ -213,7 +235,17 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
           { dayOfWeek: 6, startMinute: 420, endMinute: 1320 },
           { dayOfWeek: 0, startMinute: 420, endMinute: 1320 },
         ],
-        onboarding: { isCompleted: true, completedSteps: ['basic', 'sports', 'availability', 'location', 'preferences'], completedAt: new Date() },
+        onboarding: {
+          status: OnboardingStatuses.COMPLETED,
+          completedSteps: [
+            OnboardingSteps.BASIC_INFO,
+            OnboardingSteps.SPORTS,
+            OnboardingSteps.AVAILABILITY,
+            OnboardingSteps.LOCATION,
+            OnboardingSteps.PREFERENCES,
+          ],
+          completedAt: new Date(),
+        },
       },
       { upsert: true },
     );

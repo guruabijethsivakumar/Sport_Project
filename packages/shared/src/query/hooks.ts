@@ -82,6 +82,8 @@ export function useSubmitResult(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.features.gameResult(gameId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.my() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.discovery.all });
     },
     ...options,
   });
@@ -99,6 +101,7 @@ export function useVerifyResult(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.features.gameResult(gameId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.my() });
       queryClient.invalidateQueries({ queryKey: queryKeys.ratings.all });
     },
     ...options,
@@ -117,6 +120,7 @@ export function useDisputeResult(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.features.gameResult(gameId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(gameId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.my() });
       queryClient.invalidateQueries({ queryKey: queryKeys.features.notifications() });
     },
     ...options,

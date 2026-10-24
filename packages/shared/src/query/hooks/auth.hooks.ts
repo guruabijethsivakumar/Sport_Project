@@ -36,3 +36,24 @@ export function useLogout(client: ApiClient, options?: UseMutationOptions<any, E
     ...options,
   });
 }
+
+export function useForgotPassword(
+  client: ApiClient,
+  options?: UseMutationOptions<any, Error, { email: string }>,
+) {
+  return useMutation({
+    mutationFn: (body: { email: string }) => client.post('/auth/forgot-password', body),
+    ...options,
+  });
+}
+
+export function useResetPassword(
+  client: ApiClient,
+  options?: UseMutationOptions<any, Error, { token: string; newPassword: string }>,
+) {
+  return useMutation({
+    mutationFn: (body: { token: string; newPassword: string }) =>
+      client.post('/auth/reset-password', body),
+    ...options,
+  });
+}

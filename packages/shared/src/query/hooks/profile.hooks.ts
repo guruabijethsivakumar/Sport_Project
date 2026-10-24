@@ -101,3 +101,17 @@ export function useCompleteOnboarding(client: ApiClient, options?: UseMutationOp
   });
 }
 
+export function usePublicProfile(
+  client: ApiClient,
+  userId: string,
+  options?: Partial<UseQueryOptions<any, Error>>
+) {
+  return useQuery({
+    queryKey: queryKeys.profile.user(userId),
+    queryFn: () => client.get(`/profiles/${userId}`),
+    enabled: Boolean(userId),
+    ...options,
+  });
+}
+
+

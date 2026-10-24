@@ -82,14 +82,26 @@ export function ForgotPasswordPage(): React.ReactElement {
                   aria-live="polite"
                 >
                   <p className="font-medium text-foreground mb-1">
-                    Password recovery dispatched
+                    Password recovery dispatched via SMTP
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Sent instructions for: <strong className="text-foreground">{submittedEmail}</strong>
                   </p>
+                  <p className="text-[11px] text-muted-foreground pt-1">
+                    Please check your email inbox for the reset link delivered via our SMTP gateway.
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-3">
+                  <Link
+                    to={`/reset-password?email=${encodeURIComponent(submittedEmail)}`}
+                    className="w-full"
+                  >
+                    <Button type="button" variant="primary" className="w-full">
+                      I have a reset token
+                    </Button>
+                  </Link>
+
                   <Button
                     type="button"
                     variant="outline"

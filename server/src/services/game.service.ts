@@ -30,6 +30,8 @@ import { generateRandomAlphaNumeric } from '../utils/crypto.js';
 import { Venue } from '../models/venue.model.js';
 import { VenueStatuses, VenueEventTypes } from '../constants/venue-constants.js';
 import { CourtReservationService } from './court-reservation.service.js';
+import { GameResult } from '../models/game-result.model.js';
+import { ResultStatuses } from '../constants/result-constants.js';
 
 export interface CreateGameInput {
   sportKey: string;
@@ -135,6 +137,22 @@ export class GameService {
         // Omit addressName for coarsen privacy
       };
       delete gameObj.courtName;
+    }
+
+    // Attach match result metadata if a result exists for this game
+    try {
+      const gResult = await GameResult.findOne({ gameId: gameObj.id || gameObj._id });
+      if (gResult) {
+        gameObj.resultStatus = gResult.status;
+        gameObj.hasPendingResult = gResult.status === ResultStatuses.PENDING_CONFIRMATION;
+        gameObj.canUserVerifyResult = Boolean(
+          vIdStr &&
+            gResult.status === ResultStatuses.PENDING_CONFIRMATION &&
+            gResult.whoMustActNext?.some((id: any) => id.toString() === vIdStr),
+        );
+      }
+    } catch {
+      // Safe fallback: non-blocking for formatGameForViewer
     }
 
     return gameObj;
@@ -421,6 +439,7 @@ export class GameService {
   static async getGameById(
     gameId: Types.ObjectId | string,
     viewerId?: Types.ObjectId | string,
+    inviteCode?: string,
   ): Promise<any> {
     const game = await Game.findById(gameId);
     if (!game) {
@@ -431,11 +450,17 @@ export class GameService {
       );
     }
 
-    // Check private game access: only host or joined participant can view without code
+    // Check private game access: only host, joined participant, or possessor of valid invite code can view
     if (game.visibility === GameVisibilities.PRIVATE) {
       const vIdStr = viewerId ? viewerId.toString() : null;
       const isHost = vIdStr && game.hostId.toString() === vIdStr;
-      if (!isHost) {
+      const hasValidCode = Boolean(
+        inviteCode &&
+          game.inviteCode &&
+          inviteCode.trim().toUpperCase() === game.inviteCode.toUpperCase(),
+      );
+
+      if (!isHost && !hasValidCode) {
         const participant = vIdStr
           ? await GameParticipant.findOne({
               gameId: game._id,
