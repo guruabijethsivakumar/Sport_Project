@@ -63,7 +63,14 @@ export function ProfilePage(): React.ReactElement {
 
   // Extract nested profile payload
   const profile = (profileData as any)?.profile || profileData;
-  const displayName = profile?.displayName || user?.name || user?.email || 'Player';
+  const userEmail =
+    profile?.email ||
+    (profileData as any)?.email ||
+    (profileData as any)?.user?.email ||
+    user?.email ||
+    (user as any)?.user?.email ||
+    '';
+  const displayName = profile?.displayName || user?.name || userEmail || 'Player';
   const bio = profile?.bio;
   const locationLabel = profile?.locationLabel;
   const travelRadius = profile?.travelRadiusKm;
@@ -256,12 +263,24 @@ export function ProfilePage(): React.ReactElement {
                       {reliabilityTier} Member
                     </Badge>
                   </div>
+                  {userEmail && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium pt-0.5">
+                      <Icon name="mail" size={13} className="text-muted-foreground shrink-0" />
+                      <span>{userEmail}</span>
+                    </div>
+                  )}
                   <CardDescription>
                     {bio || 'No personal bio added yet.'}
                   </CardDescription>
                 </div>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-border-subtle/50 text-sm">
+              <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-border-subtle/50 text-sm">
+                <div>
+                  <span className="text-muted-foreground block text-xs">Email Address</span>
+                  <span className="font-medium text-foreground truncate block" title={userEmail}>
+                    {userEmail || 'Not specified'}
+                  </span>
+                </div>
                 <div>
                   <span className="text-muted-foreground block text-xs">Home Location</span>
                   <span className="font-medium text-foreground">

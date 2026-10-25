@@ -310,27 +310,48 @@ export class GameService {
         let venueObjectId: Types.ObjectId | undefined;
         let courtIdStr: string | undefined;
 
-        if (input.venueId && input.courtId) {
+        if (input.venueId) {
           venueObjectId = typeof input.venueId === 'string' ? new Types.ObjectId(input.venueId) : input.venueId;
-          courtIdStr = input.courtId;
+          const venueDoc = await Venue.findById(venueObjectId).session(session);
+          if (venueDoc) {
+            finalLocation = {
+              type: 'Point',
+              coordinates: venueDoc.location.coordinates,
+              addressName: `${venueDoc.name}, ${venueDoc.areaLabel}`,
+            };
 
-          const { venue: bookedVenue, court: bookedCourt } =
-            await CourtReservationService.verifyAndLockReservation({
-              venueId: venueObjectId,
-              courtId: courtIdStr,
-              sportKey: input.sportKey,
-              startsAt: input.startsAt,
-              endsAt: input.endsAt,
-              session,
-              clock,
-            });
-
-          finalLocation = {
-            type: 'Point',
-            coordinates: bookedVenue.location.coordinates,
-            addressName: `${bookedVenue.name}, ${bookedVenue.areaLabel}`,
-          };
-          finalCourtName = bookedCourt.name;
+            if (input.courtId) {
+              courtIdStr = input.courtId;
+              const { court: bookedCourt } =
+                await CourtReservationService.verifyAndLockReservation({
+                  venueId: venueObjectId,
+                  courtId: courtIdStr,
+                  sportKey: input.sportKey,
+                  startsAt: input.startsAt,
+                  endsAt: input.endsAt,
+                  session,
+                  clock,
+                });
+              finalCourtName = bookedCourt.name;
+            } else if (venueDoc.courts && venueDoc.courts.length > 0) {
+              const compatibleCourt =
+                venueDoc.courts.find((c) => c.isActive && c.sportKeys.includes(input.sportKey)) ||
+                venueDoc.courts.find((c) => c.isActive);
+              if (compatibleCourt) {
+                courtIdStr = compatibleCourt.courtId;
+                finalCourtName = compatibleCourt.name;
+                await CourtReservationService.verifyAndLockReservation({
+                  venueId: venueObjectId,
+                  courtId: courtIdStr,
+                  sportKey: input.sportKey,
+                  startsAt: input.startsAt,
+                  endsAt: input.endsAt,
+                  session,
+                  clock,
+                });
+              }
+            }
+          }
         }
 
         const [game] = await Game.create(

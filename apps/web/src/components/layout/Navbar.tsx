@@ -119,12 +119,16 @@ export function Navbar(): React.ReactElement {
                 icon: 'user',
                 onSelect: () => navigate('/profile'),
               },
-              {
-                key: 'admin',
-                label: 'Admin Operations',
-                icon: 'shield-check',
-                onSelect: () => navigate('/admin'),
-              },
+              ...(user?.role?.toLowerCase() === 'admin'
+                ? [
+                    {
+                      key: 'admin' as const,
+                      label: 'Admin Operations',
+                      icon: 'shield-check' as const,
+                      onSelect: () => navigate('/admin'),
+                    },
+                  ]
+                : []),
               {
                 key: 'theme',
                 label: resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode',

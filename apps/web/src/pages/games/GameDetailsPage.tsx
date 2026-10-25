@@ -50,6 +50,27 @@ export function GameDetailsPage(): React.ReactElement {
   const [selectedProfileUserId, setSelectedProfileUserId] = useState<string | null>(null);
   const [explainModalOpen, setExplainModalOpen] = useState(false);
   const [explainModalMode, setExplainModalMode] = useState<ExplanationModalMode>('eligibility');
+  const [hasCopiedCode, setHasCopiedCode] = useState(false);
+
+  const handleCopyCode = async () => {
+    if (!game?.inviteCode || isCancelled) return;
+    try {
+      await navigator.clipboard.writeText(game.inviteCode);
+      setHasCopiedCode(true);
+      toast({
+        type: 'success',
+        title: 'Join Code Copied!',
+        description: `Code "${game.inviteCode}" copied to clipboard. Share with players to invite them.`,
+      });
+      setTimeout(() => setHasCopiedCode(false), 2500);
+    } catch {
+      toast({
+        type: 'info',
+        title: 'Join Code',
+        description: `Join Code: ${game.inviteCode}`,
+      });
+    }
+  };
 
   // Queries
   const {
@@ -117,13 +138,13 @@ export function GameDetailsPage(): React.ReactElement {
   // Join action handler
   const handleJoinGame = async () => {
     try {
-      const res = await joinMutation.mutateAsync();
+      const res: any = await joinMutation.mutateAsync();
       const status = res?.status || res?.data?.status;
-      if (status === 'requested') {
+      if (status === 'requested' || game?.joinPolicy === 'approval') {
         toast({
           type: 'info',
-          title: 'Request Submitted',
-          description: 'Your join request was sent to the host for review.',
+          title: 'Join Request Sent',
+          description: 'Your request was sent and is awaiting the host\'s approval.',
         });
       } else if (status === 'waitlisted') {
         toast({
@@ -335,7 +356,7 @@ export function GameDetailsPage(): React.ReactElement {
   const isLocationCoarsened = !game.courtName && !game.venueName && !isHost && !isJoined;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
       {/* Navigation Breadcrumb */}
       <div>
         <Link
@@ -368,10 +389,20 @@ export function GameDetailsPage(): React.ReactElement {
             <Badge variant={game.joinPolicy === 'open' ? 'success' : 'info'}>
               {game.joinPolicy === 'open' ? 'Instant Join' : 'Approval Required'}
             </Badge>
-            {game.inviteCode && (
-              <Badge variant="secondary" className="font-mono">
-                Code: {game.inviteCode}
-              </Badge>
+            {!isCancelled && game.inviteCode && (
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                title="Click to copy join code"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                <span>Code: {game.inviteCode}</span>
+                <Icon
+                  name={hasCopiedCode ? 'check' : 'copy'}
+                  size={12}
+                  className={hasCopiedCode ? 'text-success' : 'text-muted-foreground'}
+                />
+              </button>
             )}
           </div>
         </div>
@@ -459,7 +490,7 @@ export function GameDetailsPage(): React.ReactElement {
       </div>
 
       {/* Pending Result Verification Notice Banner */}
-      {isResultPending && (
+      {!isCancelled && isResultPending && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start sm:items-center gap-2">
@@ -495,16 +526,18 @@ export function GameDetailsPage(): React.ReactElement {
       )}
 
       {/* Cancellation Notice Banner */}
-      {isCancelled && game.cancellationReason && (
+      {isCancelled && (
         <div className="rounded-xl border border-danger/30 bg-danger/10 p-4 text-xs space-y-1">
           <p className="font-semibold text-danger flex items-center gap-1.5">
             <Icon name="x-circle" size={16} />
             Match Cancelled by Host
           </p>
-          <p className="text-foreground">
-            Reason: <span className="font-medium capitalize">{game.cancellationReason.reasonCode?.replace(/_/g, ' ')}</span>
-          </p>
-          {game.cancellationReason.reasonText && (
+          {game.cancellationReason?.reasonCode && (
+            <p className="text-foreground">
+              Reason: <span className="font-medium capitalize">{game.cancellationReason.reasonCode.replace(/_/g, ' ')}</span>
+            </p>
+          )}
+          {game.cancellationReason?.reasonText && (
             <p className="text-muted-foreground italic">
               &quot;{game.cancellationReason.reasonText}&quot;
             </p>
@@ -513,15 +546,15 @@ export function GameDetailsPage(): React.ReactElement {
       )}
 
       {/* Main Grid Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column (2 Cols): Schedule, Location, Roster, Developer 3 Slots */}
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column (2 Cols): Core Match Flow (Overview, Confirmed Roster, Team Balancing & Results) */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Key Match Details Card */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Match Overview</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {/* Date & Time */}
               <div className="flex items-start gap-3 p-3 rounded-lg border border-border-subtle bg-muted/20">
                 <Icon name="calendar" className="text-primary mt-0.5 shrink-0" size={18} />
@@ -600,7 +633,7 @@ export function GameDetailsPage(): React.ReactElement {
 
             {/* Host Notes */}
             {game.notes && (
-              <div className="px-6 pb-6 pt-2">
+              <div className="px-6 pb-4 pt-1">
                 <div className="rounded-lg bg-muted/40 border border-border-subtle p-3 text-xs">
                   <span className="font-semibold text-foreground">Host Notes:</span>{' '}
                   <span className="text-muted-foreground">{game.notes}</span>
@@ -609,30 +642,11 @@ export function GameDetailsPage(): React.ReactElement {
             )}
           </Card>
 
-          {/* What's at Stake? Widget */}
-          <MatchStakesCard
-            gameId={game.id || game._id}
-            sportKey={game.sportKey}
-            roster={roster}
-            onExplainRatings={() => {
-              setExplainModalMode('rating');
-              setExplainModalOpen(true);
-            }}
-          />
-
-          {/* Match Activity Timeline */}
-          <GameTimelineCard
-            gameId={game.id || game._id}
-            gameStatus={gameStatus}
-            hasPendingResult={isResultPending}
-            participantCount={joinedList.length}
-          />
-
           {/* Roster View Component */}
           <RosterView
             roster={roster}
             isLoading={isRosterLoading}
-            isHost={isHost}
+            isHost={!isCancelled && isHost}
             currentUserId={currentUserId}
             onApprove={handleApprove}
             onDecline={handleDecline}
@@ -641,28 +655,30 @@ export function GameDetailsPage(): React.ReactElement {
             isActionLoading={approveMutation.isPending || declineMutation.isPending || removeMutation.isPending}
           />
 
-          {/* Developer 3 Slots */}
-          <div id="match-results-section" className="space-y-6 pt-4 border-t border-border-subtle">
+          {/* Developer 3 Slots: Team Balancing & Live Results */}
+          <div id="match-results-section" className="space-y-6 pt-2">
             <h2 className="text-lg font-bold text-foreground">Team Balancing & Live Results</h2>
 
             {/* Team Balancing Slot */}
             <GameTeamsSlot
               gameId={game.id || game._id}
               viewerRole={viewerRole}
+              isCancelled={isCancelled}
             />
 
             {/* Live Match Results Slot */}
             <GameResultSlot
               gameId={game.id || game._id}
               viewerRole={viewerRole}
+              isCancelled={isCancelled}
             />
           </div>
         </div>
 
-        {/* Right Column (1 Col): Host Controls & Quick Info Sidebar */}
+        {/* Right Column (1 Col): Sidebar Widgets & Host Actions */}
         <div className="space-y-6">
           {/* Attendance & Reliability Card for Host when match is completed */}
-          {isHost && (gameStatus === 'completed' || game?.status === 'completed') && (
+          {isHost && !isCancelled && (gameStatus === 'completed' || game?.status === 'completed') && (
             <Card className="border-primary/30 bg-primary/5">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -690,7 +706,7 @@ export function GameDetailsPage(): React.ReactElement {
           )}
 
           {/* Host Controls Component */}
-          {isHost && (
+          {isHost && !isCancelled && (
             <HostControls
               gameId={game.id || game._id}
               gameStatus={gameStatus}
@@ -707,7 +723,6 @@ export function GameDetailsPage(): React.ReactElement {
               }}
             />
           )}
-
 
           {/* Location Details Card */}
           <Card>
@@ -731,6 +746,26 @@ export function GameDetailsPage(): React.ReactElement {
               )}
             </CardContent>
           </Card>
+
+          {/* What's at Stake? Widget */}
+          <MatchStakesCard
+            gameId={game.id || game._id}
+            sportKey={game.sportKey}
+            isCancelled={isCancelled}
+            roster={roster}
+            onExplainRatings={() => {
+              setExplainModalMode('rating');
+              setExplainModalOpen(true);
+            }}
+          />
+
+          {/* Match Activity Timeline */}
+          <GameTimelineCard
+            gameId={game.id || game._id}
+            gameStatus={gameStatus}
+            hasPendingResult={isResultPending}
+            participantCount={joinedList.length}
+          />
         </div>
       </div>
 

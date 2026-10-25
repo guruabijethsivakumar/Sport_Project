@@ -39,6 +39,7 @@ export function InviteCodeModal({
 
   const game = (gameData as any)?.game || (gameData as any)?.data || gameData;
   const gameId = game?.id || game?._id;
+  const isGameCancelled = game?.status === 'cancelled' || game?.status === 'CANCELLED';
   const joinMutation = useJoinGame(client, gameId || '');
 
   const handleLookup = (e: React.FormEvent) => {
@@ -50,14 +51,29 @@ export function InviteCodeModal({
   };
 
   const handleJoinGame = async () => {
-    if (!gameId) return;
+    if (!gameId || isGameCancelled) return;
     try {
-      await joinMutation.mutateAsync();
-      toast({
-        title: 'Joined Match!',
-        description: 'You have successfully joined the private game.',
-        type: 'success',
-      });
+      const res: any = await joinMutation.mutateAsync();
+      const status = res?.status || res?.data?.status;
+      if (status === 'requested' || game?.joinPolicy === 'approval') {
+        toast({
+          title: 'Join Request Sent',
+          description: 'Your request was sent and is awaiting the game creator\'s approval.',
+          type: 'info',
+        });
+      } else if (status === 'waitlisted') {
+        toast({
+          title: 'Added to Waitlist',
+          description: 'This match is currently full. You have been added to the waitlist.',
+          type: 'warning',
+        });
+      } else {
+        toast({
+          title: 'Joined Match!',
+          description: 'You have successfully joined the private game.',
+          type: 'success',
+        });
+      }
       onClose();
       navigate(`/games/${gameId}?code=${encodeURIComponent(submittedCode)}`);
     } catch (err: any) {
@@ -124,8 +140,29 @@ export function InviteCodeModal({
                   {game.formatKey || 'Standard'}
                 </Badge>
               </div>
-              <Badge variant="success">Found</Badge>
+              {isGameCancelled ? (
+                <Badge variant="danger">Match Cancelled</Badge>
+              ) : (
+                <Badge variant="success">Found</Badge>
+              )}
             </div>
+
+            {isGameCancelled && (
+              <div className="rounded-lg bg-danger/10 border border-danger/20 p-3 text-xs space-y-1">
+                <p className="font-semibold text-danger flex items-center gap-1.5">
+                  <Icon name="x-circle" size={14} className="shrink-0" />
+                  This match has been cancelled
+                </p>
+                <p className="text-muted-foreground">
+                  The host cancelled this game. New players cannot request or join this match.
+                </p>
+                {game?.cancellationReason?.reasonText && (
+                  <p className="text-muted-foreground italic text-[11px] pt-0.5">
+                    &quot;{game.cancellationReason.reasonText}&quot;
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="text-xs text-muted-foreground space-y-1">
               <p>
@@ -144,17 +181,24 @@ export function InviteCodeModal({
 
             <div className="pt-2 flex items-center justify-end gap-2">
               <Button size="sm" variant="outline" onClick={handleGoToGame}>
-                View & Join Match
+                {isGameCancelled ? 'View Match' : 'View & Join Match'}
               </Button>
-              <Button
-                size="sm"
-                variant="primary"
-                onClick={handleJoinGame}
-                isLoading={joinMutation.isPending}
-                rightIcon="chevron-right"
-              >
-                1-Click Join
-              </Button>
+              {isGameCancelled ? (
+                <Button size="sm" variant="danger" disabled>
+                  <Icon name="x-circle" size={14} className="mr-1" />
+                  Match Cancelled
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={handleJoinGame}
+                  isLoading={joinMutation.isPending}
+                  rightIcon="chevron-right"
+                >
+                  {game?.joinPolicy === 'approval' ? 'Request to Join' : '1-Click Join'}
+                </Button>
+              )}
             </div>
           </div>
         ) : submittedCode ? (

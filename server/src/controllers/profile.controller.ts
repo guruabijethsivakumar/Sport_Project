@@ -18,7 +18,18 @@ export class ProfileController {
       const sports = await sportProfileService.getPlayerSports(userId);
       const ratings = await sportProfileService.getPlayerRatings(userId);
 
-      sendSuccess(res, { profile, sports, ratings });
+      sendSuccess(res, {
+        profile,
+        sports,
+        ratings,
+        email: req.user!.email,
+        user: {
+          id: req.user!._id,
+          email: req.user!.email,
+          name: req.user!.name,
+          role: req.user!.role,
+        },
+      });
     } catch (error) {
       next(error);
     }

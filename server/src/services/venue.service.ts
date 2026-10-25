@@ -80,11 +80,20 @@ export interface FreeWindow {
   endsAt: string;   // ISO string
 }
 
+export interface BookedInterval {
+  startsAt: string;
+  endsAt: string;
+  gameId?: string;
+  sportKey?: string;
+}
+
 export interface CourtAvailability {
   courtId: string;
   courtName: string;
   sportKeys: string[];
   freeWindows: FreeWindow[];
+  availableSlots: FreeWindow[];
+  bookedIntervals: BookedInterval[];
 }
 
 export class VenueService {
@@ -890,7 +899,9 @@ export class VenueService {
         }
 
         // Add booked games with buffer
-        const courtGames = bookedGames.filter((g) => g.courtId === court.courtId);
+        const courtGames = bookedGames.filter(
+          (g) => g.courtId === court.courtId || (!g.courtId && courts.length === 1),
+        );
         for (const g of courtGames) {
           busyIntervals.push({
             start: Math.max(slotStart.getTime(), g.startsAt.getTime() - bufferMs),
@@ -934,11 +945,23 @@ export class VenueService {
         }
       }
 
+      const courtGames = bookedGames.filter(
+        (g) => g.courtId === court.courtId || (!g.courtId && courts.length === 1),
+      );
+      const bookedIntervals: BookedInterval[] = courtGames.map((g) => ({
+        startsAt: g.startsAt.toISOString(),
+        endsAt: g.endsAt.toISOString(),
+        gameId: g._id.toString(),
+        sportKey: g.sportKey,
+      }));
+
       result.push({
         courtId: court.courtId,
         courtName: court.name,
         sportKeys: court.sportKeys,
         freeWindows,
+        availableSlots: freeWindows,
+        bookedIntervals,
       });
     }
 

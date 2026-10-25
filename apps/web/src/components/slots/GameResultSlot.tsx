@@ -10,6 +10,7 @@ export interface GameResultSlotProps {
   gameId: string;
   viewerRole?: string;
   fallback?: React.ReactNode;
+  isCancelled?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export function GameResultSlot({
   gameId,
   viewerRole,
   fallback = null,
+  isCancelled = false,
 }: GameResultSlotProps): React.ReactElement | null {
   const { client, user } = useAuth();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
@@ -155,7 +157,9 @@ export function GameResultSlot({
           <div>
             <h4 className="text-sm font-semibold text-foreground">Match Scores</h4>
             <p className="text-xs text-muted-foreground">
-              {canSubmit
+              {isCancelled
+                ? 'This match has been cancelled. Score submission and Elo updates are disabled.'
+                : canSubmit
                 ? 'Submit match results after game completion to update player ratings.'
                 : 'Awaiting participants to complete the match and report scores.'}
             </p>
@@ -163,18 +167,20 @@ export function GameResultSlot({
           {canSubmit && (
             <Button
               type="button"
-              variant="primary"
+              variant={isCancelled ? 'outline' : 'primary'}
               size="sm"
-              onClick={() => setSubmitModalOpen(true)}
+              disabled={isCancelled}
+              onClick={() => !isCancelled && setSubmitModalOpen(true)}
+              className={isCancelled ? 'opacity-50 cursor-not-allowed' : ''}
             >
               <Icon name="trophy" size={16} className="mr-2" />
-              Submit Score
+              {isCancelled ? 'Match Cancelled' : 'Submit Score'}
             </Button>
           )}
         </div>
       )}
 
-      {submitModalOpen && (
+      {submitModalOpen && !isCancelled && (
         <SubmitScoreModal
           isOpen={submitModalOpen}
           onClose={() => setSubmitModalOpen(false)}

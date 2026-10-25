@@ -220,7 +220,7 @@ export function CreateGamePage(): React.ReactElement {
   // Step 4 Validation
   const validateStep4 = (): boolean => {
     const errs: Record<string, string> = {};
-    if (hasRatingFilter) {
+    if (visibility === 'public' && hasRatingFilter) {
       const minN = Number(minRating);
       const maxN = Number(maxRating);
       if (isNaN(minN) || minN < 0) errs.minRating = 'Min rating must be 0 or greater';
@@ -280,7 +280,7 @@ export function CreateGamePage(): React.ReactElement {
         notes: notes.trim() || undefined,
       };
 
-      if (hasRatingFilter) {
+      if (visibility === 'public' && hasRatingFilter) {
         payload.ratingRange = {
           min: Number(minRating),
           max: Number(maxRating),
@@ -697,80 +697,88 @@ export function CreateGamePage(): React.ReactElement {
             <FormField label="Game Visibility" required>
               <RadioGroup
                 value={visibility}
-                onValueChange={(val) => setVisibility(val as 'public' | 'private')}
+                onValueChange={(val) => {
+                  const newVis = val as 'public' | 'private';
+                  setVisibility(newVis);
+                  if (newVis === 'private') {
+                    setHasRatingFilter(false);
+                  }
+                }}
                 options={VISIBILITY_OPTIONS}
               />
             </FormField>
 
-            {/* Optional Skill Band / Rating Filter */}
-            <div className="rounded-lg border border-border p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-semibold text-foreground">
-                    Filter by Skill / Elo Rating
-                  </span>
-                  <p className="text-xs text-muted-foreground">
-                    Require players to fall within an Elo rating range to join.
-                  </p>
+            {/* Optional Skill Band / Rating Filter (Public games only) */}
+            {visibility === 'public' && (
+              <div className="rounded-lg border border-border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">
+                      Filter by Skill / Elo Rating
+                    </span>
+                    <p className="text-xs text-muted-foreground">
+                      Require players to fall within an Elo rating range to join.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setHasRatingFilter(!hasRatingFilter)}
+                  >
+                    {hasRatingFilter ? 'Remove Filter' : 'Enable Range'}
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setHasRatingFilter(!hasRatingFilter)}
-                >
-                  {hasRatingFilter ? 'Remove Filter' : 'Enable Range'}
-                </Button>
-              </div>
 
-              {hasRatingFilter && (
-                <div className="pt-2 border-t border-border-subtle/50 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      id="min-rating"
-                      label="Minimum Elo"
-                      error={errors.minRating}
-                    >
-                      <Input
+                {hasRatingFilter && (
+                  <div className="pt-2 border-t border-border-subtle/50 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
                         id="min-rating"
-                        type="number"
-                        value={minRating}
-                        onChange={(e) => setMinRating(e.target.value)}
-                      />
-                    </FormField>
+                        label="Minimum Elo"
+                        error={errors.minRating}
+                      >
+                        <Input
+                          id="min-rating"
+                          type="number"
+                          value={minRating}
+                          onChange={(e) => setMinRating(e.target.value)}
+                        />
+                      </FormField>
 
-                    <FormField
-                      id="max-rating"
-                      label="Maximum Elo"
-                      error={errors.maxRating}
-                    >
-                      <Input
+                      <FormField
                         id="max-rating"
-                        type="number"
-                        value={maxRating}
-                        onChange={(e) => setMaxRating(e.target.value)}
-                      />
-                    </FormField>
-                  </div>
+                        label="Maximum Elo"
+                        error={errors.maxRating}
+                      >
+                        <Input
+                          id="max-rating"
+                          type="number"
+                          value={maxRating}
+                          onChange={(e) => setMaxRating(e.target.value)}
+                        />
+                      </FormField>
+                    </div>
 
-                  <div className="flex items-center gap-2 pt-1">
-                    <input
-                      id="allow-unrated"
-                      type="checkbox"
-                      checked={allowUnrated}
-                      onChange={(e) => setAllowUnrated(e.target.checked)}
-                      className="rounded border-border text-primary focus:ring-primary"
-                    />
-                    <label
-                      htmlFor="allow-unrated"
-                      className="text-xs font-medium text-foreground cursor-pointer"
-                    >
-                      Allow unrated players (provisional rating)
-                    </label>
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        id="allow-unrated"
+                        type="checkbox"
+                        checked={allowUnrated}
+                        onChange={(e) => setAllowUnrated(e.target.checked)}
+                        className="rounded border-border text-primary focus:ring-primary"
+                      />
+                      <label
+                        htmlFor="allow-unrated"
+                        className="text-xs font-medium text-foreground cursor-pointer"
+                      >
+                        Allow unrated players (provisional rating)
+                      </label>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             <FormField
               id="game-notes"
@@ -862,7 +870,7 @@ export function CreateGamePage(): React.ReactElement {
                     {visibility === 'public' ? 'Public Discovery' : 'Private Match'}
                   </Badge>
                 </div>
-                {hasRatingFilter && (
+                {visibility === 'public' && hasRatingFilter && (
                   <p className="text-xs text-muted-foreground pt-1">
                     Elo range: {minRating} - {maxRating}
                   </p>

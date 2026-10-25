@@ -186,13 +186,22 @@ function RecommendationCard({
   }
 
   const joinMutation = useJoinGame(client, item.gameId, {
-    onSuccess: () => {
-      setHasJoined(true);
-      toast({
-        type: 'success',
-        title: 'Joined Match!',
-        description: `You have successfully joined ${item.title}.`,
-      });
+    onSuccess: (res: any) => {
+      const status = res?.status || res?.data?.status;
+      if (status === 'requested') {
+        toast({
+          type: 'info',
+          title: 'Join Request Sent',
+          description: `Your request to join ${item.title} was sent and is awaiting the host's approval.`,
+        });
+      } else {
+        setHasJoined(true);
+        toast({
+          type: 'success',
+          title: 'Joined Match!',
+          description: `You have successfully joined ${item.title}.`,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.features.recommendations() });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(item.gameId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.my() });

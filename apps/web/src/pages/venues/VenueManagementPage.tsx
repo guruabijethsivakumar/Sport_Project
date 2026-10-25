@@ -104,6 +104,14 @@ export function VenueManagementPage(): React.ReactElement {
 
   const availabilityList: any[] = (availabilityData as any)?.data || availabilityData || [];
 
+  const isVenueOccupied = useMemo(() => {
+    return availabilityList.some((c: any) => (c.bookedIntervals?.length || 0) > 0);
+  }, [availabilityList]);
+
+  const totalOccupiedCourts = useMemo(() => {
+    return availabilityList.filter((c: any) => (c.bookedIntervals?.length || 0) > 0).length;
+  }, [availabilityList]);
+
   // Handlers
   const handleCreateVenue = async () => {
     if (!newVenueName.trim() || !newVenueLine1.trim() || !newVenueCity.trim() || !newVenueArea.trim()) {
@@ -351,13 +359,19 @@ export function VenueManagementPage(): React.ReactElement {
                     <Badge
                       variant={
                         currentVenue?.status === 'active'
-                          ? 'success'
+                          ? isVenueOccupied
+                            ? 'warning'
+                            : 'success'
                           : currentVenue?.status === 'suspended'
                           ? 'danger'
                           : 'warning'
                       }
                     >
-                      {currentVenue?.status || 'Active'}
+                      {currentVenue?.status === 'active'
+                        ? isVenueOccupied
+                          ? 'Occupied'
+                          : 'Available'
+                        : currentVenue?.status || 'Active'}
                     </Badge>
                   </CardTitle>
                   <CardDescription>
@@ -380,7 +394,7 @@ export function VenueManagementPage(): React.ReactElement {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs pt-1">
                 <div className="rounded-lg bg-muted/30 p-3 border border-border-subtle">
                   <p className="text-muted-foreground">Total Courts</p>
                   <p className="text-base font-semibold text-foreground mt-0.5">
@@ -391,6 +405,12 @@ export function VenueManagementPage(): React.ReactElement {
                   <p className="text-muted-foreground">Active Courts</p>
                   <p className="text-base font-semibold text-success mt-0.5">
                     {currentVenue?.courts?.filter((c: any) => c.isActive !== false).length || 0}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-muted/30 p-3 border border-border-subtle">
+                  <p className="text-muted-foreground">Occupied Courts</p>
+                  <p className={`text-base font-semibold mt-0.5 ${totalOccupiedCourts > 0 ? 'text-warning' : 'text-foreground'}`}>
+                    {totalOccupiedCourts}
                   </p>
                 </div>
                 <div className="rounded-lg bg-muted/30 p-3 border border-border-subtle">
@@ -447,35 +467,48 @@ export function VenueManagementPage(): React.ReactElement {
                 />
               ) : (
                 <div className="divide-y divide-border-subtle">
-                  {currentVenue.courts.map((court: any) => (
-                    <div
-                      key={court.courtId || court._id}
-                      className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm text-foreground">
-                            {court.name}
-                          </span>
-                          <Badge variant={court.isActive !== false ? 'success' : 'secondary'}>
-                            {court.isActive !== false ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Supported Sports: {(court.sportKeys || []).join(', ') || 'All'}
-                        </p>
-                      </div>
+                  {currentVenue.courts.map((court: any) => {
+                    const courtId = court.courtId || court._id;
+                    const courtAvail = availabilityList.find(
+                      (a: any) => a.courtId === courtId || a.courtName === court.name,
+                    );
+                    const isCourtOccupied = Boolean(courtAvail?.bookedIntervals?.length > 0);
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleCourtActive(court)}
+                    return (
+                      <div
+                        key={courtId}
+                        className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                       >
-                        {court.isActive !== false ? 'Deactivate' : 'Activate'}
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm text-foreground">
+                              {court.name}
+                            </span>
+                            <Badge variant={court.isActive !== false ? 'success' : 'secondary'}>
+                              {court.isActive !== false ? 'Active' : 'Inactive'}
+                            </Badge>
+                            {isCourtOccupied && (
+                              <Badge variant="warning">
+                                Occupied ({courtAvail.bookedIntervals.length} booked)
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Supported Sports: {(court.sportKeys || []).join(', ') || 'All'}
+                          </p>
+                        </div>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleCourtActive(court)}
+                        >
+                          {court.isActive !== false ? 'Deactivate' : 'Activate'}
+                        </Button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -577,38 +610,65 @@ export function VenueManagementPage(): React.ReactElement {
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {availabilityList.map((cAvail: any) => (
-                    <div
-                      key={cAvail.courtId}
-                      className="rounded-lg border border-border-subtle p-3 text-xs space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground text-sm">
-                          {cAvail.courtName}
-                        </span>
-                        <Badge variant="outline">
-                          {cAvail.availableSlots?.length || 0} open slots
-                        </Badge>
-                      </div>
+                  {availabilityList.map((cAvail: any) => {
+                    const hasBookings = (cAvail.bookedIntervals?.length || 0) > 0;
+                    const openSlotsCount = (cAvail.availableSlots || cAvail.freeWindows || []).length;
 
-                      {cAvail.bookedIntervals?.length > 0 && (
-                        <div className="space-y-1 pt-1">
-                          <span className="font-medium text-muted-foreground">Booked Matches:</span>
-                          <div className="flex flex-wrap gap-2">
-                            {cAvail.bookedIntervals.map((b: any, i: number) => (
-                              <span
-                                key={i}
-                                className="rounded bg-muted px-2 py-0.5 text-xs text-foreground font-mono"
-                              >
-                                {new Date(b.startsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} —{' '}
-                                {new Date(b.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            ))}
+                    return (
+                      <div
+                        key={cAvail.courtId}
+                        className={`rounded-lg border p-3 text-xs space-y-2 transition-colors ${
+                          hasBookings
+                            ? 'border-warning/40 bg-warning/5'
+                            : 'border-border-subtle bg-card'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground text-sm">
+                              {cAvail.courtName}
+                            </span>
+                            {hasBookings ? (
+                              <Badge variant="warning">Occupied</Badge>
+                            ) : (
+                              <Badge variant="success">Available</Badge>
+                            )}
                           </div>
+                          <Badge variant="outline">
+                            {openSlotsCount} open slots
+                          </Badge>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {hasBookings && (
+                          <div className="space-y-1 pt-1 border-t border-warning/20">
+                            <span className="font-medium text-warning flex items-center gap-1">
+                              <Icon name="clock" size={13} />
+                              Occupied / Booked Matches ({cAvail.bookedIntervals.length}):
+                            </span>
+                            <div className="flex flex-wrap gap-2 pt-0.5">
+                              {cAvail.bookedIntervals.map((b: any, i: number) => (
+                                <span
+                                  key={i}
+                                  className="rounded bg-warning/15 border border-warning/30 px-2.5 py-1 text-xs text-foreground font-mono font-medium flex items-center gap-1.5"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
+                                  <span>
+                                    {new Date(b.startsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} —{' '}
+                                    {new Date(b.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                  {b.sportKey && (
+                                    <span className="uppercase text-[10px] text-muted-foreground font-sans">
+                                      ({b.sportKey})
+                                    </span>
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

@@ -58,9 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       try {
-        const profile = await sharedApiClient.get('/profile/me');
+        const profileData: any = await sharedApiClient.get('/profile/me');
         if (sessionEpochRef.current === currentEpoch && !isLoggingOutRef.current) {
-          setUser(profile);
+          const profileUser = profileData?.user || {};
+          setUser((prev: any) => ({
+            ...prev,
+            ...profileData,
+            ...profileUser,
+            email: profileData?.email || profileUser?.email || prev?.email,
+          }));
           setIsAuthenticated(true);
         }
       } catch {

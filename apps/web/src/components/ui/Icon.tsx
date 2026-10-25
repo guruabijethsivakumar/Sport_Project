@@ -58,12 +58,14 @@ import {
   Settings,
   ToggleLeft,
   ToggleRight,
+  Copy,
 } from 'lucide-react';
 
 export const ICON_MAP = {
   home: Home,
   user: User,
   mail: Mail,
+  copy: Copy,
   key: Key,
   lock: Lock,
   'user-plus': UserPlus,

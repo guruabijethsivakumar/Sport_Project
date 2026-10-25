@@ -127,7 +127,7 @@ export function GameTimelineCard({
   ];
 
   return (
-    <Card className={`border-border-subtle bg-card text-card-foreground shadow-sm overflow-hidden ${className}`}>
+    <Card className={`border-border-subtle bg-card text-card-foreground shadow-xs overflow-hidden ${className}`}>
       {/* Header */}
       <CardHeader className="pb-3 border-b border-border/40 bg-muted/20">
         <div className="flex items-center justify-between">
@@ -136,7 +136,7 @@ export function GameTimelineCard({
               <Icon name="activity" size={16} />
             </div>
             <div>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
                 Match Activity Timeline
                 {isRefetching && (
                   <span className="text-[10px] text-muted-foreground animate-pulse font-normal">
@@ -145,7 +145,7 @@ export function GameTimelineCard({
                 )}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Lifecycle milestones & live chronological audit trail
+                Lifecycle milestones & audit trail
               </p>
             </div>
           </div>
@@ -154,7 +154,7 @@ export function GameTimelineCard({
             type="button"
             onClick={() => refetch()}
             disabled={isLoading || isRefetching}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-muted transition-colors"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition-colors"
             title="Refresh timeline events"
           >
             <Icon name="refresh" size={14} className={isRefetching ? 'animate-spin' : ''} />
@@ -163,12 +163,12 @@ export function GameTimelineCard({
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-4 sm:p-5 space-y-4">
         {/* ─── 5-Step Visual Progression Stepper ──────────────────────────── */}
         <div className="relative">
-          <div className="grid grid-cols-5 gap-2 sm:gap-4 relative">
+          <div className="grid grid-cols-5 gap-1 sm:gap-2 relative">
             {/* Background connecting track */}
-            <div className="absolute top-5 left-[10%] right-[10%] h-0.5 bg-border -z-0 hidden sm:block" />
+            <div className="absolute top-4 left-[10%] right-[10%] h-0.5 bg-border -z-0 hidden sm:block" />
 
             {steps.map((step) => {
               const isCompleted = step.status === 'completed';
@@ -181,25 +181,25 @@ export function GameTimelineCard({
                 >
                   {/* Step Icon Node */}
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
+                    className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border-2 transition-all ${
                       isCompleted
-                        ? 'border-emerald-500 bg-emerald-500 text-white shadow-sm shadow-emerald-500/20'
+                        ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs shadow-emerald-500/20'
                         : isCurrent
                           ? 'border-primary bg-primary/10 text-primary animate-pulse ring-4 ring-primary/20'
                           : 'border-border bg-card text-muted-foreground'
                     }`}
                   >
                     {isCompleted ? (
-                      <Icon name="check-circle" size={18} />
+                      <Icon name="check-circle" size={15} />
                     ) : (
-                      <Icon name={step.iconName} size={16} />
+                      <Icon name={step.iconName} size={14} />
                     )}
                   </div>
 
                   {/* Step Label */}
-                  <div className="mt-2.5">
+                  <div className="mt-1.5">
                     <span
-                      className={`text-xs font-bold leading-tight block ${
+                      className={`text-[11px] font-bold leading-tight block ${
                         isCompleted
                           ? 'text-foreground'
                           : isCurrent
@@ -209,11 +209,11 @@ export function GameTimelineCard({
                     >
                       {step.label}
                     </span>
-                    <span className="text-[10px] text-muted-foreground hidden md:block mt-0.5 max-w-[90px] mx-auto leading-tight">
+                    <span className="text-[9px] text-muted-foreground hidden xl:block mt-0.5 max-w-[80px] mx-auto leading-tight">
                       {step.description}
                     </span>
                     {step.timestamp && (
-                      <span className="text-[9px] font-mono text-muted-foreground/80 mt-1 block">
+                      <span className="text-[9px] font-mono text-muted-foreground/80 mt-0.5 block">
                         {new Date(step.timestamp).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',

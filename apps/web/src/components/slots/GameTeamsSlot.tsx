@@ -5,6 +5,7 @@ export interface GameTeamsSlotProps {
   gameId: string;
   viewerRole?: string;
   fallback?: React.ReactNode;
+  isCancelled?: boolean;
 }
 
 /**
@@ -15,15 +16,17 @@ export function GameTeamsSlot({
   gameId,
   viewerRole,
   fallback = null,
+  isCancelled = false,
 }: GameTeamsSlotProps): React.ReactElement | null {
   if (!gameId) {
     return fallback ? <>{fallback}</> : null;
   }
 
   const canManage =
-    viewerRole === 'host' ||
-    viewerRole === 'organizer' ||
-    viewerRole === 'admin';
+    !isCancelled &&
+    (viewerRole === 'host' ||
+      viewerRole === 'organizer' ||
+      viewerRole === 'admin');
 
   return (
     <TeamBalancingView
