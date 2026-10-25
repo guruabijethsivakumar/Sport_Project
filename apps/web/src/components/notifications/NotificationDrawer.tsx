@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -128,7 +129,7 @@ export function NotificationDrawer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const handleItemClick = async (notif: NotificationItem) => {
     // 1. Mark as read if currently unread
@@ -172,7 +173,7 @@ export function NotificationDrawer({
     }
   };
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -186,9 +187,9 @@ export function NotificationDrawer({
       />
 
       {/* Slide-out Drawer Panel */}
-      <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
+      <div className="fixed inset-y-0 right-0 flex h-full max-w-full pl-10">
         <aside
-          className={`flex w-screen max-w-md flex-col border-l border-border bg-card text-foreground shadow-2xl transition-transform duration-300 ${className}`}
+          className={`flex h-full w-screen max-w-md flex-col border-l border-border bg-card text-foreground shadow-2xl transition-transform duration-300 ${className}`}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border p-5 bg-card">
@@ -235,7 +236,7 @@ export function NotificationDrawer({
           </div>
 
           {/* Body: Notifications List */}
-          <div className="flex-1 overflow-y-auto divide-y divide-border">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-border">
             {isLoading ? (
               <DrawerSkeleton />
             ) : notifications.length === 0 ? (
@@ -345,7 +346,8 @@ export function NotificationDrawer({
           </div>
         </aside>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
