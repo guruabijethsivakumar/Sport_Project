@@ -546,7 +546,7 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
         areaLabel: 'Marina Beach',
         location: { type: 'Point', coordinates: [80.2800, 13.0600] },
         timezone: DemoConstants.CITY.TIMEZONE,
-        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 360, closeMinute: 1380 })),
+        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 0, closeMinute: 1440 })),
         courts: [
           { name: 'Badminton Court 1', sportKeys: ['badminton'], isActive: true },
           { name: 'Badminton Court 2', sportKeys: ['badminton'], isActive: true },
@@ -571,7 +571,7 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
         areaLabel: 'Santhome',
         location: { type: 'Point', coordinates: [80.2830, 13.0550] },
         timezone: DemoConstants.CITY.TIMEZONE,
-        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 360, closeMinute: 1440 })),
+        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 0, closeMinute: 1440 })),
         courts: [
           { name: 'Beachside 5s Turf', sportKeys: ['football'], isActive: true },
         ],
@@ -594,7 +594,7 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
         areaLabel: 'Chepauk',
         location: { type: 'Point', coordinates: [80.2780, 13.0630] },
         timezone: DemoConstants.CITY.TIMEZONE,
-        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 360, closeMinute: 1380 })),
+        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 0, closeMinute: 1440 })),
         courts: [
           { name: 'Cricket Net A', sportKeys: ['cricket'], isActive: true },
           { name: 'Box Cricket Arena', sportKeys: ['cricket'], isActive: true },
@@ -618,7 +618,7 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
         areaLabel: 'Anna Nagar',
         location: { type: 'Point', coordinates: [80.2100, 13.0850] },
         timezone: DemoConstants.CITY.TIMEZONE,
-        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 420, closeMinute: 1320 })),
+        weeklyHours: Array.from({ length: 7 }, (_, day) => ({ dayOfWeek: day, openMinute: 0, closeMinute: 1440 })),
         courts: [
           { name: 'Indoor Court Alpha', sportKeys: ['badminton'], isActive: true },
         ],

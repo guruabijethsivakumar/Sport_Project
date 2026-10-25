@@ -149,31 +149,7 @@ export class GameResultService {
       );
     }
 
-    // 1. Verify balanced teams have been formed
-    const teamFormation = await GameTeamFormation.findOne({ gameId: gId });
-    if (!teamFormation || !teamFormation.teams || teamFormation.teams.length < 2) {
-      throw new AppError(
-        'Balanced teams must be generated and finalized before submitting match scores.',
-        HttpStatus.BAD_REQUEST,
-        ErrorCodes.VALIDATION_ERROR,
-      );
-    }
-
-    // 2. Verify match has ended (completed or past endsAt)
-    const currentTime = clock.now();
-    const isMatchEnded =
-      game.status === GameStatuses.COMPLETED ||
-      (game.endsAt && currentTime >= game.endsAt);
-
-    if (!isMatchEnded) {
-      throw new AppError(
-        'Score submission is only permitted after the match has concluded.',
-        HttpStatus.BAD_REQUEST,
-        ErrorCodes.VALIDATION_ERROR,
-      );
-    }
-
-    // 3. Verify caller is a JOINED participant
+    // 1. Verify caller is a JOINED participant
     const participations = await GameParticipant.find({
       gameId: gId,
       status: ParticipantStatuses.JOINED,
