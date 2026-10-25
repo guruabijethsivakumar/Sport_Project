@@ -120,7 +120,7 @@ export function SubmitScoreModal({
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card p-6 text-foreground shadow-2xl sm:p-8">
+      <div className="relative z-10 w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto rounded-2xl border border-border bg-card p-6 text-foreground shadow-2xl sm:p-8">
         {/* Glow effect */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
 

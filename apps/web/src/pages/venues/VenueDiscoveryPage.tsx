@@ -132,15 +132,6 @@ export function VenueDiscoveryPage(): React.ReactElement {
       <PageHeader
         title="Discover Venues & Courts"
         description="Explore verified sports facilities, arenas, courts, and floodlit turfs in your community."
-        actions={
-          <div className="flex items-center gap-3">
-            <Link to="/games/new">
-              <Button variant="primary" size="sm" leftIcon="plus">
-                Host Game Here
-              </Button>
-            </Link>
-          </div>
-        }
       />
 
       {/* Filter and Search Bar */}

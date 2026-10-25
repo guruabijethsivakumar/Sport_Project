@@ -14,6 +14,7 @@ import {
   adminListDisputesSchema,
   adminResolveDisputeSchema,
   adminVoidDisputeSchema,
+  adminListVenuesSchema,
 } from '../validators/admin.validators.js';
 
 const router = Router();
@@ -73,6 +74,13 @@ router.post(
   '/disputes/:gameId/void',
   validateRequest(adminVoidDisputeSchema),
   AdminController.voidDispute,
+);
+
+// Venue moderation
+router.get(
+  '/venues',
+  validateRequest(adminListVenuesSchema),
+  AdminController.listVenues,
 );
 
 export const adminRoutes = router;

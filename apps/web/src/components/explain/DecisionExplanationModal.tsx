@@ -249,7 +249,12 @@ function DecisionExplanationModalInner({
           <div className="flex border-b border-border bg-muted/40 px-6">
             <button
               type="button"
-              className="flex items-center gap-2 border-b-2 border-primary py-3 text-xs font-bold text-primary"
+              onClick={() => setActiveTab('eligibility')}
+              className={`flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
+                activeTab === 'eligibility'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
             >
               <ShieldAlert className="h-4 w-4" />
               Eligibility Status
@@ -258,7 +263,11 @@ function DecisionExplanationModalInner({
               <button
                 type="button"
                 onClick={() => setActiveTab('game')}
-                className="ml-6 flex items-center gap-2 border-b-2 border-transparent py-3 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                className={`ml-6 flex items-center gap-2 border-b-2 py-3 text-xs font-bold transition-colors ${
+                  activeTab === 'game'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
               >
                 <Target className="h-4 w-4" />
                 Match Fit

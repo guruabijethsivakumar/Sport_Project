@@ -183,7 +183,7 @@ export function GameTimelineCard({
                   <div
                     className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border-2 transition-all ${
                       isCompleted
-                        ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs shadow-emerald-500/20'
+                        ? 'border-success bg-success text-success-foreground shadow-xs'
                         : isCurrent
                           ? 'border-primary bg-primary/10 text-primary animate-pulse ring-4 ring-primary/20'
                           : 'border-border bg-card text-muted-foreground'
@@ -302,25 +302,25 @@ function formatEventMetadata(event: GameTimelineEvent): {
       return {
         title: 'Match Created',
         subtitle: 'Game opened for registration',
-        dotColor: 'bg-indigo-500',
+        dotColor: 'bg-primary',
       };
     case 'participant_joined':
       return {
         title: 'Player Joined',
         subtitle: event.payload?.displayName || 'Registered to match roster',
-        dotColor: 'bg-emerald-500',
+        dotColor: 'bg-success',
       };
     case 'participant_approved':
       return {
         title: 'Join Request Approved',
         subtitle: 'Host confirmed participant',
-        dotColor: 'bg-emerald-500',
+        dotColor: 'bg-success',
       };
     case 'participant_left':
       return {
         title: 'Player Withdrew',
         subtitle: 'Slot reopened to community',
-        dotColor: 'bg-amber-500',
+        dotColor: 'bg-warning',
       };
     case 'teams_generated':
       return {
@@ -328,37 +328,37 @@ function formatEventMetadata(event: GameTimelineEvent): {
         subtitle: event.payload?.difference !== undefined
           ? `Balanced (gap: ${event.payload.difference} Elo)`
           : 'Lineups formed via Elo engine',
-        dotColor: 'bg-purple-500',
+        dotColor: 'bg-info',
       };
     case 'game.result_submitted':
       return {
         title: 'Score Proposed',
         subtitle: 'Result submitted awaiting opponent verification',
-        dotColor: 'bg-amber-500',
+        dotColor: 'bg-warning',
       };
     case 'game.result_verified':
       return {
         title: 'Result Verified',
         subtitle: 'Ratings updated & ledger finalized',
-        dotColor: 'bg-emerald-500',
+        dotColor: 'bg-success',
       };
     case 'game.result_disputed':
       return {
         title: 'Result Disputed',
         subtitle: 'Discrepancy flagged for moderator review',
-        dotColor: 'bg-rose-500',
+        dotColor: 'bg-danger',
       };
     case 'game_cancelled':
       return {
         title: 'Match Cancelled',
         subtitle: 'Game removed by organizer',
-        dotColor: 'bg-rose-500',
+        dotColor: 'bg-danger',
       };
     default:
       return {
         title: event.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
         subtitle: event.payload?.reason || '',
-        dotColor: 'bg-slate-400',
+        dotColor: 'bg-muted-foreground',
       };
   }
 }

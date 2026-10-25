@@ -58,8 +58,8 @@ const ratingSchema = new Schema<IRatingDocument>(
     },
     peakRating: {
       type: Number,
-      default: function (this: IRatingDocument) {
-        return this.rating;
+      default: function (this: IRatingDocument | null) {
+        return this?.rating ?? config.DEFAULT_SEED_RATING;
       },
     },
     wins: {

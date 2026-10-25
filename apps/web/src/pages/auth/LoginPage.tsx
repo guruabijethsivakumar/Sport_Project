@@ -122,7 +122,13 @@ export function LoginPage(): React.ReactElement {
       const statusCode = err?.statusCode || err?.status;
       const errorCode = err?.code;
 
-      if (statusCode === 429 || errorCode === 'RATE_LIMIT_EXCEEDED') {
+      if (
+        statusCode === 403 ||
+        errorCode === 'AUTH_ACCOUNT_SUSPENDED' ||
+        err?.message?.toLowerCase().includes('suspended')
+      ) {
+        setAuthError(AUTH_MESSAGES.accountSuspended || 'This account has been suspended. Please contact support.');
+      } else if (statusCode === 429 || errorCode === 'RATE_LIMIT_EXCEEDED') {
         setAuthError(AUTH_MESSAGES.rateLimited);
       } else if (statusCode === 423 || errorCode === 'AUTH_ACCOUNT_LOCKED') {
         setAuthError(AUTH_MESSAGES.accountLocked);
@@ -217,15 +223,8 @@ export function LoginPage(): React.ReactElement {
               </div>
             </FormField>
 
-            {/* Forgot and Reset password options */}
-            <div className="flex justify-between items-center pt-1 text-xs">
-              <button
-                type="button"
-                onClick={() => setIsResetModalOpen(true)}
-                className="font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring rounded"
-              >
-                Reset Password
-              </button>
+            {/* Forgot password option */}
+            <div className="flex justify-end items-center pt-1 text-xs">
               <Link
                 to="/forgot-password"
                 onClick={(e) => {

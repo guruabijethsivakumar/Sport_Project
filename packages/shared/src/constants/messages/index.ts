@@ -39,6 +39,7 @@ export const AUTH_MESSAGES = {
   signingInButton: 'Signing in...',
   invalidCredentials: 'Email or password is incorrect.',
   accountLocked: 'Email or password is incorrect.', // Explicitly generic to prevent account enumeration
+  accountSuspended: 'This account has been suspended. Please contact support.',
   rateLimited: 'Too many attempts. Please try again in a few minutes.',
   networkError: 'Unable to connect to server. Please check your internet connection.',
   unknownError: 'An unexpected error occurred. Please try again.',

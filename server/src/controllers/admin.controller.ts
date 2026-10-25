@@ -162,4 +162,17 @@ export class AdminController {
       next(err);
     }
   }
+
+  static async listVenues(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const result = await AdminService.listVenues(req.query as any);
+      sendSuccess(res, result, 'Venues retrieved successfully');
+    } catch (err) {
+      next(err);
+    }
+  }
 }

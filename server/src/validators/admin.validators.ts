@@ -117,3 +117,14 @@ export const adminVoidDisputeSchema = z.object({
     })
     .optional(),
 });
+
+export const adminListVenuesSchema = z.object({
+  query: z
+    .object({
+      page: z.coerce.number().int().min(1).default(1),
+      limit: z.coerce.number().int().min(1).max(100).default(50),
+      status: z.string().trim().optional(),
+      search: z.string().trim().optional(),
+    })
+    .optional(),
+});

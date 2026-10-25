@@ -111,7 +111,7 @@ export function DisputeModal({
       />
 
       {/* Modal Dialog Card with Warning / Danger theme */}
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-danger/40 bg-card text-foreground p-6 shadow-2xl sm:p-8">
+      <div className="relative z-10 w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto rounded-2xl border border-danger/40 bg-card text-foreground p-6 shadow-2xl sm:p-8">
         {/* Subtle danger ambient glow */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-danger/10 blur-3xl" />
 

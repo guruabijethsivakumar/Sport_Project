@@ -488,7 +488,7 @@ export function useAdminAllVenues(
       const search = new URLSearchParams();
       if (queryParams?.status) search.set('status', queryParams.status);
       const qs = search.toString();
-      const res = await client.get(`/venues${qs ? `?${qs}` : ''}`);
+      const res = await client.get(`/admin/venues${qs ? `?${qs}` : ''}`);
       return (res as any)?.data || res;
     },
     ...options,

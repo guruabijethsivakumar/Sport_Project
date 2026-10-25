@@ -57,6 +57,13 @@ export interface ListDisputesQuery {
   limit?: number;
 }
 
+export interface ListVenuesAdminQuery {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}
+
 export interface ResolveDisputeDTO {
   action?: DisputeResolutionAction;
   scores?: IGameResultScore[];
@@ -529,6 +536,55 @@ export class AdminService {
 
     await gameResult.save();
     return gameResult;
+  }
+
+  /**
+   * List all venues with optional status filter for administrative moderation
+   */
+  static async listVenues(
+    query: ListVenuesAdminQuery = {},
+  ): Promise<{
+    venues: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(query.limit) || 50));
+    const filter: Record<string, any> = {};
+
+    if (query.status) {
+      filter.status = query.status;
+    }
+    if (query.search) {
+      filter.name = { $regex: query.search, $options: 'i' };
+    }
+
+    const skip = (page - 1) * limit;
+    const [venues, total] = await Promise.all([
+      Venue.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Venue.countDocuments(filter),
+    ]);
+
+    return {
+      venues: venues.map((v) => ({
+        ...v,
+        id: v._id.toString(),
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
   }
 
   /**
