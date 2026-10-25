@@ -1,4 +1,43 @@
 services:
+  # ── Express TypeScript API Backend ─────────────────────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: playmatch-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+    networks:
+      - playmatch-net
+
+  # ── React Vite Single Page App (Nginx) ────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_FEATURE_RECOMMENDATIONS_MODE: live
+        VITE_FEATURE_TEAMS_MODE: live
+        VITE_FEATURE_RESULTS_MODE: live
+        VITE_FEATURE_NOTIFICATIONS_MODE: live
+        VITE_FEATURE_RELIABILITY_MODE: live
+    container_name: playmatch-web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+    networks:
+      - playmatch-net
+
+  # ── Optional Local MongoDB Replica Set (for offline dev without Atlas) ─────
   mongo:
     image: mongo:${MONGO_IMAGE_TAG:-7.0}
     container_name: ${MONGO_CONTAINER_NAME:-playmatch-mongo}
@@ -33,6 +72,12 @@ services:
       timeout: 10s
       retries: 20
       start_period: 5s
+    networks:
+      - playmatch-net
+
+networks:
+  playmatch-net:
+    driver: bridge
 
 volumes:
   playmatch-mongo-data:

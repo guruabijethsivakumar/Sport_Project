@@ -1,0 +1,73 @@
+services:
+  # ── Backend Express API Web Service ────────────────────────────────────────
+  - type: web
+    name: playmatch-server
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: API_BASE_PATH
+        value: /api/v1
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_WEB_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_TTL
+        value: 15m
+      - key: REFRESH_TOKEN_TTL
+        value: 7d
+      - key: EMAIL_TRANSPORT
+        value: smtp
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+  # ── Frontend React Single Page App (Static Site) ───────────────────────────
+  - type: web
+    name: playmatch-web
+    runtime: static
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: npm install && npm --prefix packages/shared run gen:api && npm --prefix apps/web run build
+    staticPublishPath: apps/web/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_FEATURE_RECOMMENDATIONS_MODE
+        value: live
+      - key: VITE_FEATURE_TEAMS_MODE
+        value: live
+      - key: VITE_FEATURE_RESULTS_MODE
+        value: live
+      - key: VITE_FEATURE_NOTIFICATIONS_MODE
+        value: live
+      - key: VITE_FEATURE_RELIABILITY_MODE
+        value: live
+      - key: VITE_GOOGLE_CLIENT_ID
+        value: 986228335560-s98hie99465r0v4797l3pnkv5gqk4cie.apps.googleusercontent.com

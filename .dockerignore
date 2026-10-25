@@ -1,0 +1,20 @@
+# Root .dockerignore
+node_modules
+apps/mobile
+server/node_modules
+server/dist
+server/coverage
+apps/web/node_modules
+apps/web/dist
+packages/shared/node_modules
+.git
+.github
+.env
+.env.local
+server/.env
+server/.env.local
+apps/web/.env
+apps/web/.env.local
+*.log
+.DS_Store
+Thumbs.db
