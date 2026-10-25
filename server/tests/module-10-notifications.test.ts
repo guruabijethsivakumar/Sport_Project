@@ -615,6 +615,29 @@ describe('Module 10: Real-time & Notifications', () => {
       expect(notif.message).toContain('Player Two joined Saturday Cricket');
     });
 
+    it('should handle participant_requested event: notifies host and not requester', async () => {
+      const notifPromise = new Promise<RealtimeNotificationEvent>((resolve) => {
+        clientSocket.on('notification', (n) => resolve(n));
+      });
+
+      domainEvents.emit({
+        type: GameEventTypes.PARTICIPANT_REQUESTED,
+        gameId: 'game-201',
+        actorId: testUser2.id,
+        timestamp: new Date(),
+        data: {
+          hostUserId: testUser1.id,
+          playerName: 'Player Two',
+          gameName: 'Saturday Cricket',
+        },
+      });
+
+      const notif = await notifPromise;
+      expect(notif.type).toBe(NotificationTypes.GAME_INVITATION);
+      expect(notif.title).toBe('Join Request Received');
+      expect(notif.message).toContain('Player Two has requested to join Saturday Cricket');
+    });
+
     it('should handle game_confirmed event: notifies participants', async () => {
       const notifPromise = new Promise<RealtimeNotificationEvent>((resolve) => {
         clientSocket.on('notification', (n) => resolve(n));

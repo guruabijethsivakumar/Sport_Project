@@ -1141,7 +1141,7 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
       data: { gameId: g6._id.toString() },
     },
     {
-      user: players[3]!._id,
+      user: players[2]!._id,
       type: NotificationTypes.GAME_INVITATION,
       title: 'Join Request Received',
       message: 'Deepa S has requested to join your box cricket match.',

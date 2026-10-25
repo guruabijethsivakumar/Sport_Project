@@ -259,6 +259,9 @@ export class GameParticipantService {
             gameId: game._id.toString(),
             actorId: userObjectId.toString(),
             timestamp: now,
+            data: {
+              hostUserId: game.hostId.toString(),
+            },
           });
         });
       } finally {
@@ -352,6 +355,9 @@ export class GameParticipantService {
             gameId: game._id.toString(),
             actorId: userObjectId.toString(),
             timestamp: now,
+            data: {
+              hostUserId: game.hostId.toString(),
+            },
           });
 
           finalStatus = ParticipantStatuses.JOINED;

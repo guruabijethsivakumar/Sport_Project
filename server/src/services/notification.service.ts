@@ -159,12 +159,30 @@ function handleParticipantJoined(event: DomainEventPayload): void {
     gameName?: string;
   } | undefined;
 
-  if (data?.hostUserId) {
+  if (data?.hostUserId && data.hostUserId !== event.actorId) {
     createAndEmit({
       userId: data.hostUserId,
       type: NotificationTypes.GAME_JOINED,
       title: 'New Player Joined',
       message: `${data.playerName || 'A player'} joined ${data.gameName || 'your game'}.`,
+      data: { gameId: event.gameId, actorId: event.actorId },
+    });
+  }
+}
+
+function handleParticipantRequested(event: DomainEventPayload): void {
+  const data = event.data as {
+    hostUserId?: string;
+    playerName?: string;
+    gameName?: string;
+  } | undefined;
+
+  if (data?.hostUserId && data.hostUserId !== event.actorId) {
+    createAndEmit({
+      userId: data.hostUserId,
+      type: NotificationTypes.GAME_INVITATION,
+      title: 'Join Request Received',
+      message: `${data.playerName || 'A player'} has requested to join ${data.gameName || 'your match'}.`,
       data: { gameId: event.gameId, actorId: event.actorId },
     });
   }
@@ -301,6 +319,9 @@ export function registerNotificationListeners(): void {
   domainEvents.on('game.cancelled', handleGameCancelled);
   domainEvents.on(GameEventTypes.PARTICIPANT_JOINED, handleParticipantJoined);
   domainEvents.on('game.joined', handleParticipantJoined);
+  domainEvents.on(GameEventTypes.PARTICIPANT_REQUESTED, handleParticipantRequested);
+  domainEvents.on('participant_requested', handleParticipantRequested);
+  domainEvents.on('game.requested', handleParticipantRequested);
   domainEvents.on(GameEventTypes.GAME_CONFIRMED, handleGameConfirmed);
   domainEvents.on('game.confirmed', handleGameConfirmed);
   domainEvents.on(GameEventTypes.RESULT_SUBMITTED, handleResultSubmitted);
@@ -322,6 +343,9 @@ export function unregisterNotificationListeners(): void {
   domainEvents.off('game.cancelled', handleGameCancelled);
   domainEvents.off(GameEventTypes.PARTICIPANT_JOINED, handleParticipantJoined);
   domainEvents.off('game.joined', handleParticipantJoined);
+  domainEvents.off(GameEventTypes.PARTICIPANT_REQUESTED, handleParticipantRequested);
+  domainEvents.off('participant_requested', handleParticipantRequested);
+  domainEvents.off('game.requested', handleParticipantRequested);
   domainEvents.off(GameEventTypes.GAME_CONFIRMED, handleGameConfirmed);
   domainEvents.off('game.confirmed', handleGameConfirmed);
   domainEvents.off(GameEventTypes.RESULT_SUBMITTED, handleResultSubmitted);
