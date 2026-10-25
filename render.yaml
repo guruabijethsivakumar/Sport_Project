@@ -47,8 +47,6 @@ services:
   - type: web
     name: playmatch-web
     runtime: static
-    plan: free
-    region: oregon
     rootDir: .
     buildCommand: npm install && npm --prefix packages/shared run gen:api && npm --prefix apps/web run build
     staticPublishPath: apps/web/dist
