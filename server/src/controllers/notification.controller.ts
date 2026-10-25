@@ -58,3 +58,42 @@ export async function markAllAsRead(
     next(err);
   }
 }
+
+export async function deleteNotification(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const deleted = await NotificationService.deleteNotification(id, userId);
+
+    if (!deleted) {
+      throw new AppError(
+        Messages.NOTIFICATIONS.NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        ErrorCodes.NOTIFICATION_NOT_FOUND,
+      );
+    }
+
+    sendSuccess(res, { id, cleared: true }, 'Notification cleared successfully');
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function clearAllNotifications(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = req.user!.id;
+    const result = await NotificationService.clearAllNotifications(userId);
+    sendSuccess(res, result, 'All notifications cleared successfully');
+  } catch (err) {
+    next(err);
+  }
+}
+

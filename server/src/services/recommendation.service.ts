@@ -8,7 +8,7 @@ import {
   PlayerReliability,
   Sport,
 } from '../models/index.js';
-import { GameStatuses, ParticipantStatuses } from '../constants/game-constants.js';
+import { GameStatuses, ParticipantStatuses, GameVisibilities } from '../constants/game-constants.js';
 import { ErrorCodes } from '../constants/error-codes.js';
 import { Messages } from '../constants/messages.js';
 import { HttpStatus } from '../constants/http-status.js';
@@ -85,14 +85,24 @@ export class RecommendationService {
       targetSportKeys = sports.map((s) => s.key);
     }
 
-    // 5. Query candidate games
+    // 5. Query candidate games (only public games, strictly open and upcoming)
     const now = clock.now();
-    const candidateGames = await Game.find({
+    const rawCandidateGames = await Game.find({
       status: GameStatuses.OPEN,
+      visibility: GameVisibilities.PUBLIC,
       startsAt: { $gt: now },
       hostId: { $ne: callerObjectId },
       sportKey: { $in: targetSportKeys },
     }).lean();
+
+    // Deduplicate games by ID
+    const seenCandidateIds = new Set<string>();
+    const candidateGames = rawCandidateGames.filter((g) => {
+      const idStr = g._id.toString();
+      if (seenCandidateIds.has(idStr)) return false;
+      seenCandidateIds.add(idStr);
+      return true;
+    });
 
     if (candidateGames.length === 0) {
       return { items: [] };
@@ -217,6 +227,7 @@ export class RecommendationService {
       // Title
       const gameTitle =
         (game as any).title ||
+        (game as any).notes ||
         `${game.sportKey.charAt(0).toUpperCase() + game.sportKey.slice(1)} ${game.formatKey || 'Game'}`;
 
       const evalInput: RecommendationEvaluationInput = {

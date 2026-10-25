@@ -32,4 +32,19 @@ router.patch(
   NotificationController.markAsRead,
 );
 
+// DELETE /notifications/clear-all - Clear all notifications for user
+router.delete(
+  '/clear-all',
+  authenticate,
+  NotificationController.clearAllNotifications,
+);
+
+// DELETE /notifications/:id - Clear / delete a specific notification
+router.delete(
+  '/:id',
+  authenticate,
+  validateRequest(markNotificationReadSchema),
+  NotificationController.deleteNotification,
+);
+
 export const notificationRoutes = router;

@@ -1017,8 +1017,8 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
       gameId: g7._id,
       reporterUserId: players[3]!._id,
       targetUserId: players[5]!._id,
-      attendance: AttendanceStatuses.LATE,
-      note: 'Arrived 20 minutes after kickoff.',
+      attendance: AttendanceStatuses.NO_SHOW,
+      note: 'Late / No-show: arrived 20 minutes after kickoff.',
     },
     { upsert: true },
   );
@@ -1115,10 +1115,9 @@ export async function seedDemoData(options: SeedDemoOptions = {}): Promise<SeedD
       venueId: venue1._id,
       courtId: venue1.courts[1]?.courtId,
       joinPolicy: JoinPolicies.OPEN,
-      visibility: GameVisibilities.UNLISTED,
-      inviteCode: 'PLAY26',
+      visibility: GameVisibilities.PRIVATE,
       notes: 'Demo Private Game with Invite Code',
-    });
+    } as any);
   }
   createdGames.push(g10);
 

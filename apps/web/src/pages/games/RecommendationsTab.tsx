@@ -90,7 +90,7 @@ function ScoreGauge({ score }: { score: number }) {
           r={GAUGE_RADIUS}
           fill="none"
           stroke="currentColor"
-          className="text-white/[0.06]"
+          className="text-muted/40"
           strokeWidth={10}
         />
         {/* Animated progress arc */}
@@ -115,7 +115,7 @@ function ScoreGauge({ score }: { score: number }) {
         >
           {pct}%
         </span>
-        <span className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+        <span className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Match
         </span>
       </div>
@@ -145,15 +145,15 @@ function FactorBar({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium capitalize text-slate-300">{name}</span>
-        <span className="tabular-nums text-slate-500">
+        <span className="font-medium capitalize text-foreground">{name}</span>
+        <span className="tabular-nums text-muted-foreground">
           {pct}%{' '}
-          <span className="text-slate-600">
+          <span className="text-muted-foreground/70">
             (×{weight.toFixed(1)})
           </span>
         </span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div
           className={`h-full rounded-full ${barColor} transition-all duration-500 ease-out`}
           style={{ width: `${pct}%` }}
@@ -224,17 +224,17 @@ function RecommendationCard({
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-slate-800/60 to-slate-900/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:shadow-xl hover:shadow-purple-500/5">
+    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-border-subtle hover:shadow-md">
       {/* Subtle glow */}
-      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-purple-600/10 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-0" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-0" />
 
       {/* Header: title + confidence */}
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold text-slate-100 line-clamp-1">
+          <h3 className="text-lg font-semibold text-foreground line-clamp-1">
             {item.title}
           </h3>
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-purple-400 ring-1 ring-inset ring-purple-500/20">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400 ring-1 ring-inset ring-purple-500/20">
             {item.sportKey}
           </span>
         </div>
@@ -244,7 +244,7 @@ function RecommendationCard({
             <button
               type="button"
               onClick={onExplain}
-              className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 transition-colors"
+              className="inline-flex items-center gap-1 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-300 hover:bg-purple-500/20 transition-colors"
             >
               <Sparkles className="h-3 w-3" />
               Explain
@@ -258,7 +258,7 @@ function RecommendationCard({
         <ScoreGauge score={item.score} />
 
         <div className="flex-1 space-y-3 w-full">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Factor Breakdown
           </p>
           {item.factors.map((f: RecommendationFactor) => (
@@ -269,9 +269,9 @@ function RecommendationCard({
 
       {/* Reasons */}
       {item.reasons.length > 0 && (
-        <div className="mt-6 rounded-xl bg-white/[0.03] p-4">
+        <div className="mt-6 rounded-xl border border-border bg-muted/40 p-4">
           <div className="mb-2.5 flex items-center justify-between">
-            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Target className="h-3.5 w-3.5" />
               Why this game?
             </p>
@@ -279,7 +279,7 @@ function RecommendationCard({
               <button
                 type="button"
                 onClick={onExplain}
-                className="text-xs text-purple-400 hover:text-purple-300 font-medium"
+                className="text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium"
               >
                 Deep Dive &rarr;
               </button>
@@ -289,9 +289,9 @@ function RecommendationCard({
             {item.reasons.map((reason: string, i: number) => (
               <li
                 key={i}
-                className="flex items-start gap-2 text-sm text-slate-300"
+                className="flex items-start gap-2 text-sm text-foreground/90"
               >
-                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-purple-400" />
+                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-purple-500" />
                 <span>{reason}</span>
               </li>
             ))}
@@ -300,11 +300,11 @@ function RecommendationCard({
       )}
 
       {/* Action buttons: View Game & Join Game */}
-      <div className="mt-5 flex items-center justify-end gap-3 pt-4 border-t border-white/[0.08]">
+      <div className="mt-5 flex items-center justify-end gap-3 pt-4 border-t border-border">
         <button
           type="button"
           onClick={() => navigate(`/games/${item.gameId}`)}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/[0.1] hover:text-white"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
         >
           View Game
         </button>
@@ -345,21 +345,21 @@ function RecommendationCard({
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-2xl border border-white/[0.06] bg-slate-800/40 p-6">
+    <div className="animate-pulse rounded-2xl border border-border bg-card p-6">
       <div className="mb-5 flex items-start justify-between">
         <div className="space-y-2">
-          <div className="h-5 w-40 rounded-md bg-white/[0.06]" />
-          <div className="h-4 w-20 rounded-md bg-white/[0.06]" />
+          <div className="h-5 w-40 rounded-md bg-muted" />
+          <div className="h-4 w-20 rounded-md bg-muted" />
         </div>
-        <div className="h-6 w-28 rounded-full bg-white/[0.06]" />
+        <div className="h-6 w-28 rounded-full bg-muted" />
       </div>
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-        <div className="h-[136px] w-[136px] rounded-full bg-white/[0.06]" />
+        <div className="h-[136px] w-[136px] rounded-full bg-muted" />
         <div className="flex-1 space-y-4 w-full">
           {[1, 2, 3].map((n) => (
             <div key={n} className="space-y-1.5">
-              <div className="h-3 w-24 rounded bg-white/[0.06]" />
-              <div className="h-1.5 w-full rounded-full bg-white/[0.06]" />
+              <div className="h-3 w-24 rounded bg-muted" />
+              <div className="h-1.5 w-full rounded-full bg-muted" />
             </div>
           ))}
         </div>
@@ -372,15 +372,15 @@ function SkeletonCard() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] bg-slate-800/20 py-16 px-8 text-center">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 py-16 px-8 text-center">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/10">
-        <Sparkles className="h-8 w-8 text-purple-400" />
+        <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
       </div>
-      <h3 className="mb-1 text-lg font-semibold text-slate-200">
+      <h3 className="mb-1 text-lg font-semibold text-foreground">
         No recommendations yet
       </h3>
-      <p className="max-w-sm text-sm text-slate-400">
-        Complete your profile and play a few games so our AI can find the best
+      <p className="max-w-sm text-sm text-muted-foreground">
+        Complete your profile and play a few games so we can find the best
         matches for you.
       </p>
     </div>
@@ -404,10 +404,10 @@ export default function RecommendationsTab() {
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-100">
-              AI Recommendations
+            <h2 className="text-xl font-bold text-foreground">
+              Match Recommendations
             </h2>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Personalised game suggestions just for you
             </p>
           </div>
@@ -415,7 +415,7 @@ export default function RecommendationsTab() {
 
         <div className="flex items-center gap-3">
           {isMock && (
-            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 ring-1 ring-inset ring-amber-500/20">
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-500 ring-1 ring-inset ring-amber-500/20">
               Demo Data
             </span>
           )}
@@ -423,7 +423,7 @@ export default function RecommendationsTab() {
             type="button"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/[0.06] px-3.5 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/[0.1] hover:text-slate-100 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
           >
             <RefreshCw
               className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}
@@ -438,10 +438,10 @@ export default function RecommendationsTab() {
         <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
           <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
           <div>
-            <p className="font-medium text-red-300">
+            <p className="font-medium text-red-500 dark:text-red-300">
               Failed to load recommendations
             </p>
-            <p className="mt-0.5 text-sm text-red-400/80">
+            <p className="mt-0.5 text-sm text-red-600/80 dark:text-red-400/80">
               {error?.message || 'An unexpected error occurred. Please try again.'}
             </p>
           </div>
@@ -459,13 +459,22 @@ export default function RecommendationsTab() {
 
       {/* Data states */}
       {!isLoading && !isError && data && (() => {
-        const items = Array.isArray(data.items)
+        const rawItems = Array.isArray(data.items)
           ? data.items
           : Array.isArray((data as any).data?.items)
           ? (data as any).data.items
           : Array.isArray((data as any).data)
           ? (data as any).data
           : [];
+
+        // Deduplicate games by gameId or id so no game appears multiple times
+        const seenGameIds = new Set<string>();
+        const items = rawItems.filter((item: any) => {
+          const id = item.gameId || item.id;
+          if (!id || seenGameIds.has(id)) return false;
+          seenGameIds.add(id);
+          return true;
+        });
 
         return (
           <>
@@ -485,7 +494,7 @@ export default function RecommendationsTab() {
 
             {/* Live updating indicator */}
             {isFetching && !isLoading && (
-              <div className="flex items-center justify-center gap-2 py-3 text-xs text-slate-500">
+              <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Updating…
               </div>

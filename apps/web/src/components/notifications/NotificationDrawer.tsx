@@ -15,11 +15,14 @@ import {
   ChevronRight,
   Inbox,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 import {
   useNotifications,
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead,
+  useClearNotification,
+  useClearAllNotifications,
 } from '@playmatch/shared';
 import type { NotificationItem } from '@playmatch/shared/features/notifications';
 import { useAuth } from '../../auth/AuthContext';
@@ -114,6 +117,8 @@ export function NotificationDrawer({
 
   const markReadMutation = useMarkNotificationAsRead(client);
   const markAllMutation = useMarkAllNotificationsAsRead(client);
+  const clearOneMutation = useClearNotification(client);
+  const clearAllMutation = useClearAllNotifications(client);
 
   const notifications = data?.notifications || [];
   const unreadCount = data?.unreadCount || 0;
@@ -173,6 +178,24 @@ export function NotificationDrawer({
     }
   };
 
+  const handleClearOne = async (e: React.MouseEvent, notifId: string) => {
+    e.stopPropagation();
+    try {
+      await clearOneMutation.mutateAsync(notifId);
+    } catch {
+      // Handled by mutation hook
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (notifications.length === 0 || clearAllMutation.isPending) return;
+    try {
+      await clearAllMutation.mutateAsync();
+    } catch {
+      // Handled by mutation hook
+    }
+  };
+
   return createPortal(
     <div
       role="dialog"
@@ -222,6 +245,18 @@ export function NotificationDrawer({
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                   <span>Mark all</span>
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  disabled={clearAllMutation.isPending}
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-danger/10 hover:text-danger transition-colors disabled:opacity-50"
+                  title="Clear all notifications"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Clear all</span>
                 </button>
               )}
               <button
@@ -303,8 +338,8 @@ export function NotificationDrawer({
                       )}
                     </div>
 
-                    {/* Right: Unread Indicator & Mark Read Button */}
-                    <div className="flex flex-col items-center gap-2 self-center">
+                    {/* Right: Unread Indicator, Mark Read, & Clear Button */}
+                    <div className="flex flex-col items-center gap-1.5 self-center">
                       {!item.read && (
                         <>
                           {/* Unread dot */}
@@ -324,6 +359,17 @@ export function NotificationDrawer({
                           </button>
                         </>
                       )}
+                      {/* Clear / Dismiss individual notification */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleClearOne(e, item.id)}
+                        disabled={clearOneMutation.isPending}
+                        title="Clear notification"
+                        aria-label="Clear notification"
+                        className="rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-danger/10 hover:text-danger group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
                 );

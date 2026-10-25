@@ -705,6 +705,7 @@ export function GameDetailsPage(): React.ReactElement {
               gameId={game.id || game._id}
               viewerRole={viewerRole}
               isCancelled={isCancelled}
+              game={game}
             />
           </div>
         </div>

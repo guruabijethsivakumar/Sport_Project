@@ -129,6 +129,34 @@ export async function markAllAsRead(userId: string): Promise<{ modifiedCount: nu
   return { modifiedCount: result.modifiedCount };
 }
 
+/**
+ * Delete / clear a single notification for a user.
+ */
+export async function deleteNotification(
+  notificationId: string,
+  userId: string,
+): Promise<boolean> {
+  const result = await Notification.deleteOne({
+    _id: new Types.ObjectId(notificationId),
+    user: new Types.ObjectId(userId),
+  });
+
+  return result.deletedCount > 0;
+}
+
+/**
+ * Clear all notifications for a user.
+ */
+export async function clearAllNotifications(
+  userId: string,
+): Promise<{ deletedCount: number }> {
+  const result = await Notification.deleteMany({
+    user: new Types.ObjectId(userId),
+  });
+
+  return { deletedCount: result.deletedCount };
+}
+
 // ─── Domain Event Listeners ────────────────────────────────────────────────────
 
 function handleGameCancelled(event: DomainEventPayload): void {

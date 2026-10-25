@@ -229,7 +229,7 @@ function DecisionExplanationModalInner({
               <p className="text-xs text-muted-foreground">
                 {isEligibilityMode
                   ? 'Transparent analysis of match participation constraints & requirements'
-                  : 'Transparent breakdown of matchmaking AI & Elo calculations'}
+                  : 'Transparent breakdown of matchmaking & Elo calculations'}
               </p>
             </div>
           </div>

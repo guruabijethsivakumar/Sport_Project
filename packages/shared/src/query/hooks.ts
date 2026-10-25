@@ -157,6 +157,35 @@ export function useMarkAllNotificationsAsRead(
   });
 }
 
+export function useClearNotification(
+  client: ApiClient,
+  options?: UseMutationOptions<any, Error, string>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => client.delete(`/notifications/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.notifications() });
+    },
+    ...options,
+  });
+}
+
+export function useClearAllNotifications(
+  client: ApiClient,
+  options?: UseMutationOptions<any, Error, void>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => client.delete('/notifications/clear-all'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.notifications() });
+    },
+    ...options,
+  });
+}
+
+
 export interface AdminResolveDisputePayload {
   action?: 'accept_proposal' | 'override_scores' | 'void_match';
   scores?: Array<{ sideKey: string; score: number; winner: boolean }>;

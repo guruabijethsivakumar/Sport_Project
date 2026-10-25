@@ -11,6 +11,7 @@ export interface GameResultSlotProps {
   viewerRole?: string;
   fallback?: React.ReactNode;
   isCancelled?: boolean;
+  game?: any;
 }
 
 /**
@@ -24,6 +25,7 @@ export function GameResultSlot({
   viewerRole,
   fallback = null,
   isCancelled = false,
+  game,
 }: GameResultSlotProps): React.ReactElement | null {
   const { client, user } = useAuth();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
@@ -163,33 +165,59 @@ export function GameResultSlot({
       )}
 
       {/* 4. Score submission controls when no result is submitted yet */}
-      {hasNoResult && !isLoading && (
-        <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Match Scores</h4>
-            <p className="text-xs text-muted-foreground">
-              {isCancelled
-                ? 'This match has been cancelled. Score submission and Elo updates are disabled.'
-                : canSubmit
-                ? 'Submit match results after game completion to update player ratings.'
-                : 'Awaiting participants to complete the match and report scores.'}
-            </p>
+      {hasNoResult && !isLoading && (() => {
+        const hasTeams = Boolean(teamData?.teams && teamData.teams.length >= 2);
+        const now = new Date();
+        const gameEndTime = game?.endsAt ? new Date(game.endsAt) : null;
+        const isMatchEnded = Boolean(
+          game?.status === 'completed' || (gameEndTime && now >= gameEndTime)
+        );
+        const canSubmitScoresNow = canSubmit && hasTeams && isMatchEnded && !isCancelled;
+
+        const scoreDescription = isCancelled
+          ? 'This match has been cancelled. Score submission and Elo updates are disabled.'
+          : !hasTeams
+          ? 'Teams have not been generated yet. Lineups must be finalized before submitting match scores.'
+          : !isMatchEnded
+          ? gameEndTime
+            ? `Scores can be submitted once the match ends (scheduled until ${gameEndTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}).`
+            : 'Scores can be submitted once the match concludes.'
+          : canSubmit
+          ? 'Submit match results after game completion to update player ratings.'
+          : 'Awaiting participants to complete the match and report scores.';
+
+        const buttonLabel = isCancelled
+          ? 'Match Cancelled'
+          : !hasTeams
+          ? 'Teams Not Formed'
+          : !isMatchEnded
+          ? 'Available After Match'
+          : 'Submit Score';
+
+        return (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-border bg-card p-4">
+            <div>
+              <h4 className="text-sm font-semibold text-foreground">Match Scores</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {scoreDescription}
+              </p>
+            </div>
+            {canSubmit && (
+              <Button
+                type="button"
+                variant={canSubmitScoresNow ? 'primary' : 'outline'}
+                size="sm"
+                disabled={!canSubmitScoresNow}
+                onClick={() => canSubmitScoresNow && setSubmitModalOpen(true)}
+                className={!canSubmitScoresNow ? 'opacity-60 cursor-not-allowed whitespace-nowrap' : 'whitespace-nowrap'}
+              >
+                <Icon name="trophy" size={16} className="mr-2" />
+                {buttonLabel}
+              </Button>
+            )}
           </div>
-          {canSubmit && (
-            <Button
-              type="button"
-              variant={isCancelled ? 'outline' : 'primary'}
-              size="sm"
-              disabled={isCancelled}
-              onClick={() => !isCancelled && setSubmitModalOpen(true)}
-              className={isCancelled ? 'opacity-50 cursor-not-allowed' : ''}
-            >
-              <Icon name="trophy" size={16} className="mr-2" />
-              {isCancelled ? 'Match Cancelled' : 'Submit Score'}
-            </Button>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {submitModalOpen && !isCancelled && (
         <SubmitScoreModal
