@@ -149,7 +149,9 @@ describe('OnboardingPage Screen', () => {
     renderOnboardingPage();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('e.g. Alex Morgan')).toBeDefined();
+      const input = screen.getByPlaceholderText('e.g. Alex Morgan') as HTMLInputElement;
+      expect(input).toBeDefined();
+      expect(input.value).toBe('Alex Morgan');
     });
 
     const nameInput = screen.getByPlaceholderText('e.g. Alex Morgan');

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import {
   useOnboardingStatus,
@@ -68,13 +68,17 @@ export function OnboardingPage(): React.ReactElement {
 
   const [stepError, setStepError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasPrefilledProfileRef = useRef(false);
 
   // Prefill when profile data loads
   useEffect(() => {
+    if (hasPrefilledProfileRef.current) return;
     if (profileObj?.displayName) {
       setDisplayName(profileObj.displayName);
+      hasPrefilledProfileRef.current = true;
     } else if (user?.name && !displayName) {
       setDisplayName(user.name);
+      hasPrefilledProfileRef.current = true;
     }
     if (profileObj?.bio) {
       setBio(profileObj.bio);
