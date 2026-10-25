@@ -109,6 +109,21 @@ export function Navbar(): React.ReactElement {
                 <span className="text-sm font-medium hidden lg:inline max-w-28 truncate">
                   {displayName}
                 </span>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider hidden sm:inline-flex ${
+                    (user?.role || '').toLowerCase() === 'admin'
+                      ? 'bg-rose-500/15 text-rose-500 border border-rose-500/30'
+                      : (user?.role || '').toLowerCase() === 'venue_owner'
+                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                      : 'bg-primary/15 text-primary border border-primary/30'
+                  }`}
+                >
+                  {(user?.role || '').toLowerCase() === 'admin'
+                    ? 'Admin'
+                    : (user?.role || '').toLowerCase() === 'venue_owner'
+                    ? 'Host'
+                    : 'Player'}
+                </span>
                 <Icon name="chevron-down" size={14} className="text-muted-foreground" />
               </button>
             }

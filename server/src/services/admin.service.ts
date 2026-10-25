@@ -13,6 +13,7 @@ import { GameTeamFormation } from '../models/game-team-formation.model.js';
 import { MatchResult } from '../models/match-result.model.js';
 import { ratingEngineService } from './rating-engine.service.js';
 import { GameService } from './game.service.js';
+import { areSidesEqual } from './game-result.service.js';
 import { AppError } from '../utils/app-error.js';
 import { HttpStatus } from '../constants/http-status.js';
 import { ErrorCodes } from '../constants/error-codes.js';
@@ -75,10 +76,12 @@ export class AdminService {
 
     // 1. Check if team formation snapshot exists
     const teamFormation = await GameTeamFormation.findOne({ gameId });
-    if (teamFormation && teamFormation.teams) {
-      for (const team of teamFormation.teams) {
+    if (teamFormation && teamFormation.teams && teamFormation.teams.length > 0) {
+      for (let i = 0; i < teamFormation.teams.length; i++) {
+        const team = teamFormation.teams[i];
+        const sideKey = scores[i]?.sideKey || team.sideKey;
         for (const player of team.players) {
-          playerSideMap.set(player.userId.toString(), team.sideKey);
+          playerSideMap.set(player.userId.toString(), sideKey);
         }
       }
     }
@@ -393,20 +396,31 @@ export class AdminService {
       scoresToApply,
     );
 
-    const sides = scoresToApply.map((scoreItem) => {
+    const sides = scoresToApply.map((scoreItem, idx) => {
       let playerIds = participations
-        .filter(
-          (p) => playerSideMap.get(p.userId.toString()) === scoreItem.sideKey,
-        )
+        .filter((p) => {
+          const pSide = playerSideMap.get(p.userId.toString());
+          if (!pSide) return false;
+          return pSide === scoreItem.sideKey || areSidesEqual(pSide, scoreItem.sideKey);
+        })
         .map((p) => p.userId.toString());
 
       if (playerIds.length === 0) {
         const submitterStr =
           gameResult.proposal.proposedByUserId.toString();
-        if (playerSideMap.get(submitterStr) === scoreItem.sideKey) {
+        const opponentStr = gameResult.disputedByUserId
+          ? gameResult.disputedByUserId.toString()
+          : participations.find((p) => p.userId.toString() !== submitterStr)?.userId.toString() || '';
+
+        const submitterSide = playerSideMap.get(submitterStr);
+        const isSubmitterOnThisSide = submitterSide
+          ? submitterSide === scoreItem.sideKey || areSidesEqual(submitterSide, scoreItem.sideKey)
+          : idx === 0;
+
+        if (isSubmitterOnThisSide) {
           playerIds = [submitterStr];
-        } else if (gameResult.disputedByUserId) {
-          playerIds = [gameResult.disputedByUserId.toString()];
+        } else if (opponentStr) {
+          playerIds = [opponentStr];
         }
       }
 
@@ -416,6 +430,11 @@ export class AdminService {
         score: scoreItem.score,
       };
     });
+
+    if (sides.length === 2) {
+      const side0Set = new Set(sides[0].playerIds);
+      sides[1].playerIds = sides[1].playerIds.filter((id) => !side0Set.has(id));
+    }
 
     // Apply match rating deltas atomically via rating engine
     await ratingEngineService.applyMatchResult(

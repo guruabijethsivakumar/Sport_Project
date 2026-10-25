@@ -147,6 +147,20 @@ describe('Module 5: Game Discovery', () => {
       }
     });
 
+    it('anyDistance=true discovers games irrespective of radiusKm distance constraint', async () => {
+      const { user, token, sport } = await createOnboardedPlayer();
+      // Create a game ~100km away
+      await createOpenGame(user.id, sport.key, [81.5, 14.0]);
+
+      const res = await request(app)
+        .get('/api/v1/games/discover?lat=13.08&lng=80.27&anyDistance=true')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(HttpStatus.OK);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.items.length).toBeGreaterThanOrEqual(1);
+    });
+
     it('cursor decode produces consistent rounded distances (privacy invariant)', () => {
       // Unit test: encode a cursor and decode it — verify distance stored is rounded
       const step = config.DISTANCE_PRIVACY_ROUNDING_KM;

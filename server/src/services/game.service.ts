@@ -148,6 +148,28 @@ export class GameService {
             gResult.status === ResultStatuses.PENDING_CONFIRMATION &&
             gResult.whoMustActNext?.some((id: any) => id.toString() === vIdStr),
         );
+
+        if (gResult.status === ResultStatuses.VERIFIED && gResult.proposal) {
+          const scores = gResult.proposal.scores || [];
+          const winningScore = scores.find((s: any) => s.winner);
+          let winnerLabel = 'Draw';
+          if (winningScore) {
+            winnerLabel =
+              winningScore.sideKey === 'side_a'
+                ? 'Side A'
+                : winningScore.sideKey === 'side_b'
+                ? 'Side B'
+                : String(winningScore.sideKey);
+          }
+          gameObj.isResultVerified = true;
+          gameObj.confirmedResult = {
+            status: gResult.status,
+            winnerSideKey: winningScore ? winningScore.sideKey : 'draw',
+            winnerLabel: winningScore ? winnerLabel : 'Draw / Tie',
+            scoreSummary: scores.length >= 2 ? `${scores[0].score} - ${scores[1].score}` : '',
+            scores: scores,
+          };
+        }
       }
     } catch {
       // Safe fallback: non-blocking for formatGameForViewer

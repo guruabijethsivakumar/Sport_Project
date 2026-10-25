@@ -9,6 +9,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Icon } from '../../components/ui/Icon';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { getVenueOutdoorImage } from '../../utils/sports-images';
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -59,8 +60,7 @@ export function VenueDetailsPublicPage(): React.ReactElement {
     );
   }
 
-  const defaultPhoto =
-    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80';
+  const defaultPhoto = getVenueOutdoorImage(venue._id || venue.id, venue.name);
   const mainPhoto = venue.photoUrls && venue.photoUrls.length > 0 ? venue.photoUrls[0] : defaultPhoto;
   const courts = venue.courts || [];
 

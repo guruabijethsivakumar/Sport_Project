@@ -23,6 +23,7 @@ export interface DiscoverGamesFilter {
   lat?: number;
   lng?: number;
   radiusKm?: number;
+  anyDistance?: boolean;
   sportKey?: string;
   formatKey?: string;
   startsAfter?: Date;
@@ -126,6 +127,7 @@ export class DiscoveryService {
     }
 
     // 2. Validate & clamp radius
+    const isAnyDistance = Boolean(filters.anyDistance);
     const rawRadius = filters.radiusKm ?? config.DISCOVERY_DEFAULT_RADIUS_KM;
     const clampedRadiusKm = Math.min(
       Math.max(rawRadius, config.DISCOVERY_MIN_RADIUS_KM),
@@ -147,24 +149,25 @@ export class DiscoveryService {
     const sortBy = filters.sortBy || DiscoverySortOptions.DISTANCE;
 
     // 4. Build aggregation pipeline
-    const pipeline: any[] = [
-      {
-        $geoNear: {
-          near: { type: 'Point', coordinates: [originLng, originLat] },
-          distanceField: 'exactDistanceMeters',
-          maxDistance: radiusMeters * 1.5, // allow margin for rounded distance filtering
-          spherical: true,
-          query: {
-            visibility: GameVisibilities.PUBLIC,
-            status: { $in: [GameStatuses.OPEN, GameStatuses.FULL] },
-            startsAt: {
-              $gte: filters.startsAfter ?? now,
-              ...(filters.startsBefore ? { $lte: filters.startsBefore } : {}),
-            },
-          },
+    const geoNearStage: any = {
+      near: { type: 'Point', coordinates: [originLng, originLat] },
+      distanceField: 'exactDistanceMeters',
+      spherical: true,
+      query: {
+        visibility: GameVisibilities.PUBLIC,
+        status: { $in: [GameStatuses.OPEN, GameStatuses.FULL] },
+        startsAt: {
+          $gte: filters.startsAfter ?? now,
+          ...(filters.startsBefore ? { $lte: filters.startsBefore } : {}),
         },
       },
-    ];
+    };
+
+    if (!isAnyDistance) {
+      geoNearStage.maxDistance = radiusMeters * 1.5; // allow margin for rounded distance filtering
+    }
+
+    const pipeline: any[] = [{ $geoNear: geoNearStage }];
 
     // Filter by sport/format/joinPolicy/venue if specified
     const matchStage: any = {};
@@ -198,8 +201,8 @@ export class DiscoveryService {
       const exactDistanceKm = rawGame.exactDistanceMeters / 1000;
       const displayedDistanceKm = this.roundDistance(exactDistanceKm, isVenue);
 
-      // Requirement 2: Apply radius filter to rounded distance for free-form games
-      if (displayedDistanceKm > clampedRadiusKm) {
+      // Requirement 2: Apply radius filter to rounded distance for free-form games (skip if anyDistance)
+      if (!isAnyDistance && displayedDistanceKm > clampedRadiusKm) {
         continue;
       }
 

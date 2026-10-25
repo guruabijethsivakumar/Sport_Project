@@ -18,6 +18,7 @@ import { Icon } from '../../components/ui/Icon';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { getVenueOutdoorImage } from '../../utils/sports-images';
 
 const AMENITY_FILTER_OPTIONS = [
   { value: 'all', label: 'All Amenities' },
@@ -261,8 +262,7 @@ export function VenueDiscoveryPage(): React.ReactElement {
             {filteredItems.map(({ venue, distanceKm }) => {
               const venueId = venue._id || venue.id;
               const hasPhotos = venue.photoUrls && venue.photoUrls.length > 0;
-              const defaultPhoto =
-                'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80';
+              const defaultPhoto = getVenueOutdoorImage(venueId, venue.name);
               const photo = hasPhotos ? venue.photoUrls![0] : defaultPhoto;
               const courtsCount = venue.courts?.length || 0;
 

@@ -513,7 +513,10 @@ export class RatingEngineService {
       );
     }
 
-    const allPlayerIds = [...dto.sides[0].playerIds, ...dto.sides[1].playerIds];
+    const allPlayerIds = [
+      ...dto.sides[0].playerIds.map((id) => String(id).trim()),
+      ...dto.sides[1].playerIds.map((id) => String(id).trim()),
+    ];
     const uniqueIds = new Set(allPlayerIds);
     if (uniqueIds.size !== allPlayerIds.length) {
       throw new ValidationError(
@@ -647,7 +650,10 @@ export class RatingEngineService {
     }
 
     // Check duplicate players within side or across sides
-    const allPlayers = [...sideA.playerIds, ...sideB.playerIds];
+    const allPlayers = [
+      ...sideA.playerIds.map((id) => String(id).trim()),
+      ...sideB.playerIds.map((id) => String(id).trim()),
+    ];
     const uniquePlayers = new Set(allPlayers);
     if (uniquePlayers.size !== allPlayers.length) {
       throw new ValidationError(

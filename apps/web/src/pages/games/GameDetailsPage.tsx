@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import {
   useGameDetail,
   useGameRoster,
@@ -37,9 +37,16 @@ import { DecisionExplanationModal, type ExplanationModalMode } from '../../compo
 export function GameDetailsPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { client, user } = useAuth();
   const { toast } = useToast();
+
+  const fromParam = searchParams.get('from');
+  const locationState = location.state as { from?: string } | null;
+  const isFromMyGames = fromParam === 'my_games' || locationState?.from === 'my_games';
+  const backDestination = isFromMyGames ? '/games?tab=my_games' : '/games';
+  const backLabel = isFromMyGames ? 'Back to My Games & History' : 'Back to Discovery Feed';
 
   const inviteCodeParam = searchParams.get('code') || searchParams.get('inviteCode') || '';
   const [manualCode, setManualCode] = useState('');
@@ -360,11 +367,11 @@ export function GameDetailsPage(): React.ReactElement {
       {/* Navigation Breadcrumb */}
       <div>
         <Link
-          to="/games"
+          to={backDestination}
           className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <Icon name="chevron-down" size={14} className="rotate-90" />
-          Back to Discovery Feed
+          {backLabel}
         </Link>
       </div>
 
@@ -488,6 +495,33 @@ export function GameDetailsPage(): React.ReactElement {
           )}
         </div>
       </div>
+
+      {/* Confirmed Winner Alert Banner */}
+      {game.confirmedResult && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-emerald-400">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-warning shrink-0">
+              <Icon name="trophy" size={20} />
+            </div>
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-500">
+                Match Verified & Finalized
+              </span>
+              <h3 className="text-sm font-bold text-foreground">
+                Winner: {game.confirmedResult.winnerLabel}
+              </h3>
+            </div>
+          </div>
+          {game.confirmedResult.scoreSummary && (
+            <div className="flex items-center gap-2 self-start sm:self-center">
+              <span className="text-xs text-muted-foreground">Final Score:</span>
+              <span className="font-mono text-sm font-black text-foreground px-2.5 py-1 rounded-md bg-background border border-border">
+                {game.confirmedResult.scoreSummary}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Pending Result Verification Notice Banner */}
       {!isCancelled && isResultPending && (

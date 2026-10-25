@@ -158,6 +158,7 @@ export const discoverGamesQuerySchema = z.object({
     lat: z.coerce.number().min(-90).max(90).optional(),
     lng: z.coerce.number().min(-180).max(180).optional(),
     radiusKm: z.coerce.number().positive().optional(),
+    anyDistance: z.coerce.boolean().optional(),
     sportKey: z.string().trim().optional(),
     formatKey: z.string().trim().optional(),
     startsAfter: z

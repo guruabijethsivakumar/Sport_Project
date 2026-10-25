@@ -31,7 +31,7 @@ export function useFeatureRecommendations(
   client: ApiClient,
   options?: Partial<UseQueryOptions<RecommendationsResponse, Error>>,
 ) {
-  const mode = client.getConfig().features?.recommendationsMode || 'mock';
+  const mode = (typeof client?.getConfig === 'function' ? client.getConfig()?.features?.recommendationsMode : undefined) || 'mock';
   const isMock = mode === 'mock';
 
   const query = useQuery({
@@ -48,7 +48,7 @@ export function useFeatureTeamSuggestion(
   gameId: string,
   options?: Partial<UseQueryOptions<TeamSuggestionResponse | null, Error>>,
 ) {
-  const mode = client.getConfig().features?.teamsMode || 'mock';
+  const mode = (typeof client?.getConfig === 'function' ? client.getConfig()?.features?.teamsMode : undefined) || 'mock';
   const isMock = mode === 'mock';
 
   const query = useQuery({
@@ -66,7 +66,7 @@ export function useFeatureGameResult(
   gameId: string,
   options?: Partial<UseQueryOptions<GameResultResponse, Error>>,
 ) {
-  const mode = client.getConfig().features?.resultsMode || 'mock';
+  const mode = (typeof client?.getConfig === 'function' ? client.getConfig()?.features?.resultsMode : undefined) || 'mock';
   const isMock = mode === 'mock';
 
   const query = useQuery({
@@ -83,7 +83,7 @@ export function useFeatureNotifications(
   client: ApiClient,
   options?: Partial<UseQueryOptions<NotificationsListResponse, Error>>,
 ) {
-  const mode = client.getConfig().features?.notificationsMode || 'mock';
+  const mode = (typeof client?.getConfig === 'function' ? client.getConfig()?.features?.notificationsMode : undefined) || 'mock';
   const isMock = mode === 'mock';
 
   const query = useQuery({
@@ -104,7 +104,7 @@ export function useFeatureReliability(
   userId: string = 'me',
   options?: Partial<UseQueryOptions<ProfileReliabilityResponse, Error>>,
 ) {
-  const mode = client.getConfig().features?.reliabilityMode || 'mock';
+  const mode = (typeof client?.getConfig === 'function' ? client.getConfig()?.features?.reliabilityMode : undefined) || 'mock';
   const isMock = mode === 'mock';
 
   const query = useQuery({

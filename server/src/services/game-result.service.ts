@@ -2,6 +2,8 @@ import mongoose, { Types } from 'mongoose';
 import { Game } from '../models/game.model.js';
 import { GameParticipant } from '../models/game-participant.model.js';
 import { GameTeamFormation } from '../models/game-team-formation.model.js';
+import { Sport } from '../models/sport.model.js';
+import { Rating } from '../models/rating.model.js';
 import {
   GameResult,
   type IGameResultDocument,
@@ -30,6 +32,41 @@ export interface SubmitResultDTO {
   notes?: string;
 }
 
+/**
+ * Normalize side keys across different conventions ('team_a', 'side_a', 'teamA', 'sideA', etc.)
+ */
+export function normalizeSideKey(key?: string): string {
+  if (!key) return '';
+  const cleaned = key.trim().toLowerCase().replace(/[\s_-]+/g, '');
+  if (
+    cleaned === 'sidea' ||
+    cleaned === 'teama' ||
+    cleaned === 'a' ||
+    cleaned === 'side1' ||
+    cleaned === 'team1' ||
+    cleaned === '1'
+  ) {
+    return 'side_a';
+  }
+  if (
+    cleaned === 'sideb' ||
+    cleaned === 'teamb' ||
+    cleaned === 'b' ||
+    cleaned === 'side2' ||
+    cleaned === 'team2' ||
+    cleaned === '2'
+  ) {
+    return 'side_b';
+  }
+  return cleaned;
+}
+
+export function areSidesEqual(side1?: string, side2?: string): boolean {
+  if (!side1 || !side2) return false;
+  if (side1 === side2) return true;
+  return normalizeSideKey(side1) === normalizeSideKey(side2);
+}
+
 export class GameResultService {
   /**
    * Helper to build a map of joined participant userId -> sideKey
@@ -43,10 +80,13 @@ export class GameResultService {
 
     // 1. Check if team formation snapshot exists (Module 7)
     const teamFormation = await GameTeamFormation.findOne({ gameId });
-    if (teamFormation && teamFormation.teams) {
-      for (const team of teamFormation.teams) {
+    if (teamFormation && teamFormation.teams && teamFormation.teams.length > 0) {
+      for (let i = 0; i < teamFormation.teams.length; i++) {
+        const team = teamFormation.teams[i];
+        // Target sideKey from scores if available at this index, else team.sideKey
+        const sideKey = scores[i]?.sideKey || team.sideKey;
         for (const player of team.players) {
-          playerSideMap.set(player.userId.toString(), team.sideKey);
+          playerSideMap.set(player.userId.toString(), sideKey);
         }
       }
     }
@@ -159,9 +199,11 @@ export class GameResultService {
     }
 
     // All joined participants on a DIFFERENT side must verify
-    let opposingParticipants = participations.filter(
-      (p) => playerSideMap.get(p.userId.toString()) !== submitterSideKey,
-    );
+    let opposingParticipants = participations.filter((p) => {
+      const side = playerSideMap.get(p.userId.toString());
+      if (!side) return p.userId.toString() !== uId.toString();
+      return !areSidesEqual(side, submitterSideKey);
+    });
 
     // Fallback safety: if nobody is opposite, include all other participants
     if (opposingParticipants.length === 0) {
@@ -344,21 +386,29 @@ export class GameResultService {
     );
 
     // Map scores and participant assignments to ApplyMatchResultDTO
-    const sides = gameResult.proposal.scores.map((scoreItem) => {
+    const sides = gameResult.proposal.scores.map((scoreItem, idx) => {
       let playerIds = participations
-        .filter(
-          (p) =>
-            playerSideMap.get(p.userId.toString()) === scoreItem.sideKey,
-        )
+        .filter((p) => {
+          const pSide = playerSideMap.get(p.userId.toString());
+          if (!pSide) return false;
+          return pSide === scoreItem.sideKey || areSidesEqual(pSide, scoreItem.sideKey);
+        })
         .map((p) => p.userId.toString());
 
-      // Fallback: if playerIds empty for a side, map submitter vs verifier
+      // Fallback: if playerIds empty for a side, map submitter vs verifier safely
       if (playerIds.length === 0) {
         const submitterStr = gameResult.proposal.proposedByUserId.toString();
-        if (playerSideMap.get(submitterStr) === scoreItem.sideKey) {
+        const verifierStr = vId.toString();
+        const submitterSide = playerSideMap.get(submitterStr);
+
+        const isSubmitterOnThisSide = submitterSide
+          ? submitterSide === scoreItem.sideKey || areSidesEqual(submitterSide, scoreItem.sideKey)
+          : idx === 0;
+
+        if (isSubmitterOnThisSide) {
           playerIds = [submitterStr];
         } else {
-          playerIds = [vId.toString()];
+          playerIds = [verifierStr];
         }
       }
 
@@ -368,6 +418,46 @@ export class GameResultService {
         score: scoreItem.score,
       };
     });
+
+    // Ensure sides are strictly disjoint so no player can appear on opposing sides
+    if (sides.length === 2) {
+      const side0Set = new Set(sides[0].playerIds);
+      sides[1].playerIds = sides[1].playerIds.filter((id) => !side0Set.has(id));
+      if (sides[1].playerIds.length === 0) {
+        sides[1].playerIds = [vId.toString()];
+        sides[0].playerIds = sides[0].playerIds.filter((id) => id !== vId.toString());
+      }
+    }
+
+    // Ensure all participating players have an active Rating document for the game's sport
+    const sport = await Sport.findOne({ key: game.sportKey.toLowerCase().trim() });
+    if (sport) {
+      const allPlayerIds = [...sides[0].playerIds, ...sides[1].playerIds];
+      const existingRatings = await Rating.find({
+        sport: sport._id,
+        user: { $in: allPlayerIds.map((id) => new Types.ObjectId(id)) },
+      });
+      const existingUserIds = new Set(existingRatings.map((r) => r.user.toString()));
+
+      for (const pId of allPlayerIds) {
+        if (!existingUserIds.has(pId)) {
+          const defaultBand = sport.skillBands?.[0];
+          const seedRating = defaultBand?.seedRating || 1000;
+          await Rating.create({
+            user: new Types.ObjectId(pId),
+            sport: sport._id,
+            rating: seedRating,
+            seedRating,
+            seedBandKey: defaultBand?.key || 'beginner',
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            history: [],
+          });
+        }
+      }
+    }
 
     // Apply match rating deltas atomically via rating engine
     await ratingEngineService.applyMatchResult(
@@ -394,6 +484,12 @@ export class GameResultService {
         gameResult.verifiedAt = now;
         gameResult.whoMustActNext = [];
         await gameResult.save({ session });
+
+        // Ensure game is marked completed
+        if (game.status !== GameStatuses.COMPLETED) {
+          game.status = GameStatuses.COMPLETED;
+          await game.save({ session });
+        }
 
         // Domain event: game.result_verified
         eventBuffer.buffer({

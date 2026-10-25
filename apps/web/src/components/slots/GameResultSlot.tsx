@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFeatureGameResult } from '@playmatch/shared';
+import { useFeatureGameResult, useFeatureTeamSuggestion } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { VerificationBanner } from '../results/VerificationBanner';
 import { SubmitScoreModal } from '../results/SubmitScoreModal';
@@ -31,6 +31,15 @@ export function GameResultSlot({
   const { data: resultData, isLoading } = useFeatureGameResult(client, gameId, {
     enabled: Boolean(gameId),
   });
+
+  const { data: teamData } = useFeatureTeamSuggestion(client, gameId, {
+    enabled: Boolean(gameId),
+  });
+
+  const teamAName = teamData?.teams?.[0]?.name || 'Side A';
+  const teamBName = teamData?.teams?.[1]?.name || 'Side B';
+  const teamASideKey = teamData?.teams?.[0]?.sideKey || 'side_a';
+  const teamBSideKey = teamData?.teams?.[1]?.sideKey || 'side_b';
 
   if (!gameId) {
     return fallback ? <>{fallback}</> : null;
@@ -77,6 +86,8 @@ export function GameResultSlot({
           proposal={resultData.proposal}
           canAct={canAct}
           proposerName={isProposer ? 'You' : 'Opponent'}
+          sideAName={teamAName}
+          sideBName={teamBName}
         />
       )}
 
@@ -101,7 +112,7 @@ export function GameResultSlot({
           </div>
           <div className="mt-4 flex items-center justify-around">
             <div className="text-center">
-              <span className="text-xs font-semibold text-muted-foreground">Side A</span>
+              <span className="text-xs font-semibold text-muted-foreground">{teamAName}</span>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <span className="text-2xl font-black text-foreground">
                   {resultData.proposal.scores[0]?.score ?? 0}
@@ -113,7 +124,7 @@ export function GameResultSlot({
             </div>
             <div className="text-xl font-bold text-muted-foreground">:</div>
             <div className="text-center">
-              <span className="text-xs font-semibold text-muted-foreground">Side B</span>
+              <span className="text-xs font-semibold text-muted-foreground">{teamBName}</span>
               <div className="flex items-center justify-center gap-1 mt-1">
                 <span className="text-2xl font-black text-foreground">
                   {resultData.proposal.scores[1]?.score ?? 0}
@@ -185,6 +196,10 @@ export function GameResultSlot({
           isOpen={submitModalOpen}
           onClose={() => setSubmitModalOpen(false)}
           gameId={gameId}
+          sideAName={teamAName}
+          sideBName={teamBName}
+          sideAKey={teamASideKey}
+          sideBKey={teamBSideKey}
         />
       )}
     </div>

@@ -15,6 +15,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Icon } from '../../components/ui/Icon';
 import { useToast } from '../../components/ui/Toast';
+import { ConfirmDialog } from '../../components/ui/Dialog';
 
 const WIZARD_STEPS: StepItem[] = [
   { id: 'sport', title: 'Sport & Format' },
@@ -66,6 +67,7 @@ export function CreateGamePage(): React.ReactElement {
   const [activeStep, setActiveStep] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [discardModalOpen, setDiscardModalOpen] = useState<boolean>(false);
 
   // Form State
   const [sportKey, setSportKey] = useState<string>('');
@@ -336,8 +338,45 @@ export function CreateGamePage(): React.ReactElement {
     }
   };
 
+  const isFormDirty = Boolean(
+    activeStep > 0 ||
+    sportKey ||
+    formatKey ||
+    gameDate ||
+    startTime ||
+    notes ||
+    venueId ||
+    customAddress
+  );
+
+  const handleBackClick = () => {
+    if (isFormDirty) {
+      setDiscardModalOpen(true);
+    } else {
+      navigate('/games');
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setDiscardModalOpen(false);
+    navigate('/games');
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Back Button with Confirmation to Discard */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={handleBackClick}
+          aria-label="Discard and return to games"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
+        >
+          <Icon name="arrow-right" size={14} className="rotate-180 transition-transform group-hover:-translate-x-0.5" />
+          Discard & Return to Games
+        </button>
+      </div>
+
       {/* Header */}
       <PageHeader
         title="Schedule a New Game"
@@ -928,6 +967,19 @@ export function CreateGamePage(): React.ReactElement {
           )}
         </div>
       </Card>
+
+      {/* Discard Confirmation Dialog */}
+      <ConfirmDialog
+        open={discardModalOpen}
+        onOpenChange={setDiscardModalOpen}
+        title="Discard Draft Game?"
+        description="You have unsaved changes in your match configuration. Leaving now will discard your progress and return to the games directory. Are you sure you want to discard?"
+        confirmLabel="Discard & Leave"
+        cancelLabel="Continue Editing"
+        isDestructive
+        onConfirm={handleConfirmDiscard}
+        onCancel={() => setDiscardModalOpen(false)}
+      />
     </div>
   );
 }

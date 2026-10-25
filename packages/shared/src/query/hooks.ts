@@ -103,6 +103,8 @@ export function useVerifyResult(
       queryClient.invalidateQueries({ queryKey: queryKeys.games.detail(gameId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.games.my() });
       queryClient.invalidateQueries({ queryKey: queryKeys.ratings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.features.all });
     },
     ...options,
   });

@@ -17,6 +17,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Switch } from '../../components/ui/Switch';
 import { useToast } from '../../components/ui/Toast';
+import { EditProfileModal } from '../../components/profile/EditProfileModal';
 import { Select, type SelectOption } from '../../components/ui/Select';
 
 import {
@@ -36,6 +37,8 @@ export function ProfilePage(): React.ReactElement {
   const { client, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedRatingEvent, setSelectedRatingEvent] = useState<any | null>(null);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // 1. Fetch Player Profile
   const {
@@ -220,12 +223,10 @@ export function ProfilePage(): React.ReactElement {
         title="Player Profile"
         description="Inspect your calibrated Elo ratings, peak progression, match history, and attendance reliability score."
         actions={
-          <Link to="/onboarding">
-            <Button variant="outline" size="sm">
-              <Icon name="user" size={16} className="mr-2" />
-              Edit Profile
-            </Button>
-          </Link>
+          <Button variant="outline" size="sm" onClick={() => setEditModalOpen(true)}>
+            <Icon name="user" size={16} className="mr-2" />
+            Edit Profile
+          </Button>
         }
       />
 
@@ -664,6 +665,25 @@ export function ProfilePage(): React.ReactElement {
             : undefined
         }
       />
+
+      {editModalOpen && (
+        <EditProfileModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          initialProfile={{
+            displayName,
+            email: userEmail,
+            bio,
+            locationLabel,
+            travelRadiusKm: travelRadius,
+            homeLocation: profile?.homeLocation,
+          }}
+          onProfileUpdated={() => {
+            refetchProfile();
+            refetchRatings();
+          }}
+        />
+      )}
     </div>
   );
 }

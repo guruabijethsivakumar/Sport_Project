@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useSportsCatalog, useMyGames } from '@playmatch/shared';
 import { useAuth } from '../../auth/AuthContext';
@@ -76,14 +76,27 @@ export function GamesDiscoveryPage(): React.ReactElement {
   const navigate = useNavigate();
   const location = useLocation();
   const { code: routeInviteCode } = useParams<{ code?: string }>();
+  const [searchParams] = useSearchParams();
 
+  const tabParam = searchParams.get('tab');
   const isMyGamesRoute =
-    location.pathname.includes('/my-games') || location.pathname.includes('/games/mine');
+    location.pathname.includes('/my-games') ||
+    location.pathname.includes('/games/mine') ||
+    tabParam === 'my_games';
 
   // Tab State: Discover vs My Games & History
   const [activeTab, setActiveTab] = useState<'discover' | 'my_games'>(
     isMyGamesRoute ? 'my_games' : 'discover'
   );
+
+  React.useEffect(() => {
+    if (tabParam === 'my_games') {
+      setActiveTab('my_games');
+    } else if (tabParam === 'discover') {
+      setActiveTab('discover');
+    }
+  }, [tabParam]);
+
   const [myGamesFilter, setMyGamesFilter] = useState<'all' | 'action_required' | 'pending' | 'completed' | 'active'>('all');
   const [inviteModalOpen, setInviteModalOpen] = useState(Boolean(routeInviteCode));
 
@@ -95,6 +108,7 @@ export function GamesDiscoveryPage(): React.ReactElement {
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [selectedJoinPolicy, setSelectedJoinPolicy] = useState<string>('all');
   const [radiusKm, setRadiusKm] = useState<number>(25);
+  const [anyDistance, setAnyDistance] = useState<boolean>(false);
   const [openSeatsOnly, setOpenSeatsOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'distance' | 'start_time'>('distance');
 
@@ -240,6 +254,7 @@ export function GamesDiscoveryPage(): React.ReactElement {
         startsBefore,
         selectedJoinPolicy,
         radiusKm,
+        anyDistance,
         openSeatsOnly,
         sortBy,
       },
@@ -251,7 +266,11 @@ export function GamesDiscoveryPage(): React.ReactElement {
       if (startsAfter) q.set('startsAfter', startsAfter);
       if (startsBefore) q.set('startsBefore', startsBefore);
       if (selectedJoinPolicy !== 'all') q.set('joinPolicy', selectedJoinPolicy);
-      if (radiusKm) q.set('radiusKm', String(radiusKm));
+      if (anyDistance) {
+        q.set('anyDistance', 'true');
+      } else if (radiusKm) {
+        q.set('radiusKm', String(radiusKm));
+      }
       if (openSeatsOnly) q.set('openSeatsOnly', 'true');
       if (sortBy) q.set('sortBy', sortBy);
 
@@ -286,6 +305,7 @@ export function GamesDiscoveryPage(): React.ReactElement {
     selectedFormat !== 'all' ||
     selectedDate !== 'all' ||
     selectedJoinPolicy !== 'all' ||
+    anyDistance ||
     radiusKm !== 25 ||
     openSeatsOnly ||
     sortBy !== 'distance';
@@ -297,6 +317,7 @@ export function GamesDiscoveryPage(): React.ReactElement {
     setSelectedDate('all');
     setSelectedJoinPolicy('all');
     setRadiusKm(25);
+    setAnyDistance(false);
     setOpenSeatsOnly(false);
     setSortBy('distance');
   };
@@ -430,16 +451,32 @@ export function GamesDiscoveryPage(): React.ReactElement {
 
         {/* Row 2: Secondary Controls (Radius Slider, Join Policy, Sort, Open Seats) */}
         <div className="grid grid-cols-1 items-center gap-4 pt-2 border-t border-border-subtle/40 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Radius Slider */}
-          <div className="px-1">
+          {/* Radius Slider with Any Distance Option */}
+          <div className="px-1 space-y-1">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-medium text-foreground">
+                Distance Radius: {anyDistance ? 'Any distance (∞)' : `${radiusKm} km`}
+              </span>
+              <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground select-none">
+                <input
+                  type="checkbox"
+                  checked={anyDistance}
+                  onChange={(e) => setAnyDistance(e.target.checked)}
+                  className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
+                />
+                <span className={anyDistance ? 'text-primary font-bold' : ''}>Any distance</span>
+              </label>
+            </div>
             <Slider
-              label="Distance Radius"
               min={1}
               max={50}
               step={1}
+              disabled={anyDistance}
               value={[radiusKm]}
               onValueChange={(vals) => setRadiusKm(vals[0])}
               unit=" km"
+              className={anyDistance ? 'opacity-40 pointer-events-none' : ''}
+              aria-label="Distance Radius"
             />
           </div>
 
@@ -779,12 +816,30 @@ export function GamesDiscoveryPage(): React.ReactElement {
                   </div>
                 </div>
 
+                {/* Confirmed Winner Badge */}
+                {game.confirmedResult && (
+                  <div className="mt-3 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <Icon name="trophy" size={14} className="text-warning shrink-0" />
+                      <span className="truncate">Winner: {game.confirmedResult.winnerLabel}</span>
+                    </span>
+                    {game.confirmedResult.scoreSummary && (
+                      <span className="font-mono font-bold text-foreground shrink-0 ml-2">
+                        {game.confirmedResult.scoreSummary}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Bottom Action Links */}
                 <div className="mt-5 pt-4 border-t border-border-subtle flex items-center justify-between gap-3">
                   <span className="text-xs text-muted-foreground">
                     {game.participantCount || 2} players
                   </span>
-                  <Link to={`/games/${game.id || game._id}`}>
+                  <Link
+                    to={`/games/${game.id || game._id}?from=my_games`}
+                    state={{ from: 'my_games' }}
+                  >
                     {game.canVerify ? (
                       <Button
                         variant="primary"

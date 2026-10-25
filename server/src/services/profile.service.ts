@@ -174,6 +174,7 @@ export class ProfileService {
 
     recordStepCompletion(profile, OnboardingSteps.BASIC_INFO);
     await profile.save();
+    await User.findByIdAndUpdate(userId, { name: profile.displayName });
     return profile;
   }
 
