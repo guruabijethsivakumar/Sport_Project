@@ -44,6 +44,8 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        value: 320047377332-ald3ekin08nep4f7582o63162oibg1pv.apps.googleusercontent.com
 
   # ── Frontend React Single Page App (Static Site) ───────────────────────────
   - type: web
@@ -72,4 +74,4 @@ services:
       - key: VITE_FEATURE_RELIABILITY_MODE
         value: live
       - key: VITE_GOOGLE_CLIENT_ID
-        value: 986228335560-s98hie99465r0v4797l3pnkv5gqk4cie.apps.googleusercontent.com
+        value: 320047377332-ald3ekin08nep4f7582o63162oibg1pv.apps.googleusercontent.com
