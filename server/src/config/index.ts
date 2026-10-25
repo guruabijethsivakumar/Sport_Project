@@ -35,7 +35,10 @@ export const configSchema = z
       .min(1)
       .regex(/^\//, 'API_BASE_PATH must start with /')
       .default('/api/v1'),
-    CLIENT_WEB_URL: z.string().url('CLIENT_WEB_URL must be a valid URL'),
+    CLIENT_WEB_URL: z
+      .string()
+      .url('CLIENT_WEB_URL must be a valid URL')
+      .default('http://localhost:3000'),
     JWT_ACCESS_SECRET: z
       .string()
       .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters long'),
