@@ -879,6 +879,64 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/admin/venues": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List venues with pagination and filtering for admin moderation */
+    get: {
+      parameters: {
+        query?: {
+          page?: number;
+          limit?: number;
+          status?: "pending_approval" | "active" | "suspended" | "archived";
+          search?: string;
+        };
+        header?: {
+          /** @description Client platform type */
+          "x-client-type"?: components["parameters"]["ClientTypeHeader"];
+          /** @description Trace identifier for the request */
+          "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Venues list retrieved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Forbidden: admin only */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/auth/change-password": {
     parameters: {
       query?: never;
@@ -2852,6 +2910,43 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/notifications/clear-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Clear all notifications for the authenticated user */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description All notifications cleared successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiResponse"];
+          };
+        };
+        401: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/notifications/read-all": {
     parameters: {
       query?: never;
@@ -2887,6 +2982,48 @@ export interface paths {
         401: components["schemas"]["ApiErrorResponse"];
       };
     };
+    trace?: never;
+  };
+  "/api/v1/notifications/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete or clear a specific notification */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Notification ID */
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Notification cleared successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ApiResponse"];
+          };
+        };
+        400: components["schemas"]["ApiErrorResponse"];
+        401: components["schemas"]["ApiErrorResponse"];
+        404: components["schemas"]["ApiErrorResponse"];
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/v1/notifications/{id}/read": {

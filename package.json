@@ -13,6 +13,8 @@
     "server:seed": "npm --prefix server run seed:demo",
     "gen:api": "npm --prefix packages/shared run gen:api",
     "check:api": "npm --prefix packages/shared run check:api",
+    "openapi:check": "npm --prefix server run openapi:check",
+    "openapi:export": "npm --prefix server run openapi:export",
     "typecheck:shared": "npm --prefix packages/shared run typecheck",
     "typecheck:web": "npm --prefix apps/web run typecheck",
     "lint:shared": "npm --prefix packages/shared run lint",

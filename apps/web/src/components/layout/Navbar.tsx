@@ -112,9 +112,9 @@ export function Navbar(): React.ReactElement {
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider hidden sm:inline-flex ${
                     (user?.role || '').toLowerCase() === 'admin'
-                      ? 'bg-rose-500/15 text-rose-500 border border-rose-500/30'
+                      ? 'bg-danger/15 text-danger border border-danger/30'
                       : (user?.role || '').toLowerCase() === 'venue_owner'
-                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                      ? 'bg-success/15 text-success border border-success/30'
                       : 'bg-primary/15 text-primary border border-primary/30'
                   }`}
                 >

@@ -2189,6 +2189,43 @@ export function generateOpenAPISpec() {
           },
         },
       },
+      '/api/v1/notifications/clear-all': {
+        delete: {
+          tags: ['Notifications'],
+          summary: 'Clear all notifications for the authenticated user',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            '200': {
+              description: 'All notifications cleared successfully',
+              content: {
+                'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } },
+              },
+            },
+            '401': { $ref: '#/components/schemas/ApiErrorResponse' },
+          },
+        },
+      },
+      '/api/v1/notifications/{id}': {
+        delete: {
+          tags: ['Notifications'],
+          summary: 'Delete or clear a specific notification',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' }, description: 'Notification ID' },
+          ],
+          responses: {
+            '200': {
+              description: 'Notification cleared successfully',
+              content: {
+                'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } },
+              },
+            },
+            '400': { $ref: '#/components/schemas/ApiErrorResponse' },
+            '401': { $ref: '#/components/schemas/ApiErrorResponse' },
+            '404': { $ref: '#/components/schemas/ApiErrorResponse' },
+          },
+        },
+      },
       '/api/v1/recommendations': {
         get: {
           tags: ['Recommendations'],
@@ -2705,6 +2742,26 @@ export function generateOpenAPISpec() {
             '403': { description: 'Forbidden: admin only' },
             '404': { description: 'Dispute not found' },
             '409': { description: 'Dispute already resolved or voided' },
+          },
+        },
+      },
+      '/api/v1/admin/venues': {
+        get: {
+          tags: ['Admin'],
+          summary: 'List venues with pagination and filtering for admin moderation',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { $ref: '#/components/parameters/ClientTypeHeader' },
+            { $ref: '#/components/parameters/RequestIdHeader' },
+            { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 50 } },
+            { name: 'status', in: 'query', schema: { type: 'string', enum: Object.values(VenueStatuses) } },
+            { name: 'search', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: {
+            '200': { description: 'Venues list retrieved' },
+            '401': { description: 'Unauthorized' },
+            '403': { description: 'Forbidden: admin only' },
           },
         },
       },
