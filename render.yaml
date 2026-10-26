@@ -34,6 +34,8 @@ services:
         value: 7d
       - key: EMAIL_TRANSPORT
         value: smtp
+      - key: RESEND_API_KEY
+        sync: false
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT

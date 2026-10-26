@@ -78,7 +78,62 @@ export class EmailService {
   }
 
   /**
-   * Generic sender method handling both SMTP and console simulation.
+   * Attempts to deliver an email via Resend HTTP API.
+   * Returns true on success, false if Resend is not configured or rejected the request.
+   */
+  private async sendViaResend(options: EmailOptions): Promise<boolean> {
+    if (!config.RESEND_API_KEY || config.RESEND_API_KEY.trim().length === 0) {
+      return false;
+    }
+
+    try {
+      const fromAddress = config.EMAIL_FROM.includes('resend.dev')
+        ? config.EMAIL_FROM
+        : 'PlayMatch <onboarding@resend.dev>';
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.RESEND_API_KEY.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: [options.to],
+          subject: options.subject,
+          text: options.text,
+          html: options.html,
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as any;
+
+      if (response.ok) {
+        logger.info(
+          { to: options.to, subject: options.subject, messageId: data?.id },
+          'Email sent successfully via Resend API',
+        );
+        return true;
+      }
+
+      logger.warn(
+        {
+          to: options.to,
+          subject: options.subject,
+          status: response.status,
+          error: data?.message || data?.name,
+        },
+        'Resend API rejected email, falling back to SMTP transport',
+      );
+      return false;
+    } catch (error) {
+      logger.error({ error, to: options.to }, 'Failed to deliver email via Resend API, falling back to SMTP');
+      return false;
+    }
+  }
+
+  /**
+   * Generic sender method handling Resend, SMTP, and console simulation.
    */
   public async sendEmail(options: EmailOptions): Promise<void> {
     if (config.EMAIL_TRANSPORT === 'console' || config.NODE_ENV === 'test') {
@@ -93,6 +148,15 @@ export class EmailService {
       return;
     }
 
+    // 1. Attempt delivery via Resend API first if configured
+    if (config.RESEND_API_KEY && config.RESEND_API_KEY.trim().length > 0) {
+      const resendSuccess = await this.sendViaResend(options);
+      if (resendSuccess) {
+        return;
+      }
+    }
+
+    // 2. SMTP Delivery (or fallback when Resend is restricted/unverified for recipient)
     if (!this.transporter) {
       this.initTransporter();
     }

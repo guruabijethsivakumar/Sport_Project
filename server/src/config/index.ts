@@ -91,8 +91,9 @@ export const configSchema = z
       .default(587),
     SMTP_USER: z.string().optional().default(''),
     SMTP_PASS: z.string().optional().default(''),
+    RESEND_API_KEY: z.string().optional().default(''),
     EMAIL_FROM: z.string().min(1).default('PlayMatch Team <noreply@playmatch.app>'),
-    EMAIL_TRANSPORT: z.enum(['smtp', 'console']).default('console'),
+    EMAIL_TRANSPORT: z.enum(['smtp', 'resend', 'console']).default('smtp'),
     CLIENT_HEADER_NAME: z.string().min(1).default('x-client-type'),
     GOOGLE_CLIENT_ID: z.string().optional().default(''),
 
