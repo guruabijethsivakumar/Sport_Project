@@ -23,10 +23,15 @@ export function LoginPage(): React.ReactElement {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const urlToken = searchParams.get('token') || searchParams.get('resetToken') || '';
+  const urlEmail = searchParams.get('email') || '';
+
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(Boolean(urlToken));
+  const [resetToken, setResetToken] = useState<string>(urlToken);
   const errorBannerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,11 +62,22 @@ export function LoginPage(): React.ReactElement {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: '',
+      email: urlEmail || '',
       password: '',
     },
     mode: 'onBlur',
   });
+
+  // Listen to searchParams changes to open reset modal if user navigated with token
+  useEffect(() => {
+    if (urlToken) {
+      setResetToken(urlToken);
+      setIsResetModalOpen(true);
+      if (urlEmail) {
+        setValue('email', urlEmail);
+      }
+    }
+  }, [urlToken, urlEmail, setValue]);
 
   const handleGoogleSuccess = async (credential: string) => {
     setAuthError(null);
@@ -99,6 +115,7 @@ export function LoginPage(): React.ReactElement {
 
   const onSubmit = async (data: LoginFormValues) => {
     setAuthError(null);
+    setSuccessBanner(null);
     setIsSubmitting(true);
 
     try {
@@ -144,6 +161,30 @@ export function LoginPage(): React.ReactElement {
     }
   };
 
+  const handleModalClose = () => {
+    setIsResetModalOpen(false);
+    setResetToken('');
+    if (urlToken) {
+      const cleanParams = new URLSearchParams(searchParams);
+      cleanParams.delete('token');
+      cleanParams.delete('resetToken');
+      const searchStr = cleanParams.toString();
+      navigate(searchStr ? `/login?${searchStr}` : '/login', { replace: true });
+    }
+  };
+
+  const handlePasswordResetSuccess = (email: string) => {
+    if (email) setValue('email', email);
+    setSuccessBanner('Password reset successfully! You can now sign in with your new password.');
+    setResetToken('');
+    setIsResetModalOpen(false);
+    const cleanParams = new URLSearchParams(searchParams);
+    cleanParams.delete('token');
+    cleanParams.delete('resetToken');
+    const searchStr = cleanParams.toString();
+    navigate(searchStr ? `/login?${searchStr}` : '/login', { replace: true });
+  };
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 sm:p-6 lg:p-8">
       <Card className="w-full max-w-md shadow-lg border-border">
@@ -165,6 +206,26 @@ export function LoginPage(): React.ReactElement {
             error={authError}
             onDismiss={() => setAuthError(null)}
           />
+
+          {successBanner && (
+            <div
+              role="status"
+              className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-400 font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <Icon name="check-circle" size={16} className="text-emerald-500 flex-shrink-0" />
+                <span>{successBanner}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSuccessBanner(null)}
+                className="text-emerald-400/70 hover:text-emerald-300 p-0.5 rounded"
+                aria-label="Dismiss banner"
+              >
+                <Icon name="x" size={14} />
+              </button>
+            </div>
+          )}
 
           <div className="mb-4">
             <GoogleSignInButton
@@ -266,11 +327,10 @@ export function LoginPage(): React.ReactElement {
       {/* Forgot and Reset Password Dialog Modal */}
       <ForgotPasswordModal
         isOpen={isResetModalOpen}
-        onClose={() => setIsResetModalOpen(false)}
-        initialEmail={watch('email')}
-        onPasswordResetSuccess={(email) => {
-          if (email) setValue('email', email);
-        }}
+        onClose={handleModalClose}
+        initialEmail={urlEmail || watch('email')}
+        initialToken={resetToken}
+        onPasswordResetSuccess={handlePasswordResetSuccess}
       />
     </div>
   );

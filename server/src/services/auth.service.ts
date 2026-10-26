@@ -293,7 +293,7 @@ export class AuthService {
   /**
    * Handles forgot password requests without leaking whether the account exists.
    */
-  public async forgotPassword(email: string): Promise<void> {
+  public async forgotPassword(email: string, clientUrl?: string): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: normalizedEmail });
 
@@ -302,7 +302,7 @@ export class AuthService {
         userId: user._id,
         type: TokenTypes.PASSWORD_RESET,
       });
-      await emailService.sendPasswordResetEmail(user.email, user.name, token);
+      await emailService.sendPasswordResetEmail(user.email, user.name, token, clientUrl);
     }
   }
 

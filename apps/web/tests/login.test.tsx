@@ -160,4 +160,41 @@ describe('LoginPage Reference Screen', () => {
       expect(screen.getByText('Dashboard Destination')).toBeDefined();
     });
   });
+
+  it('automatically opens password reset modal when landing with email reset token link', async () => {
+    vi.spyOn(sharedApiClient, 'post').mockResolvedValueOnce({
+      success: true,
+      message: 'Password reset successful',
+    });
+
+    renderLoginPage(['/login?token=email-link-token-123&email=recovered@example.com']);
+
+    // Modal should be open with Choose New Password
+    await waitFor(() => {
+      expect(screen.getByText('Choose New Password')).toBeDefined();
+      expect(screen.getByText(/Reset token verified from email link/i)).toBeDefined();
+    });
+
+    // Enter new password
+    const passwordInput = screen.getByPlaceholderText(/Min. 8 characters/i);
+    const confirmInput = screen.getByPlaceholderText(/Re-enter new password/i);
+
+    fireEvent.change(passwordInput, { target: { value: 'NewSecurePass2026!' } });
+    fireEvent.change(confirmInput, { target: { value: 'NewSecurePass2026!' } });
+
+    const submitBtn = screen.getByRole('button', { name: /Reset Password/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(sharedApiClient.post).toHaveBeenCalledWith('/auth/reset-password', {
+        token: 'email-link-token-123',
+        newPassword: 'NewSecurePass2026!',
+      });
+      expect(screen.getByText(/Password reset successfully! You can now sign in with your new password./i)).toBeDefined();
+    });
+
+    // Email should be prefilled on the login form
+    const emailInput = screen.getByPlaceholderText(AUTH_MESSAGES.emailPlaceholder) as HTMLInputElement;
+    expect(emailInput.value).toBe('recovered@example.com');
+  });
 });

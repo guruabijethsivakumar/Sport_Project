@@ -22,20 +22,40 @@ export class EmailService {
   public initTransporter(): void {
     if (config.EMAIL_TRANSPORT === 'smtp') {
       const hasAuth = Boolean(config.SMTP_USER && config.SMTP_USER.trim().length > 0);
-      this.transporter = nodemailer.createTransport({
-        host: config.SMTP_HOST,
-        port: config.SMTP_PORT,
-        secure: config.SMTP_PORT === 465,
-        auth: hasAuth
-          ? {
-              user: config.SMTP_USER,
-              pass: config.SMTP_PASS || '',
-            }
-          : undefined,
-        tls: {
-          rejectUnauthorized: config.NODE_ENV === 'production',
-        },
-      });
+      const isGmail =
+        Boolean(config.SMTP_HOST?.includes('gmail')) ||
+        Boolean(config.SMTP_USER && config.SMTP_USER.includes('@gmail.com'));
+      const cleanPass = (config.SMTP_PASS || '').replace(/\s+/g, '');
+
+      if (isGmail) {
+        this.transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: hasAuth
+            ? {
+                user: config.SMTP_USER,
+                pass: cleanPass,
+              }
+            : undefined,
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+      } else {
+        this.transporter = nodemailer.createTransport({
+          host: config.SMTP_HOST,
+          port: config.SMTP_PORT,
+          secure: config.SMTP_PORT === 465,
+          auth: hasAuth
+            ? {
+                user: config.SMTP_USER,
+                pass: cleanPass,
+              }
+            : undefined,
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+      }
     } else {
       this.transporter = null;
     }
@@ -130,17 +150,25 @@ export class EmailService {
   /**
    * Sends password reset link with one-time token.
    */
-  public async sendPasswordResetEmail(to: string, name: string, token: string): Promise<void> {
-    const resetUrl = `${config.CLIENT_WEB_URL}/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`;
+  public async sendPasswordResetEmail(
+    to: string,
+    name: string,
+    token: string,
+    clientUrl?: string,
+  ): Promise<void> {
+    const rawBaseUrl = clientUrl && clientUrl.trim().length > 0 ? clientUrl : config.CLIENT_WEB_URL;
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+    const resetUrl = `${baseUrl}/login?token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`;
+    const recipientName = name || 'Player';
     const subject = 'Reset your PlayMatch password';
-    const text = `Hello ${name},\n\nWe received a request to reset your password for your PlayMatch account.\nClick the link below to set a new password:\n${resetUrl}\n\nThis link will expire in ${config.PASSWORD_RESET_TOKEN_TTL}.\n\nIf you did not request a password reset, you can safely ignore this email.`;
+    const text = `Hello ${recipientName},\n\nWe received a request to reset your password for your PlayMatch account.\nClick the link below to set a new password on the sign-in page:\n${resetUrl}\n\nThis link will expire in ${config.PASSWORD_RESET_TOKEN_TTL}.\n\nIf you did not request a password reset, you can safely ignore this email.`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
         <h2 style="color: #2b6cb0;">Password Reset Request</h2>
-        <p>Hello ${name},</p>
-        <p>We received a request to reset your PlayMatch account password. Click the button below to create a new password:</p>
+        <p>Hello ${recipientName},</p>
+        <p>We received a request to reset your PlayMatch account password. Click the button below to choose a new password directly on the sign-in page:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #e53e3e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+          <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
         </div>
         <p style="color: #718096; font-size: 14px;">Or copy and paste this link into your browser:<br/><a href="${resetUrl}">${resetUrl}</a></p>
         <p style="color: #a0aec0; font-size: 12px; margin-top: 30px;">This link will expire in ${config.PASSWORD_RESET_TOKEN_TTL}. If you did not request a password reset, your password remains secure and no action is required.</p>

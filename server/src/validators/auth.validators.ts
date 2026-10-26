@@ -48,6 +48,7 @@ export const resendVerificationSchema = z.object({
 export const forgotPasswordSchema = z.object({
   body: z.object({
     email: z.string().trim().email('Invalid email address format'),
+    clientUrl: z.string().url().optional(),
   }),
 });
 

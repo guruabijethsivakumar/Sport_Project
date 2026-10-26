@@ -23,6 +23,7 @@ interface ForgotPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialEmail?: string;
+  initialToken?: string;
   onPasswordResetSuccess?: (email: string) => void;
 }
 
@@ -30,13 +31,16 @@ export function ForgotPasswordModal({
   isOpen,
   onClose,
   initialEmail = '',
+  initialToken = '',
   onPasswordResetSuccess,
 }: ForgotPasswordModalProps): React.ReactElement {
   const { client } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'request' | 'reset'>('request');
+  const [activeTab, setActiveTab] = useState<'request' | 'reset'>(
+    initialToken ? 'reset' : 'request'
+  );
   const [requestSent, setRequestSent] = useState(false);
   const [sentEmail, setSentEmail] = useState(initialEmail);
   const [showPassword, setShowPassword] = useState(false);
@@ -48,7 +52,7 @@ export function ForgotPasswordModal({
     if (initialEmail && !sentEmail) {
       setSentEmail(initialEmail);
     }
-  }, [initialEmail]);
+  }, [initialEmail, sentEmail]);
 
   // Request Reset Link Form (Tab 1)
   const {
@@ -76,7 +80,9 @@ export function ForgotPasswordModal({
   const onRequestSubmit = async (data: ForgotPasswordFormValues) => {
     setResetError(null);
     try {
-      await forgotMutation.mutateAsync({ email: data.email.trim() });
+      await forgotMutation.mutateAsync({
+        email: data.email.trim(),
+      });
       setSentEmail(data.email.trim());
       setRequestSent(true);
       toast({
@@ -97,15 +103,24 @@ export function ForgotPasswordModal({
     handleSubmit: handleSubmitReset,
     formState: { errors: resetErrors },
     reset: resetResetForm,
+    setValue: setResetValue,
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordFormSchema),
     defaultValues: {
-      token: '',
+      token: initialToken || '',
       password: '',
       confirmPassword: '',
     },
     mode: 'onBlur',
   });
+
+  // Sync initialToken and switch to reset tab if token arrives
+  React.useEffect(() => {
+    if (initialToken) {
+      setActiveTab('reset');
+      setResetValue('token', initialToken);
+    }
+  }, [initialToken, setResetValue]);
 
   const onResetSubmit = async (data: ResetPasswordFormValues) => {
     setResetError(null);
@@ -122,14 +137,15 @@ export function ForgotPasswordModal({
       });
 
       resetResetForm();
-      onPasswordResetSuccess?.(sentEmail);
+      const targetEmail = sentEmail || initialEmail;
+      onPasswordResetSuccess?.(targetEmail);
       onClose();
     } catch (err: any) {
       const msg = err?.message || '';
       if (msg.toLowerCase().includes('token')) {
         setResetError('Password reset link or token is invalid or has expired. Please request a new link.');
       } else {
-        setResetError(msg || 'Failed to reset password. Please check your token and try again.');
+        setResetError(msg || 'Failed to reset password. Please check your inputs and try again.');
       }
     }
   };
@@ -140,14 +156,22 @@ export function ForgotPasswordModal({
     onClose();
   };
 
+  const isTokenFromLink = Boolean(initialToken);
+
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) handleModalClose();
       }}
-      title="Reset Password"
-      description="Send a password recovery link via SMTP or enter a received token to set a new password."
+      title={isTokenFromLink ? 'Choose New Password' : 'Reset Password'}
+      description={
+        isTokenFromLink
+          ? initialEmail
+            ? `Choose a new secure password for ${initialEmail}`
+            : 'Enter and confirm your new account password.'
+          : 'Send a password recovery link via SMTP or enter a received token to set a new password.'
+      }
     >
       <div className="space-y-4 pt-1">
         {/* Tab Switcher */}
@@ -198,7 +222,7 @@ export function ForgotPasswordModal({
                     If an account is registered for <strong className="text-foreground">{sentEmail}</strong>, an email containing your secure password reset link has been dispatched via SMTP.
                   </p>
                   <p className="text-[11px] text-muted-foreground pt-1">
-                    Check your inbox and spam folder. The link is valid for 1 hour.
+                    Check your inbox and click the button in the email to set your new password directly on this sign-in page. The link is valid for 1 hour.
                   </p>
                 </div>
 
@@ -290,22 +314,48 @@ export function ForgotPasswordModal({
           <form onSubmit={handleSubmitReset(onResetSubmit)} className="space-y-3.5" noValidate>
             <FormErrorBanner error={resetError} onDismiss={() => setResetError(null)} />
 
-            <FormField
-              id="modal-reset-token"
-              label="Reset Token"
-              error={resetErrors.token?.message}
-              required
-            >
-              <Input
+            {resetError?.includes('invalid') || resetError?.includes('expired') ? (
+              <div className="p-2.5 rounded-lg border border-amber-500/20 bg-amber-500/10 text-xs text-amber-500 flex items-center justify-between">
+                <span>Link expired or invalid? Request a new one:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('request');
+                    setResetError(null);
+                  }}
+                  className="font-semibold underline hover:text-amber-400"
+                >
+                  Request Link
+                </button>
+              </div>
+            ) : null}
+
+            {isTokenFromLink ? (
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-400 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <Icon name="check-circle" size={15} className="text-emerald-500" />
+                  <span>Reset token verified from email link</span>
+                </div>
+                <input type="hidden" {...registerReset('token')} />
+              </div>
+            ) : (
+              <FormField
                 id="modal-reset-token"
-                type="text"
-                placeholder="Paste token from reset email"
-                autoComplete="off"
-                isError={Boolean(resetErrors.token)}
-                disabled={resetMutation.isPending}
-                {...registerReset('token')}
-              />
-            </FormField>
+                label="Reset Token"
+                error={resetErrors.token?.message}
+                required
+              >
+                <Input
+                  id="modal-reset-token"
+                  type="text"
+                  placeholder="Paste token from reset email"
+                  autoComplete="off"
+                  isError={Boolean(resetErrors.token)}
+                  disabled={resetMutation.isPending}
+                  {...registerReset('token')}
+                />
+              </FormField>
+            )}
 
             <FormField
               id="modal-new-password"

@@ -39,10 +39,11 @@ export function useLogout(client: ApiClient, options?: UseMutationOptions<any, E
 
 export function useForgotPassword(
   client: ApiClient,
-  options?: UseMutationOptions<any, Error, { email: string }>,
+  options?: UseMutationOptions<any, Error, { email: string; clientUrl?: string }>,
 ) {
   return useMutation({
-    mutationFn: (body: { email: string }) => client.post('/auth/forgot-password', body),
+    mutationFn: (body: { email: string; clientUrl?: string }) =>
+      client.post('/auth/forgot-password', body),
     ...options,
   });
 }

@@ -322,8 +322,19 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const { email } = req.body;
-      await authService.forgotPassword(email);
+      const { email, clientUrl: bodyClientUrl } = req.body;
+      const originHeader = req.get('origin') || req.get('referer');
+      let clientUrl = bodyClientUrl;
+      if (!clientUrl && originHeader) {
+        try {
+          const parsed = new URL(originHeader);
+          clientUrl = parsed.origin;
+        } catch {
+          // ignore parsing error, service will use default fallback
+        }
+      }
+
+      await authService.forgotPassword(email, clientUrl);
       sendSuccess(res, undefined, Messages.AUTH_FORGOT_PASSWORD_GENERIC);
     } catch (error) {
       next(error);
