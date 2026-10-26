@@ -30,6 +30,10 @@ export class EmailService {
       if (isGmail) {
         this.transporter = nodemailer.createTransport({
           service: 'gmail',
+          pool: true,
+          maxConnections: 3,
+          maxMessages: 100,
+          rateLimit: 5,
           auth: hasAuth
             ? {
                 user: config.SMTP_USER,
@@ -45,6 +49,8 @@ export class EmailService {
           host: config.SMTP_HOST,
           port: config.SMTP_PORT,
           secure: config.SMTP_PORT === 465,
+          pool: true,
+          maxConnections: 3,
           auth: hasAuth
             ? {
                 user: config.SMTP_USER,
@@ -169,6 +175,12 @@ export class EmailService {
           subject: options.subject,
           text: options.text,
           html: options.html,
+          headers: {
+            'X-Priority': '1 (Highest)',
+            'X-MSMail-Priority': 'High',
+            'Importance': 'High',
+            'Priority': 'Urgent',
+          },
         });
         logger.info(
           { to: options.to, subject: options.subject, messageId: info.messageId },
