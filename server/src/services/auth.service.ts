@@ -89,7 +89,12 @@ export class AuthService {
       type: TokenTypes.EMAIL_VERIFICATION,
     });
 
-    await emailService.sendVerificationEmail(user.email, user.name, verificationToken);
+    // Fire-and-forget in background so user registration is immediate (<50ms)
+    emailService
+      .sendVerificationEmail(user.email, user.name, verificationToken)
+      .catch((err) => {
+        logger.error({ err, email: user.email }, 'Background verification email delivery failed');
+      });
 
     // Issue tokens
     const rawRefreshToken = tokenService.generateRefreshToken();
@@ -287,7 +292,11 @@ export class AuthService {
         userId: user._id,
         type: TokenTypes.EMAIL_VERIFICATION,
       });
-      await emailService.sendVerificationEmail(user.email, user.name, token);
+      emailService
+        .sendVerificationEmail(user.email, user.name, token)
+        .catch((err) => {
+          logger.error({ err, email: user.email }, 'Background resend verification email delivery failed');
+        });
     }
   }
 

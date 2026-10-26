@@ -50,7 +50,7 @@ function VenueModerationPanel({ client }: { client: any }): React.ReactElement {
   const [venueFilter, setVenueFilter] = useState<string | undefined>(undefined);
   const [loadingVenueId, setLoadingVenueId] = useState<string | null>(null);
 
-  const { data: venuesData, isLoading } = useAdminAllVenues(client, venueFilter ? { status: venueFilter } : undefined);
+  const { data: venuesData, isLoading, refetch: refetchVenues } = useAdminAllVenues(client, venueFilter ? { status: venueFilter } : undefined);
   const approveVenue = useApproveVenue(client);
   const suspendVenue = useSuspendVenue(client);
   const reinstateVenue = useReinstateVenue(client);
@@ -58,9 +58,10 @@ function VenueModerationPanel({ client }: { client: any }): React.ReactElement {
   const allVenues: any[] = (venuesData as any)?.venues || (venuesData as any)?.data?.venues || [];
 
   const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.admin.venuesAll() });
+    queryClient.invalidateQueries({ queryKey: ['admin', 'venues'] });
     queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats() });
     queryClient.invalidateQueries({ queryKey: queryKeys.venues.all });
+    refetchVenues();
   };
 
   const handleApprove = async (venueId: string) => {
@@ -606,23 +607,22 @@ export function AdminDashboardPage(): React.ReactElement {
 
   // Admin users query (kept inline from original for user moderation panel)
   const [adminUsersQueryData, setAdminUsersQueryData] = useState<any[]>([]);
-  const [adminUsersRefetch, setAdminUsersRefetch] = useState<(() => void) | null>(null);
 
   // Direct admin users fetch for user moderation
-  React.useEffect(() => {
+  const fetchUsers = React.useCallback(async () => {
     if (!isAdmin) return;
-    const fetchUsers = async () => {
-      try {
-        const res = await client.get(`/admin/users${userSearch ? `?search=${encodeURIComponent(userSearch)}` : ''}`);
-        const data = (res as any)?.data || res;
-        setAdminUsersQueryData(data?.users || []);
-      } catch {
-        setAdminUsersQueryData([]);
-      }
-    };
-    fetchUsers();
-    setAdminUsersRefetch(() => fetchUsers);
+    try {
+      const res = await client.get(`/admin/users${userSearch ? `?search=${encodeURIComponent(userSearch)}` : ''}`);
+      const data = (res as any)?.data || res;
+      setAdminUsersQueryData(data?.users || []);
+    } catch {
+      setAdminUsersQueryData([]);
+    }
   }, [isAdmin, userSearch, client]);
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const adminUsers = adminUsersQueryData;
 
@@ -633,7 +633,7 @@ export function AdminDashboardPage(): React.ReactElement {
     try {
       const targetId = targetUser.id || targetUser._id;
       setActionLoadingId(targetId);
-      const isSuspended = targetUser.isSuspended;
+      const isSuspended = targetUser.status === 'suspended' || targetUser.isSuspended === true;
       if (isSuspended) {
         await client.post(`/admin/users/${targetId}/reinstate`, { reason: 'Account reinstated by administrator' });
         toast({ title: 'User Reinstated', description: `${targetUser.email} has been reinstated.` });
@@ -641,7 +641,14 @@ export function AdminDashboardPage(): React.ReactElement {
         await client.post(`/admin/users/${targetId}/suspend`, { reason: 'Suspended by administrator' });
         toast({ title: 'User Suspended', description: `${targetUser.email} has been suspended.` });
       }
-      adminUsersRefetch?.();
+      setAdminUsersQueryData((prev) =>
+        prev.map((usr) =>
+          (usr.id || usr._id) === targetId
+            ? { ...usr, status: isSuspended ? 'active' : 'suspended', isSuspended: !isSuspended }
+            : usr
+        )
+      );
+      fetchUsers();
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats() });
     } catch (err: any) {
       toast({ title: 'Action Failed', description: err?.message || 'Could not update suspension status.', variant: 'destructive' });
@@ -655,7 +662,7 @@ export function AdminDashboardPage(): React.ReactElement {
       setActionLoadingId(targetUserId);
       await client.patch(`/admin/users/${targetUserId}/role`, { role: newRole });
       toast({ title: 'Role Updated', description: `User role has been changed to ${newRole}.` });
-      adminUsersRefetch?.();
+      fetchUsers();
     } catch (err: any) {
       toast({ title: 'Role Update Failed', description: err?.message || 'Could not update user role.', variant: 'destructive' });
     } finally {
@@ -1022,8 +1029,8 @@ export function AdminDashboardPage(): React.ReactElement {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={u.isSuspended ? 'danger' : 'success'}>
-                          {u.isSuspended ? 'Suspended' : 'Active'}
+                        <Badge variant={u.status === 'suspended' || u.isSuspended ? 'danger' : 'success'}>
+                          {u.status === 'suspended' || u.isSuspended ? 'Suspended' : 'Active'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -1031,32 +1038,12 @@ export function AdminDashboardPage(): React.ReactElement {
                           <div className="flex items-center justify-end gap-2">
                             <Button
                               size="sm"
-                              variant={u.isSuspended ? 'outline' : 'danger'}
+                              variant={u.status === 'suspended' || u.isSuspended ? 'outline' : 'danger'}
                               disabled={isPending}
                               onClick={() => handleToggleSuspend(u)}
                             >
-                              {u.isSuspended ? 'Reinstate' : 'Suspend'}
+                              {u.status === 'suspended' || u.isSuspended ? 'Reinstate' : 'Suspend'}
                             </Button>
-                            {u.role !== 'venue_owner' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={isPending}
-                                onClick={() => handleUpdateRole(uId, 'venue_owner')}
-                              >
-                                Make Owner
-                              </Button>
-                            )}
-                            {u.role === 'venue_owner' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={isPending}
-                                onClick={() => handleUpdateRole(uId, 'player')}
-                              >
-                                Make Player
-                              </Button>
-                            )}
                           </div>
                         )}
                       </TableCell>
