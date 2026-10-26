@@ -9,6 +9,7 @@ import { User, type IUserDocument } from '../models/user.model.js';
 import { passwordService } from './password.service.js';
 import { tokenService } from './token.service.js';
 import { emailService } from './email.service.js';
+import { logger } from '../utils/logger.js';
 import { OAuth2Client } from 'google-auth-library';
 import {
   AuthError,
@@ -302,7 +303,12 @@ export class AuthService {
         userId: user._id,
         type: TokenTypes.PASSWORD_RESET,
       });
-      await emailService.sendPasswordResetEmail(user.email, user.name, token, clientUrl);
+      // Fire-and-forget in background so HTTP client receives 200 OK immediately (<50ms)
+      emailService
+        .sendPasswordResetEmail(user.email, user.name, token, clientUrl)
+        .catch((err) => {
+          logger.error({ err, email: user.email }, 'Background password reset email delivery failed');
+        });
     }
   }
 

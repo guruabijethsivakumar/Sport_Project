@@ -2,7 +2,7 @@ import type { ClientConfig } from '@playmatch/shared';
 
 export const webClientConfig: ClientConfig = {
   baseUrl: import.meta.env.VITE_API_BASE_URL || '/api/v1',
-  timeoutMs: Number(import.meta.env.VITE_API_TIMEOUT_MS) || 15000,
+  timeoutMs: Number(import.meta.env.VITE_API_TIMEOUT_MS) || 30000,
   pollingIntervalMs: Number(import.meta.env.VITE_QUERY_POLLING_INTERVAL_MS) || 10000,
   features: {
     recommendationsMode: (import.meta.env.VITE_FEATURE_RECOMMENDATIONS_MODE as any) || 'live',

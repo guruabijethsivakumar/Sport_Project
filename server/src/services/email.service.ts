@@ -34,6 +34,9 @@ export class EmailService {
           maxConnections: 3,
           maxMessages: 100,
           rateLimit: 5,
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
           auth: hasAuth
             ? {
                 user: config.SMTP_USER,
@@ -51,6 +54,9 @@ export class EmailService {
           secure: config.SMTP_PORT === 465,
           pool: true,
           maxConnections: 3,
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
           auth: hasAuth
             ? {
                 user: config.SMTP_USER,

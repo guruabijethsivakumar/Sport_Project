@@ -46,6 +46,7 @@ export function ForgotPasswordModal({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null);
 
   // Sync initial email when modal opens
   React.useEffect(() => {
@@ -78,6 +79,7 @@ export function ForgotPasswordModal({
   const resetMutation = useResetPassword(client);
 
   const onRequestSubmit = async (data: ForgotPasswordFormValues) => {
+    setRequestError(null);
     setResetError(null);
     try {
       await forgotMutation.mutateAsync({
@@ -90,10 +92,14 @@ export function ForgotPasswordModal({
         description: `Password recovery link sent to ${data.email.trim()} via SMTP.`,
         type: 'success',
       });
-    } catch {
-      // Keep message uniform to avoid email enumeration
-      setSentEmail(data.email.trim());
-      setRequestSent(true);
+    } catch (err: any) {
+      const errMsg = err?.message || 'Failed to dispatch reset email. Please try again.';
+      setRequestError(errMsg);
+      toast({
+        title: 'Request Failed',
+        description: errMsg,
+        type: 'danger',
+      });
     }
   };
 
@@ -259,6 +265,7 @@ export function ForgotPasswordModal({
               </div>
             ) : (
               <form onSubmit={handleSubmitRequest(onRequestSubmit)} className="space-y-4" noValidate>
+                <FormErrorBanner error={requestError} onDismiss={() => setRequestError(null)} />
                 <p className="text-xs text-muted-foreground">
                   Enter your PlayMatch account email address. We will send a secure password reset link directly to your inbox via SMTP.
                 </p>
